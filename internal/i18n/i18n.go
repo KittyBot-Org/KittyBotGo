@@ -53,8 +53,7 @@ func parseData(bot *types.Bot, lang language.Tag, data map[string]interface{}, p
 		if value == nil {
 			continue
 		}
-		newPath := path + "." + key
-		strings.TrimPrefix(newPath, ".")
+		newPath := strings.TrimPrefix(path+"."+key, ".")
 		switch v := value.(type) {
 		case string:
 			if err := message.SetString(lang, newPath, v); err != nil {
