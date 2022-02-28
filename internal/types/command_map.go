@@ -81,7 +81,7 @@ func getMessagePrinter(i *core.BaseInteraction) *message.Printer {
 	lang, err := language.Parse(i.Locale.Code())
 	if err != nil && i.GuildLocale != nil {
 		i.Bot.Logger.Info("Failed to parse locale code, falling back to guild locale")
-		lang, err = language.Parse(i.GuildLocale.Code())
+		lang, _ = language.Parse(i.GuildLocale.Code())
 	}
 	if lang == language.Und {
 		i.Bot.Logger.Info("Failed to parse locale code, falling back to default locale")

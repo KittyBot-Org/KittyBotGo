@@ -54,16 +54,14 @@ func parseData(bot *types.Bot, lang language.Tag, data map[string]interface{}, p
 			continue
 		}
 		newPath := path + "." + key
-		if strings.HasPrefix(newPath, ".") {
-			newPath = strings.TrimPrefix(newPath, ".")
-		}
-		switch value.(type) {
+		strings.TrimPrefix(newPath, ".")
+		switch v := value.(type) {
 		case string:
-			if err := message.SetString(lang, newPath, value.(string)); err != nil {
-				bot.Logger.Errorf("Failed to set string with path %s and value %v: %s", newPath, value, err)
+			if err := message.SetString(lang, newPath, v); err != nil {
+				bot.Logger.Errorf("Failed to set string with path %s and value %s: %s", newPath, v, err)
 			}
 		case map[string]interface{}:
-			parseData(bot, lang, value.(map[string]interface{}), newPath)
+			parseData(bot, lang, v, newPath)
 		}
 	}
 }
