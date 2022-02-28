@@ -1,0 +1,5 @@
+{
+  "commands": {
+    "test": "Hello %s, this is a TestCommand and your locale is %s!"
+  }
+}
