@@ -7,9 +7,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/DisgoOrg/bot-template/internal/types"
-	"github.com/DisgoOrg/bot-template/modules"
 	"github.com/DisgoOrg/log"
+	"github.com/KittyBot-Org/KittyBotGo/internal/types"
+	"github.com/KittyBot-Org/KittyBotGo/modules"
 )
 
 var (

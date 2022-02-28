@@ -1,9 +1,9 @@
-[![Docker](https://github.com/DisgoOrg/bot-template/actions/workflows/docker-build.yml/badge.svg)](https://github.com/DisgoOrg/bot-template/actions/workflows/docker-build.yml)
-[![Test](https://github.com/DisgoOrg/bot-template/actions/workflows/go-test.yml/badge.svg)](https://github.com/DisgoOrg/bot-template/actions/workflows/go-test.yml)
+[![Docker](https://github.com/KittyBot-Org/KittyBotGo/actions/workflows/docker-build.yml/badge.svg)](https://github.com/KittyBot-Org/KittyBotGo/actions/workflows/docker-build.yml)
+[![Test](https://github.com/KittyBot-Org/KittyBotGo/actions/workflows/go-test.yml/badge.svg)](https://github.com/KittyBot-Org/KittyBotGo/actions/workflows/go-test.yml)
 
-# bot-template
+# KittyBotGo
 
-This is a simple bot template for creating a bot which includes a config, postgresql database, slash commands and event listeners.
+Fresh Golang rewrite of the [KittyBot](https://github.com/KittyBot-Org/KittyBot) project.
 
 Optional CLI Flags:
 - `--sync-commands=true`: Synchronize commands with the discord.

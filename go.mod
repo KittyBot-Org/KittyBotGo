@@ -1,4 +1,4 @@
-module github.com/DisgoOrg/bot-template
+module github.com/KittyBot-Org/KittyBotGo
 
 go 1.17
 

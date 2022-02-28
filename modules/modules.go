@@ -1,8 +1,8 @@
 package modules
 
 import (
-	"github.com/DisgoOrg/bot-template/internal/types"
-	"github.com/DisgoOrg/bot-template/modules/test"
+	"github.com/KittyBot-Org/KittyBotGo/internal/types"
+	"github.com/KittyBot-Org/KittyBotGo/modules/test"
 )
 
 var Modules = []types.Module{

@@ -1,6 +1,6 @@
 services:
   bot:
-    image: ghcr.io/DisgoOrg/bot-template
+    image: ghcr.io/KittyBot-Org/KittyBotGo
     restart: unless-stopped
     volumes:
       - ./config.json:/home/bot/config.json

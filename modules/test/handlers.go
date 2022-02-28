@@ -1,9 +1,9 @@
 package test
 
 import (
-	"github.com/DisgoOrg/bot-template/internal/types"
 	"github.com/DisgoOrg/disgo/core/events"
 	"github.com/DisgoOrg/disgo/discord"
+	"github.com/KittyBot-Org/KittyBotGo/internal/types"
 )
 
 func testHandler(b *types.Bot, e *events.ApplicationCommandInteractionEvent) error {
