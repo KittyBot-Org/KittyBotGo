@@ -14,4 +14,4 @@ Optional CLI Flags:
 
 - `--sync-commands=true`: Synchronize commands with the discord.
 - `--sync-db=true`: Synchronize database.
-- `--exit-after=true`: Exit after db & commands sync.
+- `--exit-after-sync=true`: Exit after db & commands sync.

@@ -6,7 +6,7 @@ import (
 
 type MusicPlayer struct {
 	GuildID              snowflake.Snowflake   `bun:"guild_id,pk,notnull"`
-	State                []byte                `bun:"type,notnull"`
+	State                []byte                `bun:"state,notnull"`
 	PlayingTrackUserData *AudioTrackData       `bun:"playing_track_user_data"`
 	Type                 int                   `bun:"type,notnull"`
 	Queue                []AudioTrack          `bun:"queue,notnull"`

@@ -5,6 +5,8 @@ import (
 
 	"github.com/DisgoOrg/disgo/core"
 	"github.com/DisgoOrg/disgo/core/events"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 func NewCommandMap(bot *Bot) *CommandMap {
@@ -34,7 +36,7 @@ func (m *CommandMap) OnEvent(event core.Event) {
 					m.bot.Logger.Errorf("No command handler for \"%s\"", e.Data.Name())
 					return
 				}
-				err := cmd.CommandHandler[buildCommandPath(d.SubCommandName, d.SubCommandGroupName)](m.bot, e)
+				err := cmd.CommandHandler[buildCommandPath(d.SubCommandName, d.SubCommandGroupName)](m.bot, getMessagePrinter(e.BaseInteraction), e)
 				if err != nil {
 					m.bot.Logger.Errorf("Failed to handle command \"%s\": %s", name, err)
 
@@ -47,7 +49,7 @@ func (m *CommandMap) OnEvent(event core.Event) {
 				m.bot.Logger.Errorf("No autocomplete handler for command \"%s\"", e.Data.CommandName)
 				return
 			}
-			if err := cmd.AutoCompleteHandler[buildCommandPath(e.Data.SubCommandName, e.Data.SubCommandGroupName)](m.bot, e); err != nil {
+			if err := cmd.AutoCompleteHandler[buildCommandPath(e.Data.SubCommandName, e.Data.SubCommandGroupName)](m.bot, getMessagePrinter(e.BaseInteraction), e); err != nil {
 				m.bot.Logger.Errorf("Failed to handle autocomplete for \"%s\": %s", e.Data.CommandName, err)
 			}
 		}
@@ -65,7 +67,7 @@ func (m *CommandMap) OnEvent(event core.Event) {
 				return
 			}
 			if h, ok := cmd.ComponentHandler[cmdHandler]; ok {
-				if err := h(m.bot, e, action); err != nil {
+				if err := h(m.bot, getMessagePrinter(e.BaseInteraction), e, action); err != nil {
 					m.bot.Logger.Errorf("Failed to handle component interaction for \"%s\": %s", cmdName, err)
 				}
 				return
@@ -73,6 +75,19 @@ func (m *CommandMap) OnEvent(event core.Event) {
 			m.bot.Logger.Errorf("No component handler for action \"%s\" on command \"%s\"", action, cmdName)
 		}
 	}
+}
+
+func getMessagePrinter(i *core.BaseInteraction) *message.Printer {
+	lang, err := language.Parse(i.Locale.Code())
+	if err != nil && i.GuildLocale != nil {
+		i.Bot.Logger.Info("Failed to parse locale code, falling back to guild locale")
+		lang, err = language.Parse(i.GuildLocale.Code())
+	}
+	if lang == language.Und {
+		i.Bot.Logger.Info("Failed to parse locale code, falling back to default locale")
+		lang = language.English
+	}
+	return message.NewPrinter(lang)
 }
 
 func buildCommandPath(subcommand *string, subcommandGroup *string) string {

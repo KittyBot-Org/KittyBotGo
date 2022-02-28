@@ -3,12 +3,13 @@ package types
 import (
 	"github.com/DisgoOrg/disgo/core/events"
 	"github.com/DisgoOrg/disgo/discord"
+	"golang.org/x/text/message"
 )
 
 type (
-	CommandHandler      func(b *Bot, e *events.ApplicationCommandInteractionEvent) error
-	ComponentHandler    func(b *Bot, e *events.ComponentInteractionEvent, action string) error
-	AutocompleteHandler func(b *Bot, e *events.AutocompleteInteractionEvent) error
+	CommandHandler      func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error
+	ComponentHandler    func(b *Bot, p *message.Printer, e *events.ComponentInteractionEvent, action string) error
+	AutocompleteHandler func(b *Bot, p *message.Printer, e *events.AutocompleteInteractionEvent) error
 )
 
 type Command struct {
@@ -34,6 +35,7 @@ func (b *Bot) SyncCommands() {
 				b.Logger.Errorf("Failed to sync commands for guild %s: %s", guildID, err)
 			}
 		}
+		return
 	}
 	b.Logger.Infof("Syncing Commands global...")
 	if _, err := b.Bot.SetCommands(commands); err != nil {

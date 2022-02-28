@@ -13,6 +13,7 @@ require (
 	github.com/uptrace/bun v1.0.25
 	github.com/uptrace/bun/dialect/pgdialect v1.0.25
 	github.com/uptrace/bun/driver/pgdriver v1.0.25
+	golang.org/x/text v0.3.7
 )
 
 require (
@@ -25,5 +26,6 @@ require (
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
 	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	mellium.im/sasl v0.2.1 // indirect
 )

@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/DisgoOrg/log"
+	"github.com/KittyBot-Org/KittyBotGo/internal/i18n"
 	"github.com/KittyBot-Org/KittyBotGo/internal/types"
 	"github.com/KittyBot-Org/KittyBotGo/modules"
 )
@@ -20,16 +21,17 @@ var (
 )
 
 func init() {
-	shouldSyncCommands = flag.Bool("sync-modules", false, "Whether to sync commands to discord")
+	shouldSyncCommands = flag.Bool("sync-commands", false, "Whether to sync commands to discord")
 	shouldSyncDBTables = flag.Bool("sync-db", false, "Whether to sync the database tables")
-	exitAfterSync = flag.Bool("exit-after", false, "Whether to exit after syncing commands and database tables")
+	exitAfterSync = flag.Bool("exit-after-sync", false, "Whether to exit after syncing commands and database tables")
 	flag.Parse()
 }
 
 func main() {
 	var err error
 	logger := log.New(log.Ldate | log.Ltime | log.Lshortfile)
-	bot := types.Bot{
+
+	bot := &types.Bot{
 		Logger: logger,
 	}
 	bot.Logger.Infof("Starting bot version: %s", version)
@@ -42,6 +44,10 @@ func main() {
 		bot.Logger.Fatal("Failed to load config: ", err)
 	}
 	logger.SetLevel(bot.Config.LogLevel)
+
+	if err = i18n.Setup(bot); err != nil {
+		bot.Logger.Fatal("Failed to setup i18n: ", err)
+	}
 
 	bot.LoadModules(modules.Modules)
 

@@ -1,4 +1,3 @@
-
 files:
-  - source: /languages/en.json
-    translation: /languages/%two_letters_code%_%language%.json
+  - source: /internal/i18n/languages/en.json
+    translation: /internal/i18n//languages/%two_letters_code%.json
