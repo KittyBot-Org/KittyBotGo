@@ -51,9 +51,7 @@ func main() {
 	defer bot.Bot.Close(context.TODO())
 
 	if *shouldSyncCommands {
-		if err = bot.SyncCommands(); err != nil {
-			bot.Logger.Fatal("Failed to sync modules: ", err)
-		}
+		bot.SyncCommands()
 	}
 
 	if err = bot.SetupDatabase(*shouldSyncDBTables); err != nil {
@@ -65,6 +63,11 @@ func main() {
 		bot.Logger.Infof("Exiting after syncing commands and database tables")
 		os.Exit(0)
 	}
+
+	bot.Logger.Info("Setting up Lavalink")
+	bot.SetupLavalink()
+	defer bot.Lavalink.Close()
+	defer bot.SavePlayers()
 
 	if err = bot.StartBot(); err != nil {
 		bot.Logger.Fatal("Failed to start bot: ", err)

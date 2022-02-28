@@ -22,7 +22,13 @@ func (b *Bot) SetupDatabase(shouldSyncDBTables bool) error {
 	b.DB = bun.NewDB(sqlDB, pgdialect.New())
 
 	if shouldSyncDBTables {
-		if err := b.DB.ResetModel(context.TODO(), (*models.Idk)(nil)); err != nil {
+		if err := b.DB.ResetModel(context.TODO(), (*models.Tag)(nil)); err != nil {
+			return err
+		}
+		if err := b.DB.ResetModel(context.TODO(), (*models.MusicPlayer)(nil)); err != nil {
+			return err
+		}
+		if err := b.DB.ResetModel(context.TODO(), (*models.PlayHistory)(nil)); err != nil {
 			return err
 		}
 	}

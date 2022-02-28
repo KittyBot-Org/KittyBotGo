@@ -4,8 +4,11 @@ go 1.17
 
 require (
 	github.com/DisgoOrg/disgo v0.7.3-0.20220228013717-4c02ad4f3d30
+	github.com/DisgoOrg/disgolink/disgolink v1.4.1
+	github.com/DisgoOrg/disgolink/lavalink v1.4.1
 	github.com/DisgoOrg/log v1.1.3
 	github.com/DisgoOrg/snowflake v1.0.4
+	github.com/DisgoOrg/source-extensions-plugin v1.1.3
 	github.com/pkg/errors v0.9.1
 	github.com/uptrace/bun v1.0.25
 	github.com/uptrace/bun/dialect/pgdialect v1.0.25

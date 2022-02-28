@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/DisgoOrg/disgo/json"
+	"github.com/DisgoOrg/disgolink/lavalink"
 	"github.com/DisgoOrg/log"
 	"github.com/DisgoOrg/snowflake"
 	"github.com/pkg/errors"
@@ -37,18 +38,30 @@ func (b *Bot) LoadConfig() error {
 }
 
 type Config struct {
-	DevMode    bool                `json:"dev_mode"`
-	DevGuildID snowflake.Snowflake `json:"dev_guild_id"`
-	LogLevel   log.Level           `json:"log_level"`
-	Token      string              `json:"token"`
-
-	Database Database `json:"database"`
+	DevMode     bool                  `json:"dev_mode"`
+	DevGuildIDs []snowflake.Snowflake `json:"dev_guild_ids"`
+	DevUserIDs  []snowflake.Snowflake `json:"dev_user_ids"`
+	LogLevel    log.Level             `json:"log_level"`
+	Bot         BotConfig             `json:"bot"`
+	Database    DatabaseConfig        `json:"database"`
+	Lavalink    LavalinkConfig        `json:"lavalink"`
 }
 
-type Database struct {
+type BotConfig struct {
+	Token      string `json:"token"`
+	ShardIDs   []int  `json:"shard_ids"`
+	ShardCount int    `json:"shard_count"`
+}
+
+type DatabaseConfig struct {
 	Host     string `json:"host"`
 	Port     int    `json:"port"`
 	User     string `json:"user"`
 	Password string `json:"password"`
 	DBName   string `json:"db_name"`
+}
+
+type LavalinkConfig struct {
+	Nodes           []lavalink.NodeConfig `json:"nodes"`
+	ResumingTimeout int                   `json:"resuming_timeout"`
 }

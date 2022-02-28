@@ -7,22 +7,26 @@ import (
 	"github.com/DisgoOrg/disgo/core/bot"
 	"github.com/DisgoOrg/disgo/discord"
 	"github.com/DisgoOrg/disgo/gateway"
+	"github.com/DisgoOrg/disgolink/disgolink"
 	"github.com/DisgoOrg/log"
 	"github.com/uptrace/bun"
 )
 
 type Bot struct {
-	Bot       *core.Bot
-	Logger    log.Logger
-	Commands  *CommandMap
-	Listeners *Listeners
-	DB        *bun.DB
-	Config    Config
-	Version   string
+	Logger           log.Logger
+	Bot              *core.Bot
+	Lavalink         disgolink.Link
+	MusicPlayers     *MusicPlayerMap
+	PlayHistoryCache *PlayHistoryCache
+	Commands         *CommandMap
+	Listeners        *Listeners
+	DB               *bun.DB
+	Config           Config
+	Version          string
 }
 
 func (b *Bot) SetupBot() (err error) {
-	b.Bot, err = bot.New(b.Config.Token,
+	b.Bot, err = bot.New(b.Config.Bot.Token,
 		bot.WithLogger(b.Logger),
 		bot.WithGatewayOpts(gateway.WithGatewayIntents(discord.GatewayIntentGuilds)),
 		bot.WithEventListeners(b.Commands, b.Listeners),
