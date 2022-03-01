@@ -30,14 +30,14 @@ type CommandsModule interface {
 	Commands() []Command
 }
 
-type ListenerModule interface {
-	OnEvent(b *Bot, event core.Event)
-}
-
-type CommandModule struct {
+type DefaultCommandsModule struct {
 	Cmds []Command
 }
 
-func (m CommandModule) Commands() []Command {
+func (m DefaultCommandsModule) Commands() []Command {
 	return m.Cmds
+}
+
+type ListenerModule interface {
+	OnEvent(b *Bot, event core.Event)
 }

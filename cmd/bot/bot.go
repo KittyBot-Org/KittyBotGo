@@ -9,6 +9,7 @@ import (
 
 	"github.com/DisgoOrg/log"
 	"github.com/KittyBot-Org/KittyBotGo/internal/i18n"
+	"github.com/KittyBot-Org/KittyBotGo/internal/metrics"
 	"github.com/KittyBot-Org/KittyBotGo/internal/types"
 	"github.com/KittyBot-Org/KittyBotGo/modules"
 )
@@ -70,7 +71,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	bot.Logger.Info("Setting up Lavalink")
+	metrics.Setup(bot)
+
 	bot.SetupLavalink()
 	defer bot.Lavalink.Close()
 	defer bot.SavePlayers()

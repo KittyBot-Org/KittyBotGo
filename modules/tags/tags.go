@@ -5,7 +5,7 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/internal/types"
 )
 
-var Module = types.CommandModule{
+var Module = types.DefaultCommandsModule{
 	Cmds: []types.Command{
 		{
 			Create: discord.SlashCommandCreate{
