@@ -2,9 +2,11 @@ package modules
 
 import (
 	"github.com/KittyBot-Org/KittyBotGo/internal/types"
-	"github.com/KittyBot-Org/KittyBotGo/modules/test"
+	"github.com/KittyBot-Org/KittyBotGo/modules/music"
+	"github.com/KittyBot-Org/KittyBotGo/modules/tags"
 )
 
 var Modules = []types.Module{
-	test.Module{},
+	music.Module,
+	tags.Module,
 }
