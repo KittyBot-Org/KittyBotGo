@@ -26,32 +26,28 @@ func (m *CommandMap) OnEvent(event core.Event) {
 		if cmd, ok := m.commands[e.Data.Name()]; ok {
 			switch d := e.Data.(type) {
 			case core.SlashCommandInteractionData:
-				var name string
-				if d.SubCommandGroupName != nil && d.SubCommandName != nil {
-					name = *d.SubCommandGroupName + "/" + *d.SubCommandName
-				} else if d.SubCommandName != nil {
-					name = *d.SubCommandName
+				if cmd.CommandHandler != nil {
+					if handler, ok := cmd.CommandHandler[buildCommandPath(d.SubCommandName, d.SubCommandGroupName)]; ok {
+						if err := handler(m.bot, getMessagePrinter(e.BaseInteraction), e); err != nil {
+							m.bot.Logger.Errorf("Failed to handle command \"%s\": %s", e.Data.Name(), err)
+						}
+						return
+					}
 				}
-				if cmd.CommandHandler == nil {
-					m.bot.Logger.Errorf("No command handler for \"%s\"", e.Data.Name())
-					return
-				}
-				err := cmd.CommandHandler[buildCommandPath(d.SubCommandName, d.SubCommandGroupName)](m.bot, getMessagePrinter(e.BaseInteraction), e)
-				if err != nil {
-					m.bot.Logger.Errorf("Failed to handle command \"%s\": %s", name, err)
-
-				}
+				m.bot.Logger.Errorf("No command handler for \"%s\"", e.Data.Name())
 			}
 		}
 	} else if e, ok := event.(*events.AutocompleteInteractionEvent); ok {
 		if cmd, ok := m.commands[e.Data.CommandName]; ok {
-			if cmd.AutoCompleteHandler == nil {
-				m.bot.Logger.Errorf("No autocomplete handler for command \"%s\"", e.Data.CommandName)
-				return
+			if cmd.AutoCompleteHandler != nil {
+				if handler, ok := cmd.AutoCompleteHandler[buildCommandPath(e.Data.SubCommandName, e.Data.SubCommandGroupName)]; ok {
+					if err := handler(m.bot, getMessagePrinter(e.BaseInteraction), e); err != nil {
+						m.bot.Logger.Errorf("Failed to handle autocomplete for \"%s\": %s", e.Data.CommandName, err)
+					}
+					return
+				}
 			}
-			if err := cmd.AutoCompleteHandler[buildCommandPath(e.Data.SubCommandName, e.Data.SubCommandGroupName)](m.bot, getMessagePrinter(e.BaseInteraction), e); err != nil {
-				m.bot.Logger.Errorf("Failed to handle autocomplete for \"%s\": %s", e.Data.CommandName, err)
-			}
+			m.bot.Logger.Errorf("No autocomplete handler for command \"%s\"", e.Data.CommandName)
 		}
 	} else if e, ok := event.(*events.ComponentInteractionEvent); ok {
 		customID := e.Data.ID().String()
@@ -62,15 +58,13 @@ func (m *CommandMap) OnEvent(event core.Event) {
 		cmdHandler, action := args[1], args[2]
 		cmdName := strings.Split(cmdHandler, "/")[0]
 		if cmd, ok := m.commands[cmdName]; ok {
-			if cmd.ComponentHandler == nil {
-				m.bot.Logger.Errorf("No component handler for command \"%s\"", cmdName)
-				return
-			}
-			if h, ok := cmd.ComponentHandler[cmdHandler]; ok {
-				if err := h(m.bot, getMessagePrinter(e.BaseInteraction), e, action); err != nil {
-					m.bot.Logger.Errorf("Failed to handle component interaction for \"%s\": %s", cmdName, err)
+			if cmd.ComponentHandler != nil {
+				if handler, ok := cmd.ComponentHandler[cmdHandler]; ok {
+					if err := handler(m.bot, getMessagePrinter(e.BaseInteraction), e, action); err != nil {
+						m.bot.Logger.Errorf("Failed to handle component interaction for \"%s\": %s", cmdName, err)
+					}
+					return
 				}
-				return
 			}
 			m.bot.Logger.Errorf("No component handler for action \"%s\" on command \"%s\"", action, cmdName)
 		}

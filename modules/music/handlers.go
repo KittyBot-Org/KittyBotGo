@@ -13,7 +13,8 @@ import (
 	"github.com/DisgoOrg/disgo/discord"
 	"github.com/DisgoOrg/disgolink/lavalink"
 	"github.com/DisgoOrg/snowflake"
-	"github.com/DisgoOrg/source-extensions-plugin"
+	source_extensions "github.com/DisgoOrg/source-extensions-plugin"
+	"github.com/DisgoOrg/utils/paginator"
 	"github.com/KittyBot-Org/KittyBotGo/internal/models"
 	"github.com/KittyBot-Org/KittyBotGo/internal/types"
 	"github.com/lithammer/fuzzysearch/fuzzy"
@@ -261,7 +262,33 @@ func queueHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommand
 		return e.CreateMessage(discord.MessageCreate{Content: "The queue is empty"})
 	}
 
-	return nil
+	var (
+		pages         []string
+		page          string
+		tracksCounter int
+	)
+	for i, track := range tracks {
+		trackStr := fmt.Sprintf("%d. [`%s`](<%s>) - %s[<@%s>]\n", i+1, track.Info().Title, *track.Info().URI, track.Info().Length, track.UserData().(models.AudioTrackData).Requester)
+		if len(page)+len(trackStr) > 4096 || tracksCounter >= 10 {
+			pages = append(pages, page)
+			page = ""
+			tracksCounter = 0
+		}
+		page += trackStr
+		tracksCounter++
+	}
+	if len(page) > 0 {
+		pages = append(pages, page)
+	}
+
+	return b.Paginator.Create(e.CreateInteraction, &paginator.Paginator{
+		PageFunc: func(page int, embed *discord.EmbedBuilder) discord.Embed {
+			return embed.SetTitlef("Currently there are %d songs in the queue:", len(tracks)).SetDescription(pages[page]).Build()
+		},
+		MaxPages:        len(pages),
+		Expiry:          time.Now(),
+		ExpiryLastUsage: true,
+	})
 }
 
 func removeSongHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {

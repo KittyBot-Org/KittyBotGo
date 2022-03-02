@@ -51,6 +51,7 @@ func main() {
 	}
 
 	bot.LoadModules(modules.Modules)
+	bot.SetupPaginator()
 
 	if err = bot.SetupBot(); err != nil {
 		bot.Logger.Fatal("Failed to setup bot: ", err)

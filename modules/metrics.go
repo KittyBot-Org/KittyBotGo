@@ -15,7 +15,6 @@ func (m module) OnEvent(b *types.Bot, event core.Event) {
 	switch e := event.(type) {
 	case *events.GuildsReadyEvent:
 		metrics.GuildCounter.Set(float64(len(e.Bot().Caches.Guilds().Cache())))
-		metrics.ShardCounter.s
 
 	case *events.GuildJoinEvent:
 		metrics.GuildCounter.Inc()

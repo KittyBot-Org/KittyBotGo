@@ -2,11 +2,14 @@ package tags
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/DisgoOrg/disgo/core/events"
 	"github.com/DisgoOrg/disgo/discord"
+	"github.com/DisgoOrg/utils/paginator"
 	"github.com/KittyBot-Org/KittyBotGo/internal/models"
 	"github.com/KittyBot-Org/KittyBotGo/internal/types"
 	"github.com/lithammer/fuzzysearch/fuzzy"
@@ -154,7 +157,28 @@ func listTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationComma
 		})
 	}
 
-	return nil
+	var pages []string
+	curDesc := ""
+	for _, tag := range tags {
+		newDesc := fmt.Sprintf("**%s** - <@%s>\n", tag.Name, tag.OwnerID)
+		if len(curDesc)+len(newDesc) > 2000 {
+			pages = append(pages, curDesc)
+			curDesc = ""
+		}
+		curDesc += newDesc
+	}
+	if len(curDesc) > 0 {
+		pages = append(pages, curDesc)
+	}
+
+	return b.Paginator.Create(e.CreateInteraction, &paginator.Paginator{
+		PageFunc: func(page int, embed *discord.EmbedBuilder) discord.Embed {
+			return embed.SetTitlef("There are %d total tags:", len(tags)).SetDescription(pages[page]).Build()
+		},
+		MaxPages:        len(pages),
+		Expiry:          time.Now(),
+		ExpiryLastUsage: true,
+	})
 }
 
 func autoCompleteTagHandler(b *types.Bot, p *message.Printer, e *events.AutocompleteInteractionEvent) error {

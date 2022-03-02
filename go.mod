@@ -2,19 +2,24 @@ module github.com/KittyBot-Org/KittyBotGo
 
 go 1.17
 
+replace (
+	github.com/DisgoOrg/utils/paginator => ../utils/paginator
+)
+
 require (
-	github.com/DisgoOrg/disgo v0.7.3-0.20220228013717-4c02ad4f3d30
+	github.com/DisgoOrg/disgo v0.7.3-0.20220301224518-b4f2eca55054
 	github.com/DisgoOrg/disgolink/disgolink v1.4.1
 	github.com/DisgoOrg/disgolink/lavalink v1.4.1
 	github.com/DisgoOrg/log v1.1.3
 	github.com/DisgoOrg/snowflake v1.0.4
 	github.com/DisgoOrg/source-extensions-plugin v1.1.3
+	github.com/DisgoOrg/utils/paginator v0.0.0-20220302031009-acde7d30b606
 	github.com/lithammer/fuzzysearch v1.1.3
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.12.1
-	github.com/uptrace/bun v1.1.0
-	github.com/uptrace/bun/dialect/pgdialect v1.1.0
-	github.com/uptrace/bun/driver/pgdriver v1.1.0
+	github.com/uptrace/bun v1.1.1
+	github.com/uptrace/bun/dialect/pgdialect v1.1.1
+	github.com/uptrace/bun/driver/pgdriver v1.1.1
 	golang.org/x/text v0.3.7
 )
 
@@ -35,6 +40,6 @@ require (
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
 	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
-	google.golang.org/protobuf v1.26.0 // indirect
+	google.golang.org/protobuf v1.27.1 // indirect
 	mellium.im/sasl v0.2.1 // indirect
 )

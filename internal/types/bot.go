@@ -9,6 +9,7 @@ import (
 	"github.com/DisgoOrg/disgo/gateway"
 	"github.com/DisgoOrg/disgolink/disgolink"
 	"github.com/DisgoOrg/log"
+	"github.com/DisgoOrg/utils/paginator"
 	"github.com/uptrace/bun"
 )
 
@@ -18,6 +19,7 @@ type Bot struct {
 	Lavalink         disgolink.Link
 	MusicPlayers     *MusicPlayerMap
 	PlayHistoryCache *PlayHistoryCache
+	Paginator        *paginator.Manager
 	Commands         *CommandMap
 	Listeners        *Listeners
 	DB               *bun.DB
@@ -25,11 +27,15 @@ type Bot struct {
 	Version          string
 }
 
+func (b *Bot) SetupPaginator() {
+	b.Paginator = paginator.NewManager()
+}
+
 func (b *Bot) SetupBot() (err error) {
 	b.Bot, err = bot.New(b.Config.Bot.Token,
 		bot.WithLogger(b.Logger),
-		bot.WithGatewayOpts(gateway.WithGatewayIntents(discord.GatewayIntentGuilds)),
-		bot.WithEventListeners(b.Commands, b.Listeners),
+		bot.WithGatewayOpts(gateway.WithGatewayIntents(discord.GatewayIntentGuilds, discord.GatewayIntentGuildVoiceStates)),
+		bot.WithEventListeners(b.Commands, b.Paginator, b.Listeners),
 	)
 	return err
 }

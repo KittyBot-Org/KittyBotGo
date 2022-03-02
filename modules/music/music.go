@@ -66,7 +66,7 @@ func (m module) Commands() []types.Command {
 				"": playHandler,
 			},
 			AutoCompleteHandler: map[string]types.AutocompleteHandler{
-				"query": playAutocompleteHandler,
+				"": playAutocompleteHandler,
 			},
 		},
 		{
