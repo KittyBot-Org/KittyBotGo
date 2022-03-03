@@ -71,7 +71,7 @@
           "success": "⏭ Skipped track.\nNow playing: [`%s`](<%s>) - %s"
         },
         "shuffle": "🔀 Shuffled queue"
-      },
+      }
     }
   }
 }
