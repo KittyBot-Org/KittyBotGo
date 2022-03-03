@@ -75,7 +75,7 @@ func (m module) Commands() []types.Command {
 				Description:       "Shows the current queue.",
 				DefaultPermission: true,
 			},
-			Checks: types.HasMusicPlayer,
+			Checks: types.HasMusicPlayer.And(types.HasQueueItems),
 			CommandHandler: map[string]types.CommandHandler{
 				"": queueHandler,
 			},
@@ -111,7 +111,7 @@ func (m module) Commands() []types.Command {
 				},
 				DefaultPermission: true,
 			},
-			Checks: types.HasMusicPlayer.And(types.IsMemberConnectedToVoiceChannel),
+			Checks: types.HasMusicPlayer.And(types.IsMemberConnectedToVoiceChannel).And(types.HasQueueItems),
 			CommandHandler: map[string]types.CommandHandler{
 				"song":       removeSongHandler,
 				"user-songs": removeUserSongsHandler,
@@ -126,7 +126,7 @@ func (m module) Commands() []types.Command {
 				Description:       "Removes all songs from your queue.",
 				DefaultPermission: true,
 			},
-			Checks: types.HasMusicPlayer.And(types.IsMemberConnectedToVoiceChannel),
+			Checks: types.HasMusicPlayer.And(types.IsMemberConnectedToVoiceChannel).And(types.HasQueueItems),
 			CommandHandler: map[string]types.CommandHandler{
 				"": clearQueueHandler,
 			},
@@ -180,7 +180,7 @@ func (m module) Commands() []types.Command {
 				Description:       "Tells you about the currently playing song.",
 				DefaultPermission: true,
 			},
-			Checks: types.HasMusicPlayer,
+			Checks: types.HasMusicPlayer.And(types.IsPlaying),
 			CommandHandler: map[string]types.CommandHandler{
 				"": nowPlayingHandler,
 			},
@@ -278,7 +278,7 @@ func (m module) Commands() []types.Command {
 				Description:       "Stops the song and starts the next one.",
 				DefaultPermission: true,
 			},
-			Checks: types.HasMusicPlayer.And(types.IsMemberConnectedToVoiceChannel),
+			Checks: types.HasMusicPlayer.And(types.IsMemberConnectedToVoiceChannel).And(types.HasQueueItems),
 			CommandHandler: map[string]types.CommandHandler{
 				"": skipHandler,
 			},
@@ -289,7 +289,7 @@ func (m module) Commands() []types.Command {
 				Description:       "Shuffles the queue of songs.",
 				DefaultPermission: true,
 			},
-			Checks: types.HasMusicPlayer.And(types.IsMemberConnectedToVoiceChannel),
+			Checks: types.HasMusicPlayer.And(types.IsMemberConnectedToVoiceChannel).And(types.HasQueueItems),
 			CommandHandler: map[string]types.CommandHandler{
 				"": shuffleHandler,
 			},

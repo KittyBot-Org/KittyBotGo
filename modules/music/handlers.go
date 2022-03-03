@@ -13,7 +13,7 @@ import (
 	"github.com/DisgoOrg/disgo/discord"
 	"github.com/DisgoOrg/disgolink/lavalink"
 	"github.com/DisgoOrg/snowflake"
-	source_extensions "github.com/DisgoOrg/source-extensions-plugin"
+	"github.com/DisgoOrg/source-extensions-plugin"
 	"github.com/DisgoOrg/utils/paginator"
 	"github.com/KittyBot-Org/KittyBotGo/internal/models"
 	"github.com/KittyBot-Org/KittyBotGo/internal/types"
@@ -62,30 +62,30 @@ func playHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandI
 	return b.Lavalink.BestRestClient().LoadItemHandler(context.TODO(), query, lavalink.NewResultHandler(
 		func(track lavalink.AudioTrack) {
 			b.PlayHistoryCache.Add(e.User.ID, query, track.Info().Title)
-			playAndQueue(b, e.CreateInteraction, track)
+			playAndQueue(b, p, e.CreateInteraction, track)
 		},
 		func(playlist lavalink.AudioPlaylist) {
 			b.PlayHistoryCache.Add(e.User.ID, query, playlist.Name())
-			playAndQueue(b, e.CreateInteraction, playlist.Tracks()...)
+			playAndQueue(b, p, e.CreateInteraction, playlist.Tracks()...)
 		},
 		func(tracks []lavalink.AudioTrack) {
 			b.PlayHistoryCache.Add(e.User.ID, query, *data.Options.String("query"))
-			giveSearchSelection(b, e, tracks)
+			giveSearchSelection(b, p, e, tracks)
 		},
 		func() {
-			if _, err := e.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent("No results found for your query.").Build()); err != nil {
+			if _, err := e.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent(p.Sprint("modules.music.commands.play.no.results")).Build()); err != nil {
 				b.Logger.Error(err)
 			}
 		},
 		func(ex lavalink.FriendlyException) {
-			if _, err := e.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent("There was an error with your request. Please try again\nError: " + ex.Message).Build()); err != nil {
+			if _, err := e.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent(p.Sprintf("modules.music.commands.play.exception", ex.Message)).Build()); err != nil {
 				b.Logger.Error(err)
 			}
 		},
 	))
 }
 
-func playAutocompleteHandler(b *types.Bot, p *message.Printer, e *events.AutocompleteInteractionEvent) error {
+func playAutocompleteHandler(b *types.Bot, _ *message.Printer, e *events.AutocompleteInteractionEvent) error {
 	var query string
 	if q := e.Data.Options.String("query"); q != nil {
 		query = *q
@@ -134,7 +134,7 @@ func playAutocompleteHandler(b *types.Bot, p *message.Printer, e *events.Autocom
 	return e.Result(result)
 }
 
-func playAndQueue(b *types.Bot, i core.CreateInteraction, tracks ...lavalink.AudioTrack) {
+func playAndQueue(b *types.Bot, p *message.Printer, i core.CreateInteraction, tracks ...lavalink.AudioTrack) {
 	player := b.MusicPlayers.Get(*i.GuildID)
 	if player == nil {
 		player = b.MusicPlayers.New(*i.GuildID, types.PlayerTypeMusic, types.LoopingTypeOff)
@@ -142,7 +142,7 @@ func playAndQueue(b *types.Bot, i core.CreateInteraction, tracks ...lavalink.Aud
 	}
 	var voiceChannelID snowflake.Snowflake
 	if voiceState := i.Member.VoiceState(); voiceState == nil || voiceState.ChannelID == nil {
-		if _, err := i.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent("You need to be connected to a voice channel to play music").ClearContainerComponents().Build()); err != nil {
+		if _, err := i.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent(p.Sprint("modules.music.not.in.voice")).ClearContainerComponents().Build()); err != nil {
 			b.Logger.Error(err)
 		}
 		return
@@ -151,7 +151,7 @@ func playAndQueue(b *types.Bot, i core.CreateInteraction, tracks ...lavalink.Aud
 	}
 	if voiceState := i.Guild().SelfMember().VoiceState(); voiceState == nil || voiceState.ChannelID == nil || *voiceState.ChannelID != voiceChannelID {
 		if err := b.Bot.AudioController.Connect(context.TODO(), *i.GuildID, voiceChannelID); err != nil {
-			if _, err = i.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent("I couldn't connect to your voice channel. Please make sure I have all required permissions!").ClearContainerComponents().Build()); err != nil {
+			if _, err = i.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent(p.Sprint("modules.music.no.permissions")).ClearContainerComponents().Build()); err != nil {
 				b.Logger.Error(err)
 			}
 			return
@@ -170,17 +170,17 @@ func playAndQueue(b *types.Bot, i core.CreateInteraction, tracks ...lavalink.Aud
 			tracks = tracks[1:]
 		}
 		if err := player.Play(track); err != nil {
-			if _, err = i.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent("There was an error with playing your song. Please try again").ClearContainerComponents().Build()); err != nil {
-				b.Logger.Error(err)
+			if _, err = i.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent(p.Sprint("modules.music.commands.play.error")).ClearContainerComponents().Build()); err != nil {
+				b.Logger.Error("Error while playing song: ", err)
 			}
 			return
 		}
-		if _, err := i.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContentf("Now playing: [`%s`](<%s>)", track.Info().Title, *track.Info().URI).ClearContainerComponents().Build()); err != nil {
-			b.Logger.Error(err)
+		if _, err := i.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent(p.Sprintf("modules.music.commands.play.now.playing", track.Info().Title, *track.Info().URI)).ClearContainerComponents().Build()); err != nil {
+			b.Logger.Error("Error while updating interaction message: ", err)
 		}
 	} else {
-		if _, err := i.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContentf("Added %d tracks into queue", len(tracks)).ClearContainerComponents().Build()); err != nil {
-			b.Logger.Error(err)
+		if _, err := i.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent(p.Sprintf("modules.music.commands.play.added.to.queue", len(tracks))).ClearContainerComponents().Build()); err != nil {
+			b.Logger.Error("Error while updating interaction message: ", err)
 		}
 	}
 	if len(tracks) > 0 {
@@ -188,7 +188,7 @@ func playAndQueue(b *types.Bot, i core.CreateInteraction, tracks ...lavalink.Aud
 	}
 }
 
-func giveSearchSelection(b *types.Bot, event *events.ApplicationCommandInteractionEvent, tracks []lavalink.AudioTrack) {
+func giveSearchSelection(b *types.Bot, p *message.Printer, event *events.ApplicationCommandInteractionEvent, tracks []lavalink.AudioTrack) {
 	var options []discord.SelectMenuOption
 	for i, track := range tracks {
 		if len(options) >= 25 {
@@ -210,8 +210,8 @@ func giveSearchSelection(b *types.Bot, event *events.ApplicationCommandInteracti
 		})
 	}
 	if _, err := event.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().
-		SetContent("Select songs to play").
-		AddActionRow(discord.NewSelectMenu(discord.CustomID("play:search:"+event.ID), "Select songs to play", options...).WithMaxValues(len(options))).
+		SetContent(p.Sprint("modules.music.autocomplete.select.songs")).
+		AddActionRow(discord.NewSelectMenu(discord.CustomID("play:search:"+event.ID), p.Sprint("modules.music.commands.play.select.songs"), options...).WithMaxValues(len(options))).
 		Build()); err != nil {
 		b.Logger.Error(err)
 	}
@@ -224,7 +224,7 @@ func giveSearchSelection(b *types.Bot, event *events.ApplicationCommandInteracti
 			select {
 			case i := <-coll:
 				if voiceState := i.Member.VoiceState(); voiceState == nil || voiceState.ChannelID == nil {
-					if err := i.CreateMessage(discord.NewMessageCreateBuilder().SetContent("You need to be connected to a voice channel to play music").SetEphemeral(true).Build()); err != nil {
+					if err := i.CreateMessage(discord.NewMessageCreateBuilder().SetContent(p.Sprint("modules.music.not.in.voice")).SetEphemeral(true).Build()); err != nil {
 						b.Logger.Error(err)
 					}
 					continue
@@ -238,11 +238,11 @@ func giveSearchSelection(b *types.Bot, event *events.ApplicationCommandInteracti
 					index, _ := strconv.Atoi(value)
 					playTracks = append(playTracks, tracks[index])
 				}
-				playAndQueue(b, i.CreateInteraction, playTracks...)
+				playAndQueue(b, p, i.CreateInteraction, playTracks...)
 				return
 
 			case <-time.After(time.Second * 30):
-				if _, err := event.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent("Search timed out").ClearContainerComponents().Build()); err != nil {
+				if _, err := event.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent(p.Sprint("modules.music.commands.play.search.timed.out")).ClearContainerComponents().Build()); err != nil {
 					b.Logger.Error(err)
 				}
 				return
@@ -252,15 +252,7 @@ func giveSearchSelection(b *types.Bot, event *events.ApplicationCommandInteracti
 }
 
 func queueHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
-	player := b.MusicPlayers.Get(*e.GuildID)
-	if player == nil {
-		return e.CreateMessage(discord.MessageCreate{Content: "No music player found"})
-	}
-
-	tracks := player.Queue.Tracks()
-	if len(tracks) == 0 {
-		return e.CreateMessage(discord.MessageCreate{Content: "The queue is empty"})
-	}
+	tracks := b.MusicPlayers.Get(*e.GuildID).Queue.Tracks()
 
 	var (
 		pages         []string
@@ -268,7 +260,7 @@ func queueHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommand
 		tracksCounter int
 	)
 	for i, track := range tracks {
-		trackStr := fmt.Sprintf("%d. [`%s`](<%s>) - %s[<@%s>]\n", i+1, track.Info().Title, *track.Info().URI, track.Info().Length, track.UserData().(models.AudioTrackData).Requester)
+		trackStr := fmt.Sprintf("%d. [`%s`](<%s>) - %s [<@%s>]\n", i+1, track.Info().Title, *track.Info().URI, track.Info().Length, track.UserData().(models.AudioTrackData).Requester)
 		if len(page)+len(trackStr) > 4096 || tracksCounter >= 10 {
 			pages = append(pages, page)
 			page = ""
@@ -283,7 +275,7 @@ func queueHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommand
 
 	return b.Paginator.Create(e.CreateInteraction, &paginator.Paginator{
 		PageFunc: func(page int, embed *discord.EmbedBuilder) discord.Embed {
-			return embed.SetTitlef("Currently there are %d songs in the queue:", len(tracks)).SetDescription(pages[page]).Build()
+			return embed.SetTitlef(p.Sprintf("modules.music.commands.queue.title", len(tracks))).SetDescription(pages[page]).Build()
 		},
 		MaxPages:        len(pages),
 		Expiry:          time.Now(),
@@ -296,20 +288,17 @@ func removeSongHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCo
 	strIndex := *e.SlashCommandInteractionData().Options.String("song")
 	index, err := strconv.Atoi(strIndex)
 	if err != nil {
-		return e.CreateMessage(discord.NewMessageCreateBuilder().SetContent("Invalid song index").Build())
-	}
-	if player.Queue.Len() == 0 {
-		return e.CreateMessage(discord.NewMessageCreateBuilder().SetContent("The queue is empty").Build())
+		return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.remove.invalid.index")})
 	}
 
 	removeTrack := player.Queue.Get(index - 1)
 	if removeTrack == nil {
-		return e.CreateMessage(discord.NewMessageCreateBuilder().SetContentf("No track found with index %d", index).Build())
+		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.remove.track.not.found", index)})
 	}
 
 	player.Queue.Remove(index - 1)
 	return e.CreateMessage(discord.NewMessageCreateBuilder().
-		SetContentf("Removed song [`%s`](<%s>) at index `%d` from the queue", removeTrack.Info().Title, *removeTrack.Info().URI, index).
+		SetContent(p.Sprintf("modules.music.commands.remove.removed", removeTrack.Info().Title, *removeTrack.Info().URI, index)).
 		Build(),
 	)
 }
@@ -317,9 +306,6 @@ func removeSongHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCo
 func removeUserSongsHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	player := b.MusicPlayers.Get(*e.GuildID)
 	userID := *e.SlashCommandInteractionData().Options.Snowflake("user")
-	if player.Queue.Len() == 0 {
-		return e.CreateMessage(discord.NewMessageCreateBuilder().SetContent("The queue is empty").Build())
-	}
 
 	removedTracks := 0
 	for i, track := range player.Queue.Tracks() {
@@ -330,14 +316,14 @@ func removeUserSongsHandler(b *types.Bot, p *message.Printer, e *events.Applicat
 	}
 	if removedTracks == 0 {
 		return e.CreateMessage(discord.NewMessageCreateBuilder().
-			SetContentf("No track from user <@%s> found", userID).
+			SetContent(p.Sprintf("modules.music.commands.remove.no.user.tracks", userID)).
 			SetAllowedMentions(&discord.AllowedMentions{}).
 			Build(),
 		)
 	}
 
 	return e.CreateMessage(discord.NewMessageCreateBuilder().
-		SetContentf("Removed `%d` songs from <@%s> from the queue", removedTracks, userID).
+		SetContent(p.Sprintf("modules.music.commands.remove.removed.user.tracks", removedTracks, userID)).
 		SetAllowedMentions(&discord.AllowedMentions{}).
 		Build(),
 	)
@@ -375,33 +361,30 @@ func removeSongAutocompleteHandler(b *types.Bot, p *message.Printer, e *events.A
 }
 
 func clearQueueHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
-	player := b.MusicPlayers.Get(*e.GuildID)
-	if player.Queue.Len() == 0 {
-		return e.CreateMessage(discord.NewMessageCreateBuilder().SetContent("The queue is already empty").Build())
-	}
-
-	player.Queue.Clear()
-	return e.CreateMessage(discord.NewMessageCreateBuilder().SetContent("Cleared the queue").Build())
+	b.MusicPlayers.Get(*e.GuildID).Queue.Clear()
+	return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.clear.cleared")})
 }
 
 func stopHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	player := b.MusicPlayers.Get(*e.GuildID)
 	if err := player.Destroy(); err != nil {
-		err = e.CreateMessage(discord.NewMessageCreateBuilder().
-			SetContent("Failed to stop player. Please try again").
-			Build())
+		b.Logger.Error("Failed to destroy player: ", err)
+		err = e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.stop.error")})
+		if err != nil {
+			b.Logger.Error("Failed to send message: ", err)
+		}
 		return err
 	}
 	if err := b.Bot.AudioController.Disconnect(context.TODO(), *e.GuildID); err != nil {
-		err = e.CreateMessage(discord.NewMessageCreateBuilder().
-			SetContent("Failed to disconnect from voice channel. Please try again").
-			Build())
+		b.Logger.Error("Failed to disconnect bot: ", err)
+		err = e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.stop.disconnect.error")})
+		if err != nil {
+			b.Logger.Error("Failed to send message: ", err)
+		}
 		return err
 	}
 	b.MusicPlayers.Delete(*e.GuildID)
-	return e.CreateMessage(discord.NewMessageCreateBuilder().
-		SetContent("Stopped player").
-		Build())
+	return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.stop.stopped")})
 }
 
 func loopHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
@@ -416,29 +399,23 @@ func loopHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandI
 	case types.LoopingTypeRepeatQueue:
 		emoji = "🔁"
 	}
-	return e.CreateMessage(discord.NewMessageCreateBuilder().
-		SetContentf("%s Looping: %s", emoji, loopingType).
-		Build())
+	return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.commands.loop", emoji, loopingType)})
 }
 
 func nowPlayingHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	player := b.MusicPlayers.Get(*e.GuildID)
-	if player.PlayingTrack() == nil {
-		return e.CreateMessage(discord.NewMessageCreateBuilder().
-			SetContent("No track is currently playing").
-			SetEphemeral(true).
-			Build())
-	}
-	i := player.PlayingTrack().Info()
+
+	track := player.PlayingTrack()
+	i := track.Info()
 	embed := discord.NewEmbedBuilder().
 		SetColor(0xe24f96).
-		SetTitle("Currently Playing:").
+		SetTitle(p.Sprint("modules.music.commands.now.playing.title")).
 		SetDescriptionf("[`%s`](<%s>)", i.Title, *i.URI).
-		AddField("Author", i.Author, true).
-		AddField("Requested by", "todo", true).
-		AddField("Volume", fmt.Sprintf("%d%%", player.Volume()), true).
+		AddField(p.Sprint("modules.music.commands.now.playing.author"), i.Author, true).
+		AddField(p.Sprint("modules.music.commands.now.playing.requested.by"), fmt.Sprintf("<@%s>", track.UserData().(models.AudioTrackData).Requester), true).
+		AddField(p.Sprint("modules.music.commands.now.playing.volume"), fmt.Sprintf("%d%%", player.Volume()), true).
 		SetImage(getArtworkURL(player.PlayingTrack())).
-		SetFooter("Tracks in queue: "+strconv.Itoa(player.Queue.Len()), "")
+		SetFooterText(p.Sprintf("modules.music.commands.now.playing.footer", player.Queue.Len()))
 	if !i.IsStream {
 		bar := [10]string{"▬", "▬", "▬", "▬", "▬", "▬", "▬", "▬", "▬", "▬"}
 		t1 := player.Position()
@@ -454,65 +431,49 @@ func nowPlayingHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCo
 		}
 		embed.Description += fmt.Sprintf("\n\n%s / %s %s\n%s", formatPosition(t1), formatPosition(t2), loopString, bar)
 	}
-	return e.CreateMessage(discord.NewMessageCreateBuilder().
-		SetEmbeds(embed.Build()).
-		Build())
+	return e.CreateMessage(discord.MessageCreate{Embeds: []discord.Embed{embed.Build()}})
 }
 
 func pauseHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	player := b.MusicPlayers.Get(*e.GuildID)
-	pause := true
-	pauseStr := "pause"
-	pauseStr2 := "Paused"
-	if player.Paused() {
-		pause = false
-		pauseStr = "resume"
-		pauseStr2 = "Resumed"
-	}
+	pause := !player.Paused()
 	if err := player.Pause(pause); err != nil {
-		return e.CreateMessage(discord.NewMessageCreateBuilder().
-			SetContentf("Failed to %s player. Please try again", pauseStr).
-			Build())
+		if pause {
+			return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.pause.error")})
+		}
+		return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.unpause.error")})
 	}
-	return e.CreateMessage(discord.NewMessageCreateBuilder().
-		SetContentf("⏯ %s player", pauseStr2).
-		Build())
+	if pause {
+		return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.pause")})
+	}
+	return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.unpause")})
 }
 
 func volumeHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	player := b.MusicPlayers.Get(*e.GuildID)
 	volume := *e.SlashCommandInteractionData().Options.Int("volume")
 	if err := player.SetVolume(volume); err != nil {
-		return e.CreateMessage(discord.NewMessageCreateBuilder().
-			SetContent("Failed to set volume. Please try again").
-			Build())
+		return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.volume.set.error")})
 	}
-	return e.CreateMessage(discord.NewMessageCreateBuilder().
-		SetContentf("🔉 Volume set to %d", volume).
-		Build())
+	return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.volume.set", volume)})
 }
 
 func bassBoostHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	player := b.MusicPlayers.Get(*e.GuildID)
 	enable := *e.SlashCommandInteractionData().Options.Bool("enable")
-	enableStr := "enabled"
 	if enable {
 		if err := player.Filters().SetEqualizer(bassBoost).Commit(); err != nil {
-			return e.CreateMessage(discord.NewMessageCreateBuilder().
-				SetContent("Failed to enable bass boost. Please try again").
-				Build())
+			return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.bass.boost.enabled.error")})
 		}
 	} else {
-		enableStr = "disabled"
 		if err := player.Filters().SetEqualizer(&lavalink.Equalizer{}).Commit(); err != nil {
-			return e.CreateMessage(discord.NewMessageCreateBuilder().
-				SetContent("Failed to set volume. Please try again").
-				Build())
+			return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.bass.boost.disabled.error")})
 		}
 	}
-	return e.CreateMessage(discord.NewMessageCreateBuilder().
-		SetContentf("Bass boost %s", enableStr).
-		Build())
+	if enable {
+		return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.bass.boost.enabled")})
+	}
+	return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.bass.boost.disabled")})
 }
 
 func seekHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
@@ -526,49 +487,27 @@ func seekHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandI
 
 	finalPosition := lavalink.Duration(position) * timeUnit
 	if finalPosition > player.PlayingTrack().Info().Length {
-		return e.CreateMessage(discord.NewMessageCreateBuilder().
-			SetContent("Position is too big").
-			Build())
+		return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.seek.position.too.big")})
 	}
 	if err := player.Seek(finalPosition); err != nil {
-		return e.CreateMessage(discord.NewMessageCreateBuilder().
-			SetContent("Failed to seek. Please try again").
-			Build())
+		return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.seek.error")})
 	}
-	return e.CreateMessage(discord.NewMessageCreateBuilder().
-		SetContentf("⏩ Seeked to %s", formatPosition(finalPosition)).
-		Build())
+	return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.seek.success")})
 }
 
 func skipHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	player := b.MusicPlayers.Get(*e.GuildID)
 	nextTrack := player.Queue.Pop()
-	if nextTrack == nil {
-		return e.CreateMessage(discord.NewMessageCreateBuilder().
-			SetContent("No more tracks in queue").
-			Build())
-	}
+
 	if err := player.Play(nextTrack); err != nil {
-		return e.CreateMessage(discord.NewMessageCreateBuilder().
-			SetContent("Failed to skip track. Please try again").
-			Build())
+		return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.skip.error")})
 	}
-	return e.CreateMessage(discord.NewMessageCreateBuilder().
-		SetContentf("⏭ Skipped track.\nNow playing: [`%s`](<%s>) - %s", nextTrack.Info().Title, *nextTrack.Info().URI, nextTrack.Info().Length).
-		Build())
+	return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.skip.success", nextTrack.Info().Title, *nextTrack.Info().URI, nextTrack.Info().Length)})
 }
 
 func shuffleHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
-	player := b.MusicPlayers.Get(*e.GuildID)
-	if player.Queue.Len() == 0 {
-		return e.CreateMessage(discord.NewMessageCreateBuilder().
-			SetContent("No tracks in queue to shuffle").
-			Build())
-	}
-	player.Queue.Shuffle()
-	return e.CreateMessage(discord.NewMessageCreateBuilder().
-		SetContent("🔀 Shuffled queue").
-		Build())
+	b.MusicPlayers.Get(*e.GuildID).Queue.Shuffle()
+	return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.shuffle")})
 }
 
 func formatPosition(position lavalink.Duration) string {

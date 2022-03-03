@@ -1,4 +1,4 @@
-package modules
+package metrics
 
 import (
 	"github.com/DisgoOrg/disgo/core"

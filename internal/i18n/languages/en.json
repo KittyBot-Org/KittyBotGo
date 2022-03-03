@@ -1,5 +1,77 @@
 {
-  "commands": {
-    "test": "Hello %s, this is a TestCommand and your locale is %s!"
+  "checks": {
+    "is.dev": "This action is only available for developer.",
+    "has.music.player": "No music player found in this server.",
+    "has.queue.items": "The song queue is empty.",
+    "is.playing": "No track is currently playing."
+  },
+  "modules": {
+    "music": {
+      "not.in.voice": "You need to be connected to a voice channel to play music.",
+      "no.permissions": "I couldn't connect to your voice channel. Please make sure I have permissions to connect and speak.",
+      "commands": {
+        "play": {
+          "no.results": "No results found for your query.",
+          "exception": "There was an error with your request. Please try again\nError: %s",
+          "error": "There was an error with playing your song. Please try again.",
+          "now.playing": "Now playing: [`%s`](<%s>)",
+          "added.to.queue": "Added `%s` track to the queue.",
+          "select.songs": "Select songs to play.",
+          "search.timed.out": "Search timed out. Please try again."
+        },
+        "queue": {
+          "title": "Currently `%d` songs are in the queue:"
+        },
+        "remove": {
+          "invalid.index": "Invalid song index.",
+          "track.not.found": "No track found with index `%d`.",
+          "removed": "Removed song [`%s`](<%s>) at index `%d` from the queue.",
+          "no.user.tracks": "No track from user <@%s> found.",
+          "removed.user.tracks": "Removed `%d` songs from <@%s> from the queue."
+        },
+        "clear": {
+          "cleared": "Cleared the queue."
+        },
+        "stop": {
+          "error": "Failed to stop the music player. Please try again.",
+          "disconnect.error": "Failed to disconnect from voice channel. Please try again.",
+          "stopped": "Stopped the music player."
+        },
+        "loop": "%s Looping: %s",
+        "now.playing": {
+          "title": "Currently playing:",
+          "author": "Author:",
+          "requested.by": "Requested by:",
+          "volume": "Volume:",
+          "footer": "Tracks in queue: %d"
+        },
+        "pause": {
+          "paused": "⏯ Paused the music player.",
+          "paused.error": "Failed to pause the music player. Please try again.",
+          "unpaused": "⏯ Unpaused the music player.",
+          "unpaused.error": "Failed to unpause the music player. Please try again."
+        },
+        "volume": {
+          "set": "🔊 Volume set to `%d%`.",
+          "set.error": "Failed to set the volume. Please try again."
+        },
+        "bass.boost": {
+          "enabled": "🔊 Bass boost enabled.",
+          "enabled.error": "Failed to enable bass boost. Please try again.",
+          "disabled": "🔊 Bass boost disabled.",
+          "disabled.error": "Failed to disable bass boost. Please try again."
+        },
+        "seek": {
+          "position.too.big": "The position is too big.",
+          "error": "Failed to seek. Please try again.",
+          "success": "⏩ Seeked to `%s`."
+        },
+        "skip": {
+          "error": "Failed to skip. Please try again.",
+          "success": "⏭ Skipped track.\nNow playing: [`%s`](<%s>) - %s"
+        },
+        "shuffle": "🔀 Shuffled queue"
+      },
+    }
   }
 }
