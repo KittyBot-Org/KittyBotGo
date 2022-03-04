@@ -14,7 +14,7 @@ var (
 			}
 		}
 		if err := e.CreateMessage(discord.NewMessageCreateBuilder().
-			SetContent(p.Sprint("checks.is.dev")).
+			SetContent(p.Sprintf("checks.is.dev")).
 			SetEphemeral(true).
 			Build(),
 		); err != nil {
@@ -26,7 +26,7 @@ var (
 	HasMusicPlayer CommandCheck = func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) bool {
 		if !b.MusicPlayers.Has(*e.GuildID) {
 			if err := e.CreateMessage(discord.NewMessageCreateBuilder().
-				SetContent(p.Sprint("checks.has.music.player")).
+				SetContent(p.Sprintf("checks.has.music.player")).
 				SetEphemeral(true).
 				Build(),
 			); err != nil {
@@ -48,10 +48,21 @@ var (
 		return true
 	}
 
+	HasHistoryItems CommandCheck = func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) bool {
+		player := b.MusicPlayers.Get(*e.GuildID)
+		if player.History.Len() == 0 {
+			if err := e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("checks.has.history.items")}); err != nil {
+				b.Logger.Error(err)
+			}
+			return false
+		}
+		return true
+	}
+
 	IsMemberConnectedToVoiceChannel CommandCheck = func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) bool {
 		if voiceState := e.Member.VoiceState(); voiceState == nil || voiceState.ChannelID == nil {
 			if err := e.CreateMessage(discord.NewMessageCreateBuilder().
-				SetContent(p.Sprint("modules.music.not.in.voice")).
+				SetContent(p.Sprintf("modules.music.not.in.voice")).
 				SetEphemeral(true).
 				Build(),
 			); err != nil {
@@ -65,7 +76,7 @@ var (
 	IsPlaying CommandCheck = func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) bool {
 		if b.MusicPlayers.Get(*e.GuildID).PlayingTrack() == nil {
 			if err := e.CreateMessage(discord.NewMessageCreateBuilder().
-				SetContent(p.Sprint("checks.is.playing")).
+				SetContent(p.Sprintf("checks.is.playing")).
 				SetEphemeral(true).
 				Build(),
 			); err != nil {

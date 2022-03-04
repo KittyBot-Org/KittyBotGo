@@ -36,3 +36,12 @@ func (h *MusicHistory) Push(tracks ...lavalink.AudioTrack) {
 	defer h.mu.Unlock()
 	h.tracks = append(h.tracks, tracks...)
 }
+
+func (h *MusicHistory) Last() lavalink.AudioTrack {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if len(h.tracks) == 0 {
+		return nil
+	}
+	return h.tracks[len(h.tracks)-1]
+}

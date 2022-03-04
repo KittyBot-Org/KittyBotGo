@@ -184,6 +184,12 @@ func (m module) Commands() []types.Command {
 			CommandHandler: map[string]types.CommandHandler{
 				"": nowPlayingHandler,
 			},
+			ComponentHandler: map[string]types.ComponentHandler{
+				"previous":   previousComponentHandler,
+				"play-pause": playPauseComponentHandler,
+				"next":       nextComponentHandler,
+				"like":       likeComponentHandler,
+			},
 		},
 		{
 			Create: discord.SlashCommandCreate{
@@ -274,13 +280,24 @@ func (m module) Commands() []types.Command {
 		},
 		{
 			Create: discord.SlashCommandCreate{
-				CommandName:       "skip",
+				CommandName:       "next",
 				Description:       "Stops the song and starts the next one.",
 				DefaultPermission: true,
 			},
 			Checks: types.HasMusicPlayer.And(types.IsMemberConnectedToVoiceChannel).And(types.HasQueueItems),
 			CommandHandler: map[string]types.CommandHandler{
-				"": skipHandler,
+				"": nextHandler,
+			},
+		},
+		{
+			Create: discord.SlashCommandCreate{
+				CommandName:       "previous",
+				Description:       "Stops the song and starts the previous one.",
+				DefaultPermission: true,
+			},
+			Checks: types.HasMusicPlayer.And(types.IsMemberConnectedToVoiceChannel).And(types.HasHistoryItems),
+			CommandHandler: map[string]types.CommandHandler{
+				"": previousHandler,
 			},
 		},
 		{

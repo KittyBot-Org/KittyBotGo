@@ -3,11 +3,6 @@ package music
 import (
 	"context"
 	"fmt"
-	"regexp"
-	"strconv"
-	"strings"
-	"time"
-
 	"github.com/DisgoOrg/disgo/core"
 	"github.com/DisgoOrg/disgo/core/events"
 	"github.com/DisgoOrg/disgo/discord"
@@ -17,8 +12,10 @@ import (
 	"github.com/DisgoOrg/utils/paginator"
 	"github.com/KittyBot-Org/KittyBotGo/internal/models"
 	"github.com/KittyBot-Org/KittyBotGo/internal/types"
-	"github.com/lithammer/fuzzysearch/fuzzy"
 	"golang.org/x/text/message"
+	"regexp"
+	"strconv"
+	"time"
 )
 
 var (
@@ -73,7 +70,7 @@ func playHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandI
 			giveSearchSelection(b, p, e, tracks)
 		},
 		func() {
-			if _, err := e.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent(p.Sprint("modules.music.commands.play.no.results")).Build()); err != nil {
+			if _, err := e.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent(p.Sprintf("modules.music.commands.play.no.results")).Build()); err != nil {
 				b.Logger.Error(err)
 			}
 		},
@@ -85,55 +82,6 @@ func playHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandI
 	))
 }
 
-func playAutocompleteHandler(b *types.Bot, _ *message.Printer, e *events.AutocompleteInteractionEvent) error {
-	var query string
-	if q := e.Data.Options.String("query"); q != nil {
-		query = *q
-	}
-	cache, ok := b.PlayHistoryCache.Get(e.User.ID)
-	if (!ok || len(cache) == 0) && query == "" {
-		return e.Result(nil)
-	}
-
-	labels := make([]string, len(cache))
-	unsortedResult := make(map[string]string, len(cache))
-	i := 0
-	for _, entry := range cache {
-		unsortedResult[entry.Title] = entry.Query
-		i++
-	}
-
-	if query == "" {
-		return e.ResultMapString(unsortedResult)
-	}
-
-	ranks := fuzzy.RankFindFold(query, labels)
-	resultLen := len(ranks)
-	if resultLen > 24 {
-		resultLen = 24
-	}
-	result := make([]discord.AutocompleteChoice, resultLen+1)
-	queryEmoji := "🔎"
-	if urlPattern.MatchString(query) {
-		queryEmoji = "🔗"
-	}
-	result[0] = discord.AutocompleteChoiceString{
-		Name:  queryEmoji + query,
-		Value: query,
-	}
-	for ii, rank := range ranks {
-		if ii >= resultLen {
-			break
-		}
-		result[ii+1] = discord.AutocompleteChoiceString{
-			Name:  "🔁" + rank.Target,
-			Value: unsortedResult[rank.Target],
-		}
-	}
-
-	return e.Result(result)
-}
-
 func playAndQueue(b *types.Bot, p *message.Printer, i core.CreateInteraction, tracks ...lavalink.AudioTrack) {
 	player := b.MusicPlayers.Get(*i.GuildID)
 	if player == nil {
@@ -142,7 +90,7 @@ func playAndQueue(b *types.Bot, p *message.Printer, i core.CreateInteraction, tr
 	}
 	var voiceChannelID snowflake.Snowflake
 	if voiceState := i.Member.VoiceState(); voiceState == nil || voiceState.ChannelID == nil {
-		if _, err := i.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent(p.Sprint("modules.music.not.in.voice")).ClearContainerComponents().Build()); err != nil {
+		if _, err := i.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent(p.Sprintf("modules.music.not.in.voice")).ClearContainerComponents().Build()); err != nil {
 			b.Logger.Error(err)
 		}
 		return
@@ -151,7 +99,7 @@ func playAndQueue(b *types.Bot, p *message.Printer, i core.CreateInteraction, tr
 	}
 	if voiceState := i.Guild().SelfMember().VoiceState(); voiceState == nil || voiceState.ChannelID == nil || *voiceState.ChannelID != voiceChannelID {
 		if err := b.Bot.AudioController.Connect(context.TODO(), *i.GuildID, voiceChannelID); err != nil {
-			if _, err = i.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent(p.Sprint("modules.music.no.permissions")).ClearContainerComponents().Build()); err != nil {
+			if _, err = i.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent(p.Sprintf("modules.music.no.permissions")).ClearContainerComponents().Build()); err != nil {
 				b.Logger.Error(err)
 			}
 			return
@@ -170,16 +118,24 @@ func playAndQueue(b *types.Bot, p *message.Printer, i core.CreateInteraction, tr
 			tracks = tracks[1:]
 		}
 		if err := player.Play(track); err != nil {
-			if _, err = i.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent(p.Sprint("modules.music.commands.play.error")).ClearContainerComponents().Build()); err != nil {
+			if _, err = i.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent(p.Sprintf("modules.music.commands.play.error")).ClearContainerComponents().Build()); err != nil {
 				b.Logger.Error("Error while playing song: ", err)
 			}
 			return
 		}
-		if _, err := i.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent(p.Sprintf("modules.music.commands.play.now.playing", track.Info().Title, *track.Info().URI)).ClearContainerComponents().Build()); err != nil {
+		if _, err := i.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().
+			SetContent(p.Sprintf("modules.music.commands.play.now.playing", track.Info().Title, *track.Info().URI)).
+			SetContainerComponents(getMusicControllerComponents()).
+			Build(),
+		); err != nil {
 			b.Logger.Error("Error while updating interaction message: ", err)
 		}
 	} else {
-		if _, err := i.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent(p.Sprintf("modules.music.commands.play.added.to.queue", len(tracks))).ClearContainerComponents().Build()); err != nil {
+		if _, err := i.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().
+			SetContent(p.Sprintf("modules.music.commands.play.added.to.queue", len(tracks))).
+			SetContainerComponents(getMusicControllerComponents()).
+			Build(),
+		); err != nil {
 			b.Logger.Error("Error while updating interaction message: ", err)
 		}
 	}
@@ -210,8 +166,8 @@ func giveSearchSelection(b *types.Bot, p *message.Printer, event *events.Applica
 		})
 	}
 	if _, err := event.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().
-		SetContent(p.Sprint("modules.music.autocomplete.select.songs")).
-		AddActionRow(discord.NewSelectMenu(discord.CustomID("play:search:"+event.ID), p.Sprint("modules.music.commands.play.select.songs"), options...).WithMaxValues(len(options))).
+		SetContent(p.Sprintf("modules.music.autocomplete.select.songs")).
+		AddActionRow(discord.NewSelectMenu(discord.CustomID("play:search:"+event.ID), p.Sprintf("modules.music.commands.play.select.songs"), options...).WithMaxValues(len(options))).
 		Build()); err != nil {
 		b.Logger.Error(err)
 	}
@@ -224,7 +180,7 @@ func giveSearchSelection(b *types.Bot, p *message.Printer, event *events.Applica
 			select {
 			case i := <-coll:
 				if voiceState := i.Member.VoiceState(); voiceState == nil || voiceState.ChannelID == nil {
-					if err := i.CreateMessage(discord.NewMessageCreateBuilder().SetContent(p.Sprint("modules.music.not.in.voice")).SetEphemeral(true).Build()); err != nil {
+					if err := i.CreateMessage(discord.NewMessageCreateBuilder().SetContent(p.Sprintf("modules.music.not.in.voice")).SetEphemeral(true).Build()); err != nil {
 						b.Logger.Error(err)
 					}
 					continue
@@ -242,7 +198,7 @@ func giveSearchSelection(b *types.Bot, p *message.Printer, event *events.Applica
 				return
 
 			case <-time.After(time.Second * 30):
-				if _, err := event.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent(p.Sprint("modules.music.commands.play.search.timed.out")).ClearContainerComponents().Build()); err != nil {
+				if _, err := event.UpdateOriginalMessage(discord.NewMessageUpdateBuilder().SetContent(p.Sprintf("modules.music.commands.play.search.timed.out")).ClearContainerComponents().Build()); err != nil {
 					b.Logger.Error(err)
 				}
 				return
@@ -288,7 +244,7 @@ func removeSongHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCo
 	strIndex := *e.SlashCommandInteractionData().Options.String("song")
 	index, err := strconv.Atoi(strIndex)
 	if err != nil {
-		return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.remove.invalid.index")})
+		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.remove.invalid.index")})
 	}
 
 	removeTrack := player.Queue.Get(index - 1)
@@ -297,10 +253,10 @@ func removeSongHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCo
 	}
 
 	player.Queue.Remove(index - 1)
-	return e.CreateMessage(discord.NewMessageCreateBuilder().
-		SetContent(p.Sprintf("modules.music.commands.remove.removed", removeTrack.Info().Title, *removeTrack.Info().URI, index)).
-		Build(),
-	)
+	return e.CreateMessage(discord.MessageCreate{
+		Content:    p.Sprintf("modules.music.commands.remove.removed", removeTrack.Info().Title, *removeTrack.Info().URI, index),
+		Components: []discord.ContainerComponent{getMusicControllerComponents()},
+	})
 }
 
 func removeUserSongsHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
@@ -314,62 +270,31 @@ func removeUserSongsHandler(b *types.Bot, p *message.Printer, e *events.Applicat
 			removedTracks++
 		}
 	}
+	var msg string
 	if removedTracks == 0 {
-		return e.CreateMessage(discord.NewMessageCreateBuilder().
-			SetContent(p.Sprintf("modules.music.commands.remove.no.user.tracks", userID)).
-			SetAllowedMentions(&discord.AllowedMentions{}).
-			Build(),
-		)
+		msg = p.Sprintf("modules.music.commands.remove.no.user.tracks", userID)
+	} else {
+		msg = p.Sprintf("modules.music.commands.remove.removed.user.tracks", removedTracks, userID)
 	}
 
 	return e.CreateMessage(discord.NewMessageCreateBuilder().
-		SetContent(p.Sprintf("modules.music.commands.remove.removed.user.tracks", removedTracks, userID)).
+		SetContent(msg).
 		SetAllowedMentions(&discord.AllowedMentions{}).
+		SetContainerComponents(getMusicControllerComponents()).
 		Build(),
 	)
 }
 
-func removeSongAutocompleteHandler(b *types.Bot, p *message.Printer, e *events.AutocompleteInteractionEvent) error {
-	player := b.MusicPlayers.Get(*e.GuildID)
-	if player == nil || player.Queue.Len() == 0 {
-		return e.ResultMapInt(nil)
-	}
-	tracks := make([]string, player.Queue.Len())
-
-	for i, track := range player.Queue.Tracks() {
-		tracks[i] = fmt.Sprintf("%d. %s", i+1, track.Info().Title)
-	}
-
-	ranks := fuzzy.RankFindFold(*e.Data.Options.String("song"), tracks)
-
-	choicesLen := len(ranks)
-	if choicesLen > 25 {
-		choicesLen = 25
-	}
-	choices := make([]discord.AutocompleteChoice, choicesLen)
-
-	for i, rank := range ranks {
-		if i >= 25 {
-			break
-		}
-		choices[i] = discord.AutocompleteChoiceString{
-			Name:  rank.Target,
-			Value: strings.SplitN(rank.Target, ".", 2)[0],
-		}
-	}
-	return e.Result(choices)
-}
-
 func clearQueueHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	b.MusicPlayers.Get(*e.GuildID).Queue.Clear()
-	return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.clear.cleared")})
+	return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.clear.cleared")})
 }
 
 func stopHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	player := b.MusicPlayers.Get(*e.GuildID)
 	if err := player.Destroy(); err != nil {
 		b.Logger.Error("Failed to destroy player: ", err)
-		err = e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.stop.error")})
+		err = e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.stop.error")})
 		if err != nil {
 			b.Logger.Error("Failed to send message: ", err)
 		}
@@ -377,14 +302,14 @@ func stopHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandI
 	}
 	if err := b.Bot.AudioController.Disconnect(context.TODO(), *e.GuildID); err != nil {
 		b.Logger.Error("Failed to disconnect bot: ", err)
-		err = e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.stop.disconnect.error")})
+		err = e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.stop.disconnect.error")})
 		if err != nil {
 			b.Logger.Error("Failed to send message: ", err)
 		}
 		return err
 	}
 	b.MusicPlayers.Delete(*e.GuildID)
-	return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.stop.stopped")})
+	return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.stop.stopped")})
 }
 
 func loopHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
@@ -399,7 +324,10 @@ func loopHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandI
 	case types.LoopingTypeRepeatQueue:
 		emoji = "🔁"
 	}
-	return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.commands.loop", emoji, loopingType)})
+	return e.CreateMessage(discord.MessageCreate{
+		Content:    p.Sprintf("modules.commands.loop", emoji, loopingType),
+		Components: []discord.ContainerComponent{getMusicControllerComponents()},
+	})
 }
 
 func nowPlayingHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
@@ -408,13 +336,14 @@ func nowPlayingHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCo
 	track := player.PlayingTrack()
 	i := track.Info()
 	embed := discord.NewEmbedBuilder().
-		SetColor(0xe24f96).
-		SetTitle(p.Sprint("modules.music.commands.now.playing.title")).
-		SetDescriptionf("[`%s`](<%s>)", i.Title, *i.URI).
-		AddField(p.Sprint("modules.music.commands.now.playing.author"), i.Author, true).
-		AddField(p.Sprint("modules.music.commands.now.playing.requested.by"), fmt.Sprintf("<@%s>", track.UserData().(models.AudioTrackData).Requester), true).
-		AddField(p.Sprint("modules.music.commands.now.playing.volume"), fmt.Sprintf("%d%%", player.Volume()), true).
-		SetImage(getArtworkURL(player.PlayingTrack())).
+		SetColor(types.KittyBotColor).
+		SetAuthorName(p.Sprintf("modules.music.commands.now.playing.title")).
+		SetTitle(i.Title).
+		SetURL(*i.URI).
+		AddField(p.Sprintf("modules.music.commands.now.playing.author"), i.Author, true).
+		AddField(p.Sprintf("modules.music.commands.now.playing.requested.by"), fmt.Sprintf("<@%s>", track.UserData().(models.AudioTrackData).Requester), true).
+		AddField(p.Sprintf("modules.music.commands.now.playing.volume"), fmt.Sprintf("%d%%", player.Volume()), true).
+		SetThumbnail(getArtworkURL(player.PlayingTrack())).
 		SetFooterText(p.Sprintf("modules.music.commands.now.playing.footer", player.Queue.Len()))
 	if !i.IsStream {
 		bar := [10]string{"▬", "▬", "▬", "▬", "▬", "▬", "▬", "▬", "▬", "▬"}
@@ -431,31 +360,46 @@ func nowPlayingHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCo
 		}
 		embed.Description += fmt.Sprintf("\n\n%s / %s %s\n%s", formatPosition(t1), formatPosition(t2), loopString, bar)
 	}
-	return e.CreateMessage(discord.MessageCreate{Embeds: []discord.Embed{embed.Build()}})
+	return e.CreateMessage(discord.MessageCreate{
+		Embeds:     []discord.Embed{embed.Build()},
+		Components: []discord.ContainerComponent{getMusicControllerComponents()},
+	})
 }
 
 func pauseHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	player := b.MusicPlayers.Get(*e.GuildID)
 	pause := !player.Paused()
 	if err := player.Pause(pause); err != nil {
+		var msg string
 		if pause {
-			return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.pause.error")})
+			msg = p.Sprintf("modules.music.commands.pause.error")
+		} else {
+			msg = p.Sprintf("modules.music.commands.unpause.error")
 		}
-		return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.unpause.error")})
+		return e.CreateMessage(discord.MessageCreate{Content: msg, Flags: discord.MessageFlagEphemeral})
 	}
+	var msg string
 	if pause {
-		return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.pause")})
+		msg = p.Sprintf("modules.music.commands.pause")
+	} else {
+		msg = p.Sprintf("modules.music.commands.unpause")
 	}
-	return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.unpause")})
+	return e.CreateMessage(discord.MessageCreate{
+		Content:    msg,
+		Components: []discord.ContainerComponent{getMusicControllerComponents()},
+	})
 }
 
 func volumeHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	player := b.MusicPlayers.Get(*e.GuildID)
 	volume := *e.SlashCommandInteractionData().Options.Int("volume")
 	if err := player.SetVolume(volume); err != nil {
-		return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.volume.set.error")})
+		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.volume.set.error")})
 	}
-	return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.volume.set", volume)})
+	return e.CreateMessage(discord.MessageCreate{
+		Content:    p.Sprintf("modules.music.commands.volume.set", volume),
+		Components: []discord.ContainerComponent{getMusicControllerComponents()},
+	})
 }
 
 func bassBoostHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
@@ -463,17 +407,23 @@ func bassBoostHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCom
 	enable := *e.SlashCommandInteractionData().Options.Bool("enable")
 	if enable {
 		if err := player.Filters().SetEqualizer(bassBoost).Commit(); err != nil {
-			return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.bass.boost.enabled.error")})
+			return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.bass.boost.enabled.error")})
 		}
 	} else {
 		if err := player.Filters().SetEqualizer(&lavalink.Equalizer{}).Commit(); err != nil {
-			return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.bass.boost.disabled.error")})
+			return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.bass.boost.disabled.error")})
 		}
 	}
+	var msg string
 	if enable {
-		return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.bass.boost.enabled")})
+		msg = p.Sprintf("modules.music.commands.bass.boost.enabled")
+	} else {
+		msg = p.Sprintf("modules.music.commands.bass.boost.disabled")
 	}
-	return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.bass.boost.disabled")})
+	return e.CreateMessage(discord.MessageCreate{
+		Content:    msg,
+		Components: []discord.ContainerComponent{getMusicControllerComponents()},
+	})
 }
 
 func seekHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
@@ -487,27 +437,49 @@ func seekHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandI
 
 	finalPosition := lavalink.Duration(position) * timeUnit
 	if finalPosition > player.PlayingTrack().Info().Length {
-		return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.seek.position.too.big")})
+		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.seek.position.too.big"), Flags: discord.MessageFlagEphemeral})
 	}
 	if err := player.Seek(finalPosition); err != nil {
-		return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.seek.error")})
+		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.seek.error")})
 	}
-	return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.seek.success")})
+	return e.CreateMessage(discord.MessageCreate{
+		Content:    p.Sprintf("modules.music.commands.seek.success"),
+		Components: []discord.ContainerComponent{getMusicControllerComponents()},
+	})
 }
 
-func skipHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func nextHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	player := b.MusicPlayers.Get(*e.GuildID)
 	nextTrack := player.Queue.Pop()
 
 	if err := player.Play(nextTrack); err != nil {
-		return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.skip.error")})
+		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.next.error")})
 	}
-	return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.skip.success", nextTrack.Info().Title, *nextTrack.Info().URI, nextTrack.Info().Length)})
+	return e.CreateMessage(discord.MessageCreate{
+		Content:    p.Sprintf("modules.music.commands.next.success", nextTrack.Info().Title, *nextTrack.Info().URI, nextTrack.Info().Length),
+		Components: []discord.ContainerComponent{getMusicControllerComponents()},
+	})
+}
+
+func previousHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+	player := b.MusicPlayers.Get(*e.GuildID)
+	nextTrack := player.History.Last()
+
+	if err := player.Play(nextTrack); err != nil {
+		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.previous.error")})
+	}
+	return e.CreateMessage(discord.MessageCreate{
+		Content:    p.Sprintf("modules.music.commands.previous.success", nextTrack.Info().Title, *nextTrack.Info().URI, nextTrack.Info().Length),
+		Components: []discord.ContainerComponent{getMusicControllerComponents()},
+	})
 }
 
 func shuffleHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	b.MusicPlayers.Get(*e.GuildID).Queue.Shuffle()
-	return e.CreateMessage(discord.MessageCreate{Content: p.Sprint("modules.music.commands.shuffle")})
+	return e.CreateMessage(discord.MessageCreate{
+		Content:    p.Sprintf("modules.music.commands.shuffle"),
+		Components: []discord.ContainerComponent{getMusicControllerComponents()},
+	})
 }
 
 func formatPosition(position lavalink.Duration) string {

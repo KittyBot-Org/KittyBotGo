@@ -18,7 +18,7 @@ func (b *Bot) LoadConfig() error {
 			return err
 		}
 		var data []byte
-		if data, err = json.Marshal(Config{}); err != nil {
+		if data, err = json.MarshalIndent(Config{}, "", "\t"); err != nil {
 			return err
 		}
 		if _, err = file.Write(data); err != nil {
@@ -55,7 +55,7 @@ type BotConfig struct {
 
 type DatabaseConfig struct {
 	Host     string `json:"host"`
-	Port     int    `json:"port"`
+	Port     string `json:"port"`
 	User     string `json:"user"`
 	Password string `json:"password"`
 	DBName   string `json:"db_name"`
