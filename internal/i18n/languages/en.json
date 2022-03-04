@@ -3,6 +3,7 @@
     "is.dev": "This action is only available for developer.",
     "has.music.player": "No music player found in this server.",
     "has.queue.items": "The song queue is empty.",
+    "has.history.items": "The song history is empty.",
     "is.playing": "No track is currently playing."
   },
   "modules": {
@@ -15,7 +16,7 @@
           "exception": "There was an error with your request. Please try again\nError: %s",
           "error": "There was an error with playing your song. Please try again.",
           "now.playing": "Now playing: [`%s`](<%s>)",
-          "added.to.queue": "Added `%s` track to the queue.",
+          "added.to.queue": "Added `%d` track to the queue.",
           "select.songs": "Select songs to play.",
           "search.timed.out": "Search timed out. Please try again."
         },
@@ -66,11 +67,80 @@
           "error": "Failed to seek. Please try again.",
           "success": "⏩ Seeked to `%s`."
         },
-        "skip": {
-          "error": "Failed to skip. Please try again.",
+        "next": {
+          "error": "Failed to play next song. Please try again.",
           "success": "⏭ Skipped track.\nNow playing: [`%s`](<%s>) - %s"
         },
+        "previous": {
+          "error": "Failed to play previous song. Please try again.",
+          "success": "⏮ Skipped track.\nNow playing: [`%s`](<%s>) - %s"
+        },
         "shuffle": "🔀 Shuffled queue"
+      },
+      "components": {
+        "no.player": "No music player found in this server.",
+        "previous": {
+          "empty": "No songs in the history.",
+          "error": "Failed to play previous song. Please try again."
+        },
+        "play.pause": {
+          "not.playing": "no track is currently playing.",
+          "pause": {
+            "error": "Failed to pause the music player. Please try again.",
+            "success": "⏸ Paused the music player.\nPaused: [`%s`](<%s>) - %s at `%s`."
+          },
+          "play": {
+            "error": "Failed to play the music player. Please try again.",
+            "success": "▶ Resumed the music player.\nPlaying: [`%s`](<%s>) - %s"
+          }
+        },
+        "next": {
+          "empty": "No songs in the queue.",
+          "error": "Failed to play next song. Please try again."
+        },
+        "like": {
+          "not.playing": "No track is currently playing.",
+          "error": "Failed to like the track. Please try again.",
+          "liked": "👍 Added the track to your liked tracks.",
+          "unliked": "\uD83D\uDC4E Removed the track from your liked tracks."
+        }
+      }
+    },
+    "tags": {
+      "commands": {
+        "tag": {
+          "not.found": "No tag found with name `%s`."
+        },
+        "tags": {
+          "not.found": "No tag found with name `%s`.",
+          "create": {
+            "name.too.long": "Tag name must be less than 64 characters.",
+            "content.too.long": "Tag content must be less than 2048 characters.",
+            "error": "Failed to create tag. Please try again.",
+            "success": "Created tag with name: `%s`."
+          },
+          "delete": {
+            "no.permissions": "You don't have permissions to delete this tag.",
+            "error": "Failed to delete tag. Please try again.",
+            "success": "Deleted tag with name: `%s`."
+          },
+          "edit": {
+            "no.permissions": "You don't have permissions to edit this tag.",
+            "error": "Failed to edit tag. Please try again.",
+            "success": "Edited tag with name: `%s`."
+          },
+          "info": {
+            "title": "Tag Info: %s",
+            "owner": "Owner:",
+            "uses": "Uses:",
+            "created.at": "Created:"
+          },
+          "list": {
+            "error": "Failed to list tags. Please try again.",
+            "no.tags": "No tags found for this server.",
+            "title": "There are `%d` total tags:"
+          }
+        }
       }
     }
   }
