@@ -13,7 +13,7 @@ import (
 
 func (b *Bot) SetupDatabase(shouldSyncDBTables bool) error {
 	sqlDB := sql.OpenDB(pgdriver.NewConnector(
-		pgdriver.WithAddr(fmt.Sprintf("%s:%d", b.Config.Database.Host, b.Config.Database.Port)),
+		pgdriver.WithAddr(fmt.Sprintf("%s:%s", b.Config.Database.Host, b.Config.Database.Port)),
 		pgdriver.WithUser(b.Config.Database.User),
 		pgdriver.WithPassword(b.Config.Database.Password),
 		pgdriver.WithDatabase(b.Config.Database.DBName),

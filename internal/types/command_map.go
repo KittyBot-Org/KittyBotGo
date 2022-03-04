@@ -55,11 +55,10 @@ func (m *CommandMap) OnEvent(event core.Event) {
 			return
 		}
 		args := strings.Split(customID, ":")
-		cmdHandler, action := args[1], args[2]
-		cmdName := strings.Split(cmdHandler, "/")[0]
+		cmdName, action := args[1], args[2]
 		if cmd, ok := m.commands[cmdName]; ok {
 			if cmd.ComponentHandler != nil {
-				if handler, ok := cmd.ComponentHandler[cmdHandler]; ok {
+				if handler, ok := cmd.ComponentHandler[action]; ok {
 					if err := handler(m.bot, getMessagePrinter(e.BaseInteraction), e, action); err != nil {
 						m.bot.Logger.Errorf("Failed to handle component interaction for \"%s\": %s", cmdName, err)
 					}

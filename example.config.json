@@ -2,7 +2,7 @@
   "dev_mode": false,
   "dev_guild_ids": [],
   "dev_user_ids": [],
-  "log_level": 0,
+  "log_level": 1,
   "bot": {
     "token": "",
     "shard_ids": [],
@@ -10,7 +10,7 @@
   },
   "database": {
     "host": "",
-    "port": 0,
+    "port": "",
     "user": "",
     "password": "",
     "db_name": ""

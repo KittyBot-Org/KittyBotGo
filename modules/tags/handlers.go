@@ -13,17 +13,15 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/internal/models"
 	"github.com/KittyBot-Org/KittyBotGo/internal/types"
 	"github.com/lithammer/fuzzysearch/fuzzy"
-	"github.com/pkg/errors"
 	"golang.org/x/text/message"
 )
 
 func tagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	data := e.SlashCommandInteractionData()
-	var msg string
+	name := *data.Options.String("name")
+	msg := p.Sprintf("modules.tags.commands.tag.not.found", name)
 	var tag models.Tag
-	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name = ?", *e.GuildID, *data.Options.String("name")).Scan(context.TODO(), &tag); err != nil {
-		msg = "Tag not found."
-	} else {
+	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name = ?", *e.GuildID).Scan(context.TODO(), &tag); err == nil {
 		msg = tag.Content
 	}
 	if err := e.CreateMessage(discord.MessageCreate{
@@ -47,13 +45,13 @@ func createTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCom
 
 	if len(name) >= 64 {
 		return e.CreateMessage(discord.MessageCreate{
-			Content: "Tag name must be less than 64 characters.",
+			Content: p.Sprintf("modules.tags.commands.tags.create.name.too.long"),
 			Flags:   discord.MessageFlagEphemeral,
 		})
 	}
-	if len(content) >= 1024 {
+	if len(content) >= 2048 {
 		return e.CreateMessage(discord.MessageCreate{
-			Content: "Tag content must be less than 1024 characters.",
+			Content: p.Sprintf("modules.tags.commands.tags.create.content.too.long"),
 			Flags:   discord.MessageFlagEphemeral,
 		})
 	}
@@ -65,9 +63,9 @@ func createTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCom
 		Content: content,
 		OwnerID: e.User.ID,
 	}).Exec(context.TODO()); err != nil {
-		msg = "Failed to create tag: " + err.Error()
+		msg = p.Sprintf("modules.tags.commands.tags.create.error")
 	} else {
-		msg = "Tag created!"
+		msg = p.Sprintf("modules.tags.commands.tags.create.success", name)
 	}
 	return e.CreateMessage(discord.MessageCreate{
 		Content: msg,
@@ -75,19 +73,19 @@ func createTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCom
 }
 
 func deleteTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
-	data := e.SlashCommandInteractionData()
+	name := *e.SlashCommandInteractionData().Options.String("name")
 	var msg string
 	var tag models.Tag
-	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name = ?", *e.GuildID, *data.Options.String("name")).Scan(context.TODO(), &tag); err != nil {
-		msg = "Tag not found."
+	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name = ?", *e.GuildID, name).Scan(context.TODO(), &tag); err != nil {
+		msg = p.Sprintf("modules.tags.commands.tags.not.found", name)
 	} else {
 		if tag.OwnerID != e.User.ID && !e.Member.InteractionPermissions().Has(discord.PermissionManageServer) {
-			msg = "You don't have permissions to delete this tag!"
+			msg = p.Sprintf("modules.tags.commands.tags.delete.no.permissions", name)
 		} else {
 			if _, err = b.DB.NewDelete().Model(&tag).WherePK().Exec(context.TODO()); err != nil {
-				msg = "Failed to delete tag: " + err.Error()
+				msg = p.Sprintf("modules.tags.commands.tags.delete.error")
 			} else {
-				msg = "Tag deleted!"
+				msg = p.Sprintf("modules.tags.commands.tags.delete.success", name)
 			}
 		}
 	}
@@ -99,19 +97,20 @@ func deleteTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCom
 
 func editTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	data := e.SlashCommandInteractionData()
+	name := *data.Options.String("name")
 	var msg string
 	var tag models.Tag
-	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name = ?", *e.GuildID, *data.Options.String("name")).Scan(context.TODO(), &tag); err != nil {
-		msg = "Tag not found."
+	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name = ?", *e.GuildID, name).Scan(context.TODO(), &tag); err != nil {
+		msg = p.Sprintf("modules.tags.commands.tags.not.found", name)
 	} else {
 		if tag.OwnerID != e.User.ID && !e.Member.InteractionPermissions().Has(discord.PermissionManageServer) {
-			msg = "You don't have permissions to edit this tag!"
+			msg = p.Sprintf("modules.tags.commands.tags.edit.no.permissions", name)
 		} else {
 			tag.Content = *data.Options.String("content")
 			if _, err = b.DB.NewUpdate().Model(&tag).Column("content").WherePK().Exec(context.TODO()); err != nil {
-				msg = "Failed to edit tag: " + err.Error()
+				msg = p.Sprintf("modules.tags.commands.tags.edit.error")
 			} else {
-				msg = "Tag edited!"
+				msg = p.Sprintf("modules.tags.commands.tags.edit.success", name)
 			}
 		}
 	}
@@ -122,21 +121,21 @@ func editTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationComma
 }
 
 func infoTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
-	data := e.SlashCommandInteractionData()
+	name := *e.SlashCommandInteractionData().Options.String("name")
 	var tag models.Tag
-	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name = ?", *e.GuildID, *data.Options.String("name")).Scan(context.TODO(), &tag); err != nil {
+	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name = ?", *e.GuildID, name).Scan(context.TODO(), &tag); err != nil {
 		return e.CreateMessage(discord.MessageCreate{
-			Content: "Tag not found.",
+			Content: p.Sprintf("modules.tags.commands.tags.not.found", name),
 		})
 	}
 
 	embed := discord.NewEmbedBuilder().
-		SetTitlef("Tag Info: %s", tag.Name).
+		SetTitle(p.Sprintf("modules.tags.commands.tags.info.title", tag.Name)).
 		SetDescription(tag.Content).
-		AddField("Owner", "<@"+tag.OwnerID.String()+">", true).
-		AddField("Uses", strconv.Itoa(tag.Uses), true).
-		AddField("Created At", "<t:"+strconv.Itoa(int(tag.CreatedAt.Unix()))+"> (<t:"+strconv.Itoa(int(tag.CreatedAt.Unix()))+":R>)", false).
-		SetColor(0xe24f96).
+		AddField(p.Sprintf("modules.tags.commands.tags.info.owner"), "<@"+tag.OwnerID.String()+">", true).
+		AddField(p.Sprintf("modules.tags.commands.tags.info.uses"), strconv.Itoa(tag.Uses), true).
+		AddField(p.Sprintf("modules.tags.commands.tags.info.created.at"), fmt.Sprintf("%s (%s)", discord.NewTimestamp(discord.TimestampStyleNone, tag.CreatedAt), discord.NewTimestamp(discord.TimestampStyleRelative, tag.CreatedAt)), false).
+		SetColor(types.KittyBotColor).
 		Build()
 	return e.CreateMessage(discord.MessageCreate{
 		Embeds: []discord.Embed{embed},
@@ -147,13 +146,13 @@ func listTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationComma
 	var tags []models.Tag
 	if err := b.DB.NewSelect().Model(&tags).Where("guild_id = ?", *e.GuildID).Order("name ASC").Scan(context.TODO(), &tags); err != nil {
 		return e.CreateMessage(discord.MessageCreate{
-			Content: "Failed to list tags: " + err.Error(),
+			Content: p.Sprintf("modules.tags.commands.tags.list.error"),
 		})
 	}
 
 	if len(tags) == 0 {
 		return e.CreateMessage(discord.MessageCreate{
-			Content: "No tags have been made in the server.",
+			Content: p.Sprintf("modules.tags.commands.tags.list.no.tags"),
 		})
 	}
 
@@ -173,7 +172,7 @@ func listTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationComma
 
 	return b.Paginator.Create(e.CreateInteraction, &paginator.Paginator{
 		PageFunc: func(page int, embed *discord.EmbedBuilder) discord.Embed {
-			return embed.SetTitlef("There are %d total tags:", len(tags)).SetDescription(pages[page]).Build()
+			return embed.SetTitle(p.Sprintf("modules.tags.commands.tags.list.title", len(tags))).SetDescription(pages[page]).Build()
 		},
 		MaxPages:        len(pages),
 		Expiry:          time.Now(),
@@ -183,11 +182,7 @@ func listTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationComma
 
 func autoCompleteTagHandler(b *types.Bot, p *message.Printer, e *events.AutocompleteInteractionEvent) error {
 	response := make(map[string]string)
-	opt := e.Data.Options.String("name")
-	if opt == nil {
-		return errors.New("No autocomplete name provided on required option")
-	}
-	name := strings.ToLower(*opt)
+	name := strings.ToLower(*e.Data.Options.String("name"))
 	var tags []models.Tag
 	if err := b.DB.NewSelect().Model(&tags).Where("guild_id = ?", *e.GuildID).Scan(context.TODO(), &tags); err == nil {
 		var options []string
