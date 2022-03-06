@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/uptrace/bun/extra/bundebug"
 
 	"github.com/KittyBot-Org/KittyBotGo/internal/models"
 	"github.com/uptrace/bun"
@@ -20,8 +21,11 @@ func (b *Bot) SetupDatabase(shouldSyncDBTables bool) error {
 		pgdriver.WithInsecure(true),
 	))
 	b.DB = bun.NewDB(sqlDB, pgdialect.New())
-
+	b.DB.AddQueryHook(bundebug.NewQueryHook(bundebug.WithVerbose(true)))
 	if shouldSyncDBTables {
+		if err := b.DB.ResetModel(context.TODO(), (*models.GuildSettings)(nil)); err != nil {
+			return err
+		}
 		if err := b.DB.ResetModel(context.TODO(), (*models.Tag)(nil)); err != nil {
 			return err
 		}
@@ -29,6 +33,9 @@ func (b *Bot) SetupDatabase(shouldSyncDBTables bool) error {
 			return err
 		}
 		if err := b.DB.ResetModel(context.TODO(), (*models.PlayHistory)(nil)); err != nil {
+			return err
+		}
+		if err := b.DB.ResetModel(context.TODO(), (*models.LikedSong)(nil)); err != nil {
 			return err
 		}
 	}

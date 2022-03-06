@@ -1,11 +1,19 @@
 package music
 
 import (
+	"context"
+	"database/sql"
+	"fmt"
 	"github.com/DisgoOrg/disgo/core/events"
 	"github.com/DisgoOrg/disgo/discord"
+	"github.com/DisgoOrg/disgolink/lavalink"
+	"github.com/KittyBot-Org/KittyBotGo/internal/models"
 	"github.com/KittyBot-Org/KittyBotGo/internal/types"
 	"golang.org/x/text/message"
+	"regexp"
 )
+
+var trackRegex = regexp.MustCompile(`\[\x60(?P<title>.+)\x60]\(<(?P<url>.+)?>\)`)
 
 func checkPlayer(b *types.Bot, p *message.Printer, e *events.ComponentInteractionEvent) (*types.MusicPlayer, error) {
 	player := b.MusicPlayers.Get(*e.GuildID)
@@ -15,7 +23,7 @@ func checkPlayer(b *types.Bot, p *message.Printer, e *events.ComponentInteractio
 	return player, nil
 }
 
-func previousComponentHandler(b *types.Bot, p *message.Printer, e *events.ComponentInteractionEvent, action string) error {
+func previousComponentHandler(b *types.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
 	player, err := checkPlayer(b, p, e)
 	if player == nil {
 		return err
@@ -29,10 +37,11 @@ func previousComponentHandler(b *types.Bot, p *message.Printer, e *events.Compon
 		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.components.previous.error"), Flags: discord.MessageFlagEphemeral})
 	}
 	msg := p.Sprintf("modules.music.commands.previous.success", nextTrack.Info().Title, *nextTrack.Info().URI, nextTrack.Info().Length)
-	return e.UpdateMessage(discord.MessageUpdate{Content: &msg})
+	components := []discord.ContainerComponent{getMusicControllerComponents(nextTrack)}
+	return e.UpdateMessage(discord.MessageUpdate{Content: &msg, Components: &components})
 }
 
-func playPauseComponentHandler(b *types.Bot, p *message.Printer, e *events.ComponentInteractionEvent, action string) error {
+func playPauseComponentHandler(b *types.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
 	player, err := checkPlayer(b, p, e)
 	if player == nil {
 		return err
@@ -51,16 +60,18 @@ func playPauseComponentHandler(b *types.Bot, p *message.Printer, e *events.Compo
 		return e.CreateMessage(discord.MessageCreate{Content: msg, Flags: discord.MessageFlagEphemeral})
 	}
 	var msg string
-	info := player.PlayingTrack().Info()
+	track := player.PlayingTrack()
+	info := track.Info()
 	if paused {
 		msg = p.Sprintf("modules.music.components.play.pause.pause.success", info.Title, *info.URI, info.Length, player.Position())
 	} else {
 		msg = p.Sprintf("modules.music.components.play.pause.play.success", info.Title, *info.URI, info.Length)
 	}
-	return e.UpdateMessage(discord.MessageUpdate{Content: &msg})
+	components := []discord.ContainerComponent{getMusicControllerComponents(track)}
+	return e.UpdateMessage(discord.MessageUpdate{Content: &msg, Components: &components})
 }
 
-func nextComponentHandler(b *types.Bot, p *message.Printer, e *events.ComponentInteractionEvent, action string) error {
+func nextComponentHandler(b *types.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
 	player, err := checkPlayer(b, p, e)
 	if player == nil {
 		return err
@@ -74,27 +85,68 @@ func nextComponentHandler(b *types.Bot, p *message.Printer, e *events.ComponentI
 		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.components.next.error"), Flags: discord.MessageFlagEphemeral})
 	}
 	msg := p.Sprintf("modules.music.commands.next.success", nextTrack.Info().Title, *nextTrack.Info().URI, nextTrack.Info().Length)
-	return e.UpdateMessage(discord.MessageUpdate{Content: &msg})
+	components := []discord.ContainerComponent{getMusicControllerComponents(nextTrack)}
+	return e.UpdateMessage(discord.MessageUpdate{Content: &msg, Components: &components})
 }
 
-func likeComponentHandler(b *types.Bot, p *message.Printer, e *events.ComponentInteractionEvent, action string) error {
-	player, err := checkPlayer(b, p, e)
-	if player == nil {
+func likeComponentHandler(b *types.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
+	allMatches := trackRegex.FindAllStringSubmatch(e.Message.Content, -1)
+	if allMatches == nil {
+		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.components.like.no.track"), Flags: discord.MessageFlagEphemeral})
+	}
+	matches := allMatches[0]
+	var (
+		title string
+		url   *string
+	)
+	title = matches[trackRegex.SubexpIndex("title")]
+	if len(matches) > 2 {
+		url = &matches[trackRegex.SubexpIndex("url")]
+	}
+
+	fmt.Printf("title: '%s'\n", title)
+
+	var likedSong models.LikedSong
+	err := b.DB.NewSelect().Model(&likedSong).Where("user_id = ? AND title like ?", e.User.ID, title).Scan(context.TODO())
+	if err != nil && err != sql.ErrNoRows {
 		return err
 	}
-	track := player.PlayingTrack()
-	if track == nil {
-		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.components.like.not.playing"), Flags: discord.MessageFlagEphemeral})
+	fmt.Printf("likedSong: %v\n", likedSong)
+	var msg string
+	if err != nil {
+		likedSong = models.LikedSong{
+			UserID: e.User.ID,
+			Query:  getTrackQuery(title, url),
+			Title:  title,
+		}
+		if _, err = b.DB.NewInsert().Model(&likedSong).Exec(context.TODO()); err != nil {
+			b.Logger.Error("Error adding music history entry: ", err)
+		}
+		msg = p.Sprintf("modules.music.components.like.added", title, url)
+	} else {
+		if _, err = b.DB.NewDelete().Model(&likedSong).WherePK().Exec(context.TODO()); err != nil {
+			b.Logger.Error("Error adding music history entry: ", err)
+		}
+		msg = p.Sprintf("modules.music.components.like.removed", title, url)
 	}
-	// TODO: Add like/unlike
-	return e.CreateMessage(discord.MessageCreate{Content: "not implemented yet", Flags: discord.MessageFlagEphemeral})
+	return e.CreateMessage(discord.MessageCreate{Content: msg, Flags: discord.MessageFlagEphemeral})
 }
 
-func getMusicControllerComponents() discord.ContainerComponent {
-	return discord.ActionRowComponent{
+func getMusicControllerComponents(track lavalink.AudioTrack) discord.ContainerComponent {
+	buttons := discord.ActionRowComponent{
 		discord.NewPrimaryButton("", "cmd:now-playing:previous").WithEmoji(discord.ComponentEmoji{Name: "⏮"}),
 		discord.NewPrimaryButton("", "cmd:now-playing:play-pause").WithEmoji(discord.ComponentEmoji{Name: "⏯"}),
 		discord.NewPrimaryButton("", "cmd:now-playing:next").WithEmoji(discord.ComponentEmoji{Name: "⏭"}),
-		discord.NewPrimaryButton("", "cmd:now-playing:like").WithEmoji(discord.ComponentEmoji{Name: "❤️"}),
 	}
+	if track != nil {
+		buttons = buttons.AddComponents(discord.NewPrimaryButton("", "cmd:now-playing:like").WithEmoji(discord.ComponentEmoji{Name: "❤️"}))
+	}
+	return buttons
+}
+
+func getTrackQuery(title string, url *string) string {
+	if url != nil {
+		return *url
+	}
+	return title
 }

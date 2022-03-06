@@ -311,6 +311,57 @@ func (m module) Commands() []types.Command {
 				"": shuffleHandler,
 			},
 		},
+		{
+			Create: discord.SlashCommandCreate{
+				CommandName:       "liked-songs",
+				Description:       "Lists/Removes/Plays a liked song.",
+				DefaultPermission: true,
+				Options: []discord.ApplicationCommandOption{
+					discord.ApplicationCommandOptionSubCommand{
+						Name:        "list",
+						Description: "Lists all your liked songs.",
+					},
+					discord.ApplicationCommandOptionSubCommand{
+						Name:        "remove",
+						Description: "Removes a liked song.",
+						Options: []discord.ApplicationCommandOption{
+							discord.ApplicationCommandOptionString{
+								Name:         "song",
+								Description:  "The song to remove",
+								Required:     true,
+								Autocomplete: true,
+							},
+						},
+					},
+					discord.ApplicationCommandOptionSubCommand{
+						Name:        "clear",
+						Description: "Clears all your liked song.",
+					},
+					/*discord.ApplicationCommandOptionSubCommand{
+						Name:        "play",
+						Description: "Plays a liked song.",
+						Options: []discord.ApplicationCommandOption{
+							discord.ApplicationCommandOptionString{
+								Name:         "song",
+								Description:  "The song to play",
+								Required:     false,
+								Autocomplete: true,
+							},
+						},
+					},*/
+				},
+			},
+			CommandHandler: map[string]types.CommandHandler{
+				"list":   likedSongsListHandler,
+				"remove": likedSongsRemoveHandler,
+				"clear":  likedSongsClearHandler,
+				"play":   likedSongsPlayHandler,
+			},
+			AutoCompleteHandler: map[string]types.AutocompleteHandler{
+				"remove": likedSongAutocompleteHandler,
+				//"play":   likedSongAutocompleteHandler,
+			},
+		},
 	}
 }
 

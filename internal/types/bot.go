@@ -2,14 +2,16 @@ package types
 
 import (
 	"context"
-
 	"github.com/DisgoOrg/disgo/core"
 	"github.com/DisgoOrg/disgo/core/bot"
 	"github.com/DisgoOrg/disgo/discord"
 	"github.com/DisgoOrg/disgo/gateway"
 	"github.com/DisgoOrg/disgolink/disgolink"
 	"github.com/DisgoOrg/log"
+	"github.com/DisgoOrg/snowflake"
 	"github.com/DisgoOrg/utils/paginator"
+	"github.com/KittyBot-Org/KittyBotGo/internal/cache"
+	"github.com/KittyBot-Org/KittyBotGo/internal/models"
 	"github.com/uptrace/bun"
 )
 
@@ -20,7 +22,7 @@ type Bot struct {
 	Bot              *core.Bot
 	Lavalink         disgolink.Link
 	MusicPlayers     *MusicPlayerMap
-	PlayHistoryCache *PlayHistoryCache
+	PlayHistoryCache *cache.Cache[snowflake.Snowflake, []models.PlayHistory]
 	Paginator        *paginator.Manager
 	Commands         *CommandMap
 	Listeners        *Listeners
