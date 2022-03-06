@@ -4,7 +4,7 @@ ARG VERSION=dev
 
 WORKDIR /tmp/app
 
-COPY ../../docker .
+COPY . .
 
 RUN go mod download && \
     go mod verify && \
