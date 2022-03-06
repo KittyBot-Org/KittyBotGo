@@ -23,6 +23,9 @@
         "queue": {
           "title": "Currently `%d` songs are in the queue:"
         },
+        "history": {
+          "title": "Currently `%d` songs are in the history:"
+        },
         "remove": {
           "invalid.index": "Invalid song index.",
           "track.not.found": "No track found with index `%d`.",
@@ -75,7 +78,21 @@
           "error": "Failed to play previous song. Please try again.",
           "success": "⏮ Skipped track.\nNow playing: [`%s`](<%s>) - %s"
         },
-        "shuffle": "🔀 Shuffled queue"
+        "shuffle": "🔀 Shuffled queue",
+        "liked.songs": {
+          "list": {
+            "empty": "You haven't liked any songs yet.",
+            "title": "You have `%d` liked songs:"
+          },
+          "remove": {
+            "error": "Failed to remove song from liked songs. Please try again.",
+            "success": "Removed `%s` from liked songs."
+          },
+          "clear": {
+            "error": "Failed to clear liked songs. Please try again.",
+            "success": "Cleared all liked songs."
+          }
+        }
       },
       "components": {
         "no.player": "No music player found in this server.",
@@ -99,10 +116,15 @@
           "error": "Failed to play next song. Please try again."
         },
         "like": {
-          "not.playing": "No track is currently playing.",
-          "error": "Failed to like the track. Please try again.",
-          "liked": "👍 Added the track to your liked tracks.",
-          "unliked": "\uD83D\uDC4E Removed the track from your liked tracks."
+          "no.track": "Could not find a song in the message. Please try again",
+          "liked": {
+            "error": "Failed to add song. Please try again.",
+            "success": "👍 Added [`%s`](<%s>) to your liked songs."
+          },
+          "unliked": {
+            "error": "Failed to remove song. Please try again.",
+            "success": "👎 Removed [`%s`](<%s>) from your liked songs."
+          }
         }
       }
     },

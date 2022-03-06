@@ -3,6 +3,10 @@ package music
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strconv"
+	"time"
+
 	"github.com/DisgoOrg/disgo/core"
 	"github.com/DisgoOrg/disgo/core/events"
 	"github.com/DisgoOrg/disgo/discord"
@@ -13,9 +17,6 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/internal/models"
 	"github.com/KittyBot-Org/KittyBotGo/internal/types"
 	"golang.org/x/text/message"
-	"regexp"
-	"strconv"
-	"time"
 )
 
 var (
@@ -247,8 +248,9 @@ func historyHandler(b *types.Bot, p *message.Printer, e *events.ApplicationComma
 		page          string
 		tracksCounter int
 	)
-	for i, track := range tracks {
-		trackStr := fmt.Sprintf("%d. [`%s`](<%s>) - %s [<@%s>]\n", i+1, track.Info().Title, *track.Info().URI, track.Info().Length, track.UserData().(models.AudioTrackData).Requester)
+	for i := len(tracks) - 1; i >= 0; i-- {
+		track := tracks[i]
+		trackStr := fmt.Sprintf("%d. [`%s`](<%s>) - %s [<@%s>]\n", len(tracks)-i, track.Info().Title, *track.Info().URI, track.Info().Length, track.UserData().(models.AudioTrackData).Requester)
 		if len(page)+len(trackStr) > 4096 || tracksCounter >= 10 {
 			pages = append(pages, page)
 			page = ""
@@ -536,7 +538,7 @@ func likedSongsListHandler(b *types.Bot, p *message.Printer, e *events.Applicati
 		return err
 	}
 	if len(tracks) == 0 {
-		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.liked.list.empty")})
+		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.liked.songs.list.empty")})
 	}
 	var (
 		pages         []string
@@ -568,20 +570,17 @@ func likedSongsListHandler(b *types.Bot, p *message.Printer, e *events.Applicati
 }
 
 func likedSongsRemoveHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
-	likedSongID, err := strconv.Atoi(*e.SlashCommandInteractionData().Options.String("song"))
-	if err != nil {
-		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.liked.songs.remove.invalid-id")})
+	songName := *e.SlashCommandInteractionData().Options.String("song")
+
+	if _, err := b.DB.NewDelete().Model((*models.LikedSong)(nil)).Where("user_id = ? AND title like ?", e.User.ID, songName).Exec(context.TODO()); err != nil {
+		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.liked.songs.remove.error"), Flags: discord.MessageFlagEphemeral})
 	}
-	_, err = b.DB.NewDelete().Model((*models.LikedSong)(nil)).Where("id = ?", likedSongID).Exec(context.TODO())
-	if err != nil {
-		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.liked.songs.remove.error")})
-	}
-	return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.liked.songs.remove.success")})
+	return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.liked.songs.remove.success", songName)})
 }
 
 func likedSongsClearHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	if _, err := b.DB.NewDelete().Model((*models.LikedSong)(nil)).Where("user_id = ?", e.User.ID).Exec(context.TODO()); err != nil {
-		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.liked.songs.clear.error")})
+		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.liked.songs.clear.error"), Flags: discord.MessageFlagEphemeral})
 	}
 	return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.liked.songs.clear.success")})
 }

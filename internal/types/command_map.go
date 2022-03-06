@@ -27,8 +27,12 @@ func (m *CommandMap) OnEvent(event core.Event) {
 			switch d := e.Data.(type) {
 			case core.SlashCommandInteractionData:
 				if cmd.CommandHandler != nil {
+					printer := getMessagePrinter(e.BaseInteraction)
+					if cmd.Checks != nil && !cmd.Checks(m.bot, printer, e) {
+						return
+					}
 					if handler, ok := cmd.CommandHandler[buildCommandPath(d.SubCommandName, d.SubCommandGroupName)]; ok {
-						if err := handler(m.bot, getMessagePrinter(e.BaseInteraction), e); err != nil {
+						if err := handler(m.bot, printer, e); err != nil {
 							m.bot.Logger.Errorf("Failed to handle command \"%s\": %s", e.Data.Name(), err)
 						}
 						return
