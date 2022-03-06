@@ -105,6 +105,7 @@ var Module = types.DefaultCommandsModule{
 			},
 			AutoCompleteHandler: map[string]types.AutocompleteHandler{
 				"list": autoCompleteTagHandler,
+				"info": autoCompleteTagHandler,
 			},
 		},
 	},
