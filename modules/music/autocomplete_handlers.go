@@ -1,12 +1,15 @@
 package music
 
 import (
+	"context"
 	"fmt"
 	"github.com/DisgoOrg/disgo/core/events"
 	"github.com/DisgoOrg/disgo/discord"
+	"github.com/KittyBot-Org/KittyBotGo/internal/models"
 	"github.com/KittyBot-Org/KittyBotGo/internal/types"
 	"github.com/lithammer/fuzzysearch/fuzzy"
 	"golang.org/x/text/message"
+	"strconv"
 	"strings"
 )
 
@@ -15,16 +18,30 @@ func playAutocompleteHandler(b *types.Bot, _ *message.Printer, e *events.Autocom
 	if q := e.Data.Options.String("query"); q != nil {
 		query = *q
 	}
-	cache, ok := b.PlayHistoryCache.Get(e.User.ID)
-	if (!ok || len(cache) == 0) && query == "" {
+	cache1 := b.PlayHistoryCache.Get(e.User.ID)
+	var cache2 []models.LikedSong
+	if err := b.DB.NewSelect().Model(&cache2).Where("user_id = ?", e.User.ID).Scan(context.TODO()); err != nil {
+		b.Logger.Error("Failed to get music history entries: ", err)
+		return err
+	}
+	if (len(cache1)+len(cache2) == 0) && query == "" {
 		return e.Result(nil)
 	}
 
-	labels := make([]string, len(cache))
-	unsortedResult := make(map[string]string, len(cache))
+	labels := make([]string, len(cache1)+len(cache2))
+	unsortedResult := make(map[string]string, len(cache1)+len(cache2))
 	i := 0
-	for _, entry := range cache {
-		unsortedResult[entry.Title] = entry.Query
+	for _, entry := range cache1 {
+		title := "🔁" + entry.Title
+		unsortedResult[title] = entry.Query
+		labels[i] = title
+		i++
+	}
+
+	for _, entry := range cache2 {
+		title := "❤️" + entry.Title
+		unsortedResult[title] = entry.Query
+		labels[i] = title
 		i++
 	}
 
@@ -51,7 +68,7 @@ func playAutocompleteHandler(b *types.Bot, _ *message.Printer, e *events.Autocom
 			break
 		}
 		result[ii+1] = discord.AutocompleteChoiceString{
-			Name:  "🔁" + rank.Target,
+			Name:  rank.Target,
 			Value: unsortedResult[rank.Target],
 		}
 	}
@@ -88,4 +105,44 @@ func removeSongAutocompleteHandler(b *types.Bot, p *message.Printer, e *events.A
 		}
 	}
 	return e.Result(choices)
+}
+
+func likedSongAutocompleteHandler(b *types.Bot, _ *message.Printer, e *events.AutocompleteInteractionEvent) error {
+	song := *e.Data.Options.String("song")
+	var likedSongs []models.LikedSong
+	if err := b.DB.NewSelect().Model(&likedSongs).Where("user_id = ?", e.User.ID).Scan(context.TODO()); err != nil {
+		return err
+	}
+	if (len(likedSongs) == 0) && song == "" {
+		return e.Result(nil)
+	}
+	labels := make([]string, len(likedSongs))
+	unsortedResult := make(map[string]string, len(likedSongs))
+	i := 0
+	for _, entry := range likedSongs {
+		labels[i] = entry.Title
+		unsortedResult[entry.Title] = strconv.Itoa(entry.ID)
+		i++
+	}
+
+	if song == "" {
+		return e.ResultMapString(unsortedResult)
+	}
+
+	ranks := fuzzy.RankFindFold(song, labels)
+	resultLen := len(ranks)
+	if resultLen > 25 {
+		resultLen = 25
+	}
+	result := make([]discord.AutocompleteChoice, resultLen+1)
+	for ii, rank := range ranks {
+		if ii >= resultLen {
+			break
+		}
+		result[ii] = discord.AutocompleteChoiceString{
+			Name:  rank.Target,
+			Value: unsortedResult[rank.Target],
+		}
+	}
+	return e.Result(result)
 }
