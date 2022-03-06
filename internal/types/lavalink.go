@@ -14,7 +14,6 @@ import (
 
 func (b *Bot) SetupLavalink() {
 	b.MusicPlayers = NewMusicPlayerMap(b)
-	b.PlayHistoryCache = NewPlayHistoryCache(b)
 	b.Lavalink = disgolink.New(b.Bot, lavalink.WithPlugins(source_extensions.NewSpotifyPlugin(), source_extensions.NewAppleMusicPlugin()))
 	b.RegisterNodes()
 	b.Bot.EventManager.AddEventListeners(b.Lavalink)
@@ -135,7 +134,7 @@ func (b *Bot) SavePlayers() {
 		}
 
 		history := make([]models.AudioTrack, player.History.Len())
-		for i, track := range player.History.All() {
+		for i, track := range player.History.Tracks() {
 			encodedTrack, err := b.Lavalink.EncodeTrack(track)
 			if err != nil {
 				b.Logger.Error("Failed to encode history track: ", err)

@@ -8,27 +8,23 @@ import (
 	"github.com/DisgoOrg/disgo/gateway"
 	"github.com/DisgoOrg/disgolink/disgolink"
 	"github.com/DisgoOrg/log"
-	"github.com/DisgoOrg/snowflake"
 	"github.com/DisgoOrg/utils/paginator"
-	"github.com/KittyBot-Org/KittyBotGo/internal/cache"
-	"github.com/KittyBot-Org/KittyBotGo/internal/models"
 	"github.com/uptrace/bun"
 )
 
 const KittyBotColor = 0x4c50c1
 
 type Bot struct {
-	Logger           log.Logger
-	Bot              *core.Bot
-	Lavalink         disgolink.Link
-	MusicPlayers     *MusicPlayerMap
-	PlayHistoryCache *cache.Cache[snowflake.Snowflake, []models.PlayHistory]
-	Paginator        *paginator.Manager
-	Commands         *CommandMap
-	Listeners        *Listeners
-	DB               *bun.DB
-	Config           Config
-	Version          string
+	Logger       log.Logger
+	Bot          *core.Bot
+	Lavalink     disgolink.Link
+	MusicPlayers *MusicPlayerMap
+	Paginator    *paginator.Manager
+	Commands     *CommandMap
+	Listeners    *Listeners
+	DB           *bun.DB
+	Config       Config
+	Version      string
 }
 
 func (b *Bot) SetupPaginator() {
