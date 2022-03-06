@@ -38,13 +38,14 @@ func (b *Bot) LoadConfig() error {
 }
 
 type Config struct {
-	DevMode     bool                  `json:"dev_mode"`
-	DevGuildIDs []snowflake.Snowflake `json:"dev_guild_ids"`
-	DevUserIDs  []snowflake.Snowflake `json:"dev_user_ids"`
-	LogLevel    log.Level             `json:"log_level"`
-	Bot         BotConfig             `json:"bot"`
-	Database    DatabaseConfig        `json:"database"`
-	Lavalink    LavalinkConfig        `json:"lavalink"`
+	DevMode              bool                  `json:"dev_mode"`
+	DevGuildIDs          []snowflake.Snowflake `json:"dev_guild_ids"`
+	DevUserIDs           []snowflake.Snowflake `json:"dev_user_ids"`
+	LogLevel             log.Level             `json:"log_level"`
+	Bot                  BotConfig             `json:"bot"`
+	Database             DatabaseConfig        `json:"database"`
+	PlayHistoryCacheSize int                   `json:"play_history_cache_size"`
+	Lavalink             LavalinkConfig        `json:"lavalink"`
 }
 
 type BotConfig struct {
