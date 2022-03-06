@@ -1,8 +1,9 @@
 name: Docker Build
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - v*
 
 env:
   IMAGE_NAME: bot
