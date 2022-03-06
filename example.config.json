@@ -15,6 +15,7 @@
     "password": "",
     "db_name": ""
   },
+  "play_history_cache_size": 100,
   "lavalink": {
     "nodes": [
       {
