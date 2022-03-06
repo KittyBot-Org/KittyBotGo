@@ -1,14 +1,14 @@
 package models
 
 import (
-	"github.com/DisgoOrg/snowflake"
 	"time"
+
+	"github.com/DisgoOrg/snowflake"
 )
 
 type LikedSong struct {
-	ID        int                 `bun:"id,autoincrement,pk,notnull"`
-	UserID    snowflake.Snowflake `bun:"user_id,notnull,unique:user-song"`
+	UserID    snowflake.Snowflake `bun:"user_id,pk"`
 	Query     string              `bun:"query,notnull"`
-	Title     string              `bun:"title,notnull,unique:user-song"`
+	Title     string              `bun:"title,pk"`
 	CreatedAt time.Time           `bun:"created_at,nullzero,notnull,default:current_timestamp"`
 }

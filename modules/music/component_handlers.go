@@ -4,13 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"regexp"
+
 	"github.com/DisgoOrg/disgo/core/events"
 	"github.com/DisgoOrg/disgo/discord"
 	"github.com/DisgoOrg/disgolink/lavalink"
 	"github.com/KittyBot-Org/KittyBotGo/internal/models"
 	"github.com/KittyBot-Org/KittyBotGo/internal/types"
 	"golang.org/x/text/message"
-	"regexp"
 )
 
 var trackRegex = regexp.MustCompile(`\[\x60(?P<title>.+)\x60]\(<(?P<url>.+)?>\)`)
@@ -104,8 +105,6 @@ func likeComponentHandler(b *types.Bot, p *message.Printer, e *events.ComponentI
 		url = &matches[trackRegex.SubexpIndex("url")]
 	}
 
-	fmt.Printf("title: '%s'\n", title)
-
 	var likedSong models.LikedSong
 	err := b.DB.NewSelect().Model(&likedSong).Where("user_id = ? AND title like ?", e.User.ID, title).Scan(context.TODO())
 	if err != nil && err != sql.ErrNoRows {
@@ -139,7 +138,7 @@ func getMusicControllerComponents(track lavalink.AudioTrack) discord.ContainerCo
 		discord.NewPrimaryButton("", "cmd:now-playing:next").WithEmoji(discord.ComponentEmoji{Name: "⏭"}),
 	}
 	if track != nil {
-		buttons = buttons.AddComponents(discord.NewPrimaryButton("", "cmd:now-playing:like").WithEmoji(discord.ComponentEmoji{Name: "❤️"}))
+		buttons = buttons.AddComponents(discord.NewPrimaryButton("", "cmd:now-playing:like").WithEmoji(discord.ComponentEmoji{Name: "❤"}))
 	}
 	return buttons
 }

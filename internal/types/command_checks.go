@@ -38,8 +38,7 @@ var (
 	}
 
 	HasQueueItems CommandCheck = func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) bool {
-		player := b.MusicPlayers.Get(*e.GuildID)
-		if player.Queue.Len() == 0 {
+		if b.MusicPlayers.Get(*e.GuildID).Queue.Len() == 0 {
 			if err := e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("checks.has.queue.items")}); err != nil {
 				b.Logger.Error(err)
 			}
@@ -49,8 +48,7 @@ var (
 	}
 
 	HasHistoryItems CommandCheck = func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) bool {
-		player := b.MusicPlayers.Get(*e.GuildID)
-		if player.History.Len() == 0 {
+		if b.MusicPlayers.Get(*e.GuildID).History.Len() == 0 {
 			if err := e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("checks.has.history.items")}); err != nil {
 				b.Logger.Error(err)
 			}

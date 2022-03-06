@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+
 	"github.com/DisgoOrg/disgo/core"
 	"github.com/DisgoOrg/disgo/core/bot"
 	"github.com/DisgoOrg/disgo/discord"

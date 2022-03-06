@@ -3,14 +3,14 @@ package music
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/DisgoOrg/disgo/core/events"
 	"github.com/DisgoOrg/disgo/discord"
 	"github.com/KittyBot-Org/KittyBotGo/internal/models"
 	"github.com/KittyBot-Org/KittyBotGo/internal/types"
 	"github.com/lithammer/fuzzysearch/fuzzy"
 	"golang.org/x/text/message"
-	"strconv"
-	"strings"
 )
 
 func playAutocompleteHandler(b *types.Bot, _ *message.Printer, e *events.AutocompleteInteractionEvent) error {
@@ -37,19 +37,13 @@ func playAutocompleteHandler(b *types.Bot, _ *message.Printer, e *events.Autocom
 	i := 0
 	for _, entry := range playHistory {
 		title := "🔁" + entry.Title
-		if _, ok := unsortedResult[title]; ok {
-			continue
-		}
 		unsortedResult[title] = entry.Query
 		labels[i] = title
 		i++
 	}
 
 	for _, entry := range likedSongs {
-		title := "❤️" + entry.Title
-		if _, ok := unsortedResult[title]; ok {
-			continue
-		}
+		title := "❤" + entry.Title
 		unsortedResult[title] = entry.Query
 		labels[i] = title
 		i++
@@ -131,7 +125,7 @@ func likedSongAutocompleteHandler(b *types.Bot, _ *message.Printer, e *events.Au
 	i := 0
 	for _, entry := range likedSongs {
 		labels[i] = entry.Title
-		unsortedResult[entry.Title] = strconv.Itoa(entry.ID)
+		unsortedResult[entry.Title] = entry.Title
 		i++
 	}
 

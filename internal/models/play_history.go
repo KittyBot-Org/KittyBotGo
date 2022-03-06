@@ -7,9 +7,8 @@ import (
 )
 
 type PlayHistory struct {
-	ID         int                 `bun:"id,autoincrement,pk,notnull"`
-	UserID     snowflake.Snowflake `bun:"user_id,notnull"`
+	UserID     snowflake.Snowflake `bun:"user_id,pk"`
 	Query      string              `bun:"query,notnull"`
-	Title      string              `bun:"title,notnull"`
+	Title      string              `bun:"title,pk"`
 	LastUsedAt time.Time           `bun:"last_used_at,nullzero,notnull,default:current_timestamp"`
 }
