@@ -21,7 +21,7 @@ func tagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandIn
 	name := *data.Options.String("name")
 	msg := p.Sprintf("modules.tags.commands.tag.not.found", name)
 	var tag models.Tag
-	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name = ?", *e.GuildID).Scan(context.TODO(), &tag); err == nil {
+	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name like ?", *e.GuildID, name).Scan(context.TODO(), &tag); err == nil {
 		msg = tag.Content
 	}
 	if err := e.CreateMessage(discord.MessageCreate{
