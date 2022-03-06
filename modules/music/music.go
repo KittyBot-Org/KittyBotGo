@@ -82,6 +82,17 @@ func (m module) Commands() []types.Command {
 		},
 		{
 			Create: discord.SlashCommandCreate{
+				CommandName:       "history",
+				Description:       "Shows the current history.",
+				DefaultPermission: true,
+			},
+			Checks: types.HasMusicPlayer.And(types.HasHistoryItems),
+			CommandHandler: map[string]types.CommandHandler{
+				"": historyHandler,
+			},
+		},
+		{
+			Create: discord.SlashCommandCreate{
 				CommandName: "remove",
 				Description: "Removes songs from the queue.",
 				Options: []discord.ApplicationCommandOption{

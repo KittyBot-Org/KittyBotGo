@@ -21,7 +21,7 @@ func (h *MusicHistory) Len() int {
 	return len(h.tracks)
 }
 
-func (h *MusicHistory) All() []lavalink.AudioTrack {
+func (h *MusicHistory) Tracks() []lavalink.AudioTrack {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	items := make([]lavalink.AudioTrack, len(h.tracks))

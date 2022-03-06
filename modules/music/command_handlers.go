@@ -58,33 +58,15 @@ func playHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandI
 	}
 	return b.Lavalink.BestRestClient().LoadItemHandler(context.TODO(), query, lavalink.NewResultHandler(
 		func(track lavalink.AudioTrack) {
-			history := b.PlayHistoryCache.Get(e.User.ID)
-			history = append(history, models.PlayHistory{
-				UserID: e.User.ID,
-				Query:  query,
-				Title:  track.Info().Title,
-			})
-			b.PlayHistoryCache.Set(e.User.ID, history)
+			b.AddPlayHistory(e.User.ID, track.Info().Title, query)
 			playAndQueue(b, p, e.CreateInteraction, track)
 		},
 		func(playlist lavalink.AudioPlaylist) {
-			history := b.PlayHistoryCache.Get(e.User.ID)
-			history = append(history, models.PlayHistory{
-				UserID: e.User.ID,
-				Query:  query,
-				Title:  playlist.Name(),
-			})
-			b.PlayHistoryCache.Set(e.User.ID, history)
+			b.AddPlayHistory(e.User.ID, playlist.Name(), query)
 			playAndQueue(b, p, e.CreateInteraction, playlist.Tracks()...)
 		},
 		func(tracks []lavalink.AudioTrack) {
-			history := b.PlayHistoryCache.Get(e.User.ID)
-			history = append(history, models.PlayHistory{
-				UserID: e.User.ID,
-				Query:  query,
-				Title:  *data.Options.String("query"),
-			})
-			b.PlayHistoryCache.Set(e.User.ID, history)
+			b.AddPlayHistory(e.User.ID, *data.Options.String("query"), query)
 			giveSearchSelection(b, p, e, tracks)
 		},
 		func() {
@@ -250,6 +232,38 @@ func queueHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommand
 	return b.Paginator.Create(e.CreateInteraction, &paginator.Paginator{
 		PageFunc: func(page int, embed *discord.EmbedBuilder) discord.Embed {
 			return embed.SetTitlef(p.Sprintf("modules.music.commands.queue.title", len(tracks))).SetDescription(pages[page]).Build()
+		},
+		MaxPages:        len(pages),
+		Expiry:          time.Now(),
+		ExpiryLastUsage: true,
+	})
+}
+
+func historyHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+	tracks := b.MusicPlayers.Get(*e.GuildID).History.Tracks()
+
+	var (
+		pages         []string
+		page          string
+		tracksCounter int
+	)
+	for i, track := range tracks {
+		trackStr := fmt.Sprintf("%d. [`%s`](<%s>) - %s [<@%s>]\n", i+1, track.Info().Title, *track.Info().URI, track.Info().Length, track.UserData().(models.AudioTrackData).Requester)
+		if len(page)+len(trackStr) > 4096 || tracksCounter >= 10 {
+			pages = append(pages, page)
+			page = ""
+			tracksCounter = 0
+		}
+		page += trackStr
+		tracksCounter++
+	}
+	if len(page) > 0 {
+		pages = append(pages, page)
+	}
+
+	return b.Paginator.Create(e.CreateInteraction, &paginator.Paginator{
+		PageFunc: func(page int, embed *discord.EmbedBuilder) discord.Embed {
+			return embed.SetTitlef(p.Sprintf("modules.music.commands.history.title", len(tracks))).SetDescription(pages[page]).Build()
 		},
 		MaxPages:        len(pages),
 		Expiry:          time.Now(),

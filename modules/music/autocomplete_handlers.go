@@ -18,28 +18,38 @@ func playAutocompleteHandler(b *types.Bot, _ *message.Printer, e *events.Autocom
 	if q := e.Data.Options.String("query"); q != nil {
 		query = *q
 	}
-	cache1 := b.PlayHistoryCache.Get(e.User.ID)
-	var cache2 []models.LikedSong
-	if err := b.DB.NewSelect().Model(&cache2).Where("user_id = ?", e.User.ID).Scan(context.TODO()); err != nil {
+	var playHistory []models.PlayHistory
+	if err := b.DB.NewSelect().Model(&playHistory).Where("user_id = ?", e.User.ID).Scan(context.TODO()); err != nil {
+		b.Logger.Error("Error adding music history entry: ", err)
+		return err
+	}
+	var likedSongs []models.LikedSong
+	if err := b.DB.NewSelect().Model(&likedSongs).Where("user_id = ?", e.User.ID).Scan(context.TODO()); err != nil {
 		b.Logger.Error("Failed to get music history entries: ", err)
 		return err
 	}
-	if (len(cache1)+len(cache2) == 0) && query == "" {
+	if (len(playHistory)+len(likedSongs) == 0) && query == "" {
 		return e.Result(nil)
 	}
 
-	labels := make([]string, len(cache1)+len(cache2))
-	unsortedResult := make(map[string]string, len(cache1)+len(cache2))
+	labels := make([]string, len(playHistory)+len(likedSongs))
+	unsortedResult := make(map[string]string, len(playHistory)+len(likedSongs))
 	i := 0
-	for _, entry := range cache1 {
+	for _, entry := range playHistory {
 		title := "🔁" + entry.Title
+		if _, ok := unsortedResult[title]; ok {
+			continue
+		}
 		unsortedResult[title] = entry.Query
 		labels[i] = title
 		i++
 	}
 
-	for _, entry := range cache2 {
+	for _, entry := range likedSongs {
 		title := "❤️" + entry.Title
+		if _, ok := unsortedResult[title]; ok {
+			continue
+		}
 		unsortedResult[title] = entry.Query
 		labels[i] = title
 		i++
