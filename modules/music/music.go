@@ -6,21 +6,21 @@ import (
 	"github.com/DisgoOrg/disgo/json"
 	"github.com/DisgoOrg/disgolink/lavalink"
 	"github.com/DisgoOrg/source-extensions-plugin"
-	"github.com/KittyBot-Org/KittyBotGo/internal/types"
+	types2 "github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
 )
 
 var (
-	_ types.Module         = (*module)(nil)
-	_ types.CommandsModule = (*module)(nil)
-	_ types.ListenerModule = (*module)(nil)
+	_ types2.Module         = (*module)(nil)
+	_ types2.CommandsModule = (*module)(nil)
+	_ types2.ListenerModule = (*module)(nil)
 )
 
 var Module = module{}
 
 type module struct{}
 
-func (m module) Commands() []types.Command {
-	return []types.Command{
+func (m module) Commands() []types2.Command {
+	return []types2.Command{
 		{
 			Create: discord.SlashCommandCreate{
 				CommandName: "play",
@@ -61,11 +61,11 @@ func (m module) Commands() []types.Command {
 				},
 				DefaultPermission: true,
 			},
-			Checks: types.IsMemberConnectedToVoiceChannel,
-			CommandHandler: map[string]types.CommandHandler{
+			Checks: types2.IsMemberConnectedToVoiceChannel,
+			CommandHandler: map[string]types2.CommandHandler{
 				"": playHandler,
 			},
-			AutoCompleteHandler: map[string]types.AutocompleteHandler{
+			AutoCompleteHandler: map[string]types2.AutocompleteHandler{
 				"": playAutocompleteHandler,
 			},
 		},
@@ -75,8 +75,8 @@ func (m module) Commands() []types.Command {
 				Description:       "Shows the current queue.",
 				DefaultPermission: true,
 			},
-			Checks: types.HasMusicPlayer.And(types.HasQueueItems),
-			CommandHandler: map[string]types.CommandHandler{
+			Checks: types2.HasMusicPlayer.And(types2.HasQueueItems),
+			CommandHandler: map[string]types2.CommandHandler{
 				"": queueHandler,
 			},
 		},
@@ -86,8 +86,8 @@ func (m module) Commands() []types.Command {
 				Description:       "Shows the current history.",
 				DefaultPermission: true,
 			},
-			Checks: types.HasMusicPlayer.And(types.HasHistoryItems),
-			CommandHandler: map[string]types.CommandHandler{
+			Checks: types2.HasMusicPlayer.And(types2.HasHistoryItems),
+			CommandHandler: map[string]types2.CommandHandler{
 				"": historyHandler,
 			},
 		},
@@ -122,12 +122,12 @@ func (m module) Commands() []types.Command {
 				},
 				DefaultPermission: true,
 			},
-			Checks: types.HasMusicPlayer.And(types.IsMemberConnectedToVoiceChannel).And(types.HasQueueItems),
-			CommandHandler: map[string]types.CommandHandler{
+			Checks: types2.HasMusicPlayer.And(types2.IsMemberConnectedToVoiceChannel).And(types2.HasQueueItems),
+			CommandHandler: map[string]types2.CommandHandler{
 				"song":       removeSongHandler,
 				"user-songs": removeUserSongsHandler,
 			},
-			AutoCompleteHandler: map[string]types.AutocompleteHandler{
+			AutoCompleteHandler: map[string]types2.AutocompleteHandler{
 				"song": removeSongAutocompleteHandler,
 			},
 		},
@@ -137,8 +137,8 @@ func (m module) Commands() []types.Command {
 				Description:       "Removes all songs from your queue.",
 				DefaultPermission: true,
 			},
-			Checks: types.HasMusicPlayer.And(types.IsMemberConnectedToVoiceChannel).And(types.HasQueueItems),
-			CommandHandler: map[string]types.CommandHandler{
+			Checks: types2.HasMusicPlayer.And(types2.IsMemberConnectedToVoiceChannel).And(types2.HasQueueItems),
+			CommandHandler: map[string]types2.CommandHandler{
 				"": clearQueueHandler,
 			},
 		},
@@ -148,8 +148,8 @@ func (m module) Commands() []types.Command {
 				Description:       "Stops the playing music.",
 				DefaultPermission: true,
 			},
-			Checks: types.HasMusicPlayer.And(types.IsMemberConnectedToVoiceChannel),
-			CommandHandler: map[string]types.CommandHandler{
+			Checks: types2.HasMusicPlayer.And(types2.IsMemberConnectedToVoiceChannel),
+			CommandHandler: map[string]types2.CommandHandler{
 				"": stopHandler,
 			},
 		},
@@ -165,23 +165,23 @@ func (m module) Commands() []types.Command {
 						Choices: []discord.ApplicationCommandOptionChoiceInt{
 							{
 								Name:  "Off",
-								Value: int(types.LoopingTypeOff),
+								Value: int(types2.LoopingTypeOff),
 							},
 							{
 								Name:  "Repeat Song",
-								Value: int(types.LoopingTypeRepeatSong),
+								Value: int(types2.LoopingTypeRepeatSong),
 							},
 							{
 								Name:  "Repeat Queue",
-								Value: int(types.LoopingTypeRepeatQueue),
+								Value: int(types2.LoopingTypeRepeatQueue),
 							},
 						},
 					},
 				},
 				DefaultPermission: true,
 			},
-			Checks: types.HasMusicPlayer.And(types.IsMemberConnectedToVoiceChannel),
-			CommandHandler: map[string]types.CommandHandler{
+			Checks: types2.HasMusicPlayer.And(types2.IsMemberConnectedToVoiceChannel),
+			CommandHandler: map[string]types2.CommandHandler{
 				"": loopHandler,
 			},
 		},
@@ -191,11 +191,11 @@ func (m module) Commands() []types.Command {
 				Description:       "Tells you about the currently playing song.",
 				DefaultPermission: true,
 			},
-			Checks: types.HasMusicPlayer.And(types.IsPlaying),
-			CommandHandler: map[string]types.CommandHandler{
+			Checks: types2.HasMusicPlayer.And(types2.IsPlaying),
+			CommandHandler: map[string]types2.CommandHandler{
 				"": nowPlayingHandler,
 			},
-			ComponentHandler: map[string]types.ComponentHandler{
+			ComponentHandler: map[string]types2.ComponentHandler{
 				"previous":   previousComponentHandler,
 				"play-pause": playPauseComponentHandler,
 				"next":       nextComponentHandler,
@@ -208,8 +208,8 @@ func (m module) Commands() []types.Command {
 				Description:       "Pauses or resumes the music.",
 				DefaultPermission: true,
 			},
-			Checks: types.HasMusicPlayer.And(types.IsMemberConnectedToVoiceChannel),
-			CommandHandler: map[string]types.CommandHandler{
+			Checks: types2.HasMusicPlayer.And(types2.IsMemberConnectedToVoiceChannel),
+			CommandHandler: map[string]types2.CommandHandler{
 				"": pauseHandler,
 			},
 		},
@@ -228,8 +228,8 @@ func (m module) Commands() []types.Command {
 				},
 				DefaultPermission: true,
 			},
-			Checks: types.HasMusicPlayer.And(types.IsMemberConnectedToVoiceChannel),
-			CommandHandler: map[string]types.CommandHandler{
+			Checks: types2.HasMusicPlayer.And(types2.IsMemberConnectedToVoiceChannel),
+			CommandHandler: map[string]types2.CommandHandler{
 				"": volumeHandler,
 			},
 		},
@@ -246,8 +246,8 @@ func (m module) Commands() []types.Command {
 				},
 				DefaultPermission: true,
 			},
-			Checks: types.HasMusicPlayer.And(types.IsMemberConnectedToVoiceChannel),
-			CommandHandler: map[string]types.CommandHandler{
+			Checks: types2.HasMusicPlayer.And(types2.IsMemberConnectedToVoiceChannel),
+			CommandHandler: map[string]types2.CommandHandler{
 				"": bassBoostHandler,
 			},
 		},
@@ -284,8 +284,8 @@ func (m module) Commands() []types.Command {
 				},
 				DefaultPermission: true,
 			},
-			Checks: types.HasMusicPlayer.And(types.IsMemberConnectedToVoiceChannel),
-			CommandHandler: map[string]types.CommandHandler{
+			Checks: types2.HasMusicPlayer.And(types2.IsMemberConnectedToVoiceChannel),
+			CommandHandler: map[string]types2.CommandHandler{
 				"": seekHandler,
 			},
 		},
@@ -295,8 +295,8 @@ func (m module) Commands() []types.Command {
 				Description:       "Stops the song and starts the next one.",
 				DefaultPermission: true,
 			},
-			Checks: types.HasMusicPlayer.And(types.IsMemberConnectedToVoiceChannel).And(types.HasQueueItems),
-			CommandHandler: map[string]types.CommandHandler{
+			Checks: types2.HasMusicPlayer.And(types2.IsMemberConnectedToVoiceChannel).And(types2.HasQueueItems),
+			CommandHandler: map[string]types2.CommandHandler{
 				"": nextHandler,
 			},
 		},
@@ -306,8 +306,8 @@ func (m module) Commands() []types.Command {
 				Description:       "Stops the song and starts the previous one.",
 				DefaultPermission: true,
 			},
-			Checks: types.HasMusicPlayer.And(types.IsMemberConnectedToVoiceChannel).And(types.HasHistoryItems),
-			CommandHandler: map[string]types.CommandHandler{
+			Checks: types2.HasMusicPlayer.And(types2.IsMemberConnectedToVoiceChannel).And(types2.HasHistoryItems),
+			CommandHandler: map[string]types2.CommandHandler{
 				"": previousHandler,
 			},
 		},
@@ -317,8 +317,8 @@ func (m module) Commands() []types.Command {
 				Description:       "Shuffles the queue of songs.",
 				DefaultPermission: true,
 			},
-			Checks: types.HasMusicPlayer.And(types.IsMemberConnectedToVoiceChannel).And(types.HasQueueItems),
-			CommandHandler: map[string]types.CommandHandler{
+			Checks: types2.HasMusicPlayer.And(types2.IsMemberConnectedToVoiceChannel).And(types2.HasQueueItems),
+			CommandHandler: map[string]types2.CommandHandler{
 				"": shuffleHandler,
 			},
 		},
@@ -362,13 +362,13 @@ func (m module) Commands() []types.Command {
 					},*/
 				},
 			},
-			CommandHandler: map[string]types.CommandHandler{
+			CommandHandler: map[string]types2.CommandHandler{
 				"list":   likedSongsListHandler,
 				"remove": likedSongsRemoveHandler,
 				"clear":  likedSongsClearHandler,
 				"play":   likedSongsPlayHandler,
 			},
-			AutoCompleteHandler: map[string]types.AutocompleteHandler{
+			AutoCompleteHandler: map[string]types2.AutocompleteHandler{
 				"remove": likedSongAutocompleteHandler,
 				//"play":   likedSongAutocompleteHandler,
 			},
@@ -376,6 +376,6 @@ func (m module) Commands() []types.Command {
 	}
 }
 
-func (module) OnEvent(b *types.Bot, event core.Event) {
+func (module) OnEvent(b *types2.Bot, event core.Event) {
 
 }

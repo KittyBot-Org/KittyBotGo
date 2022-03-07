@@ -3,8 +3,8 @@ package metrics
 import (
 	"github.com/DisgoOrg/disgo/core"
 	"github.com/DisgoOrg/disgo/core/events"
-	"github.com/KittyBot-Org/KittyBotGo/internal/metrics"
-	"github.com/KittyBot-Org/KittyBotGo/internal/types"
+	"github.com/KittyBot-Org/KittyBotGo/internal/bot/metrics"
+	"github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
 )
 
 var Module = module{}

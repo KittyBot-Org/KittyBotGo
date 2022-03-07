@@ -3,7 +3,7 @@ package metrics
 import (
 	"net/http"
 
-	"github.com/KittyBot-Org/KittyBotGo/internal/types"
+	"github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"

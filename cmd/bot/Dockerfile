@@ -1,4 +1,4 @@
-FROM golang:1.17.6-alpine AS build
+FROM golang:1.17-alpine AS build
 
 ARG VERSION=dev
 
@@ -8,7 +8,7 @@ COPY . .
 
 RUN go mod download && \
     go mod verify && \
-    go build -ldflags="-X 'main.version=${VERSION}'" -o bot cmd/bot/bot.go
+    go build -ldflags="-X 'main.version=${VERSION}'" -o bot cmd/bot/main.go
 
 FROM alpine
 

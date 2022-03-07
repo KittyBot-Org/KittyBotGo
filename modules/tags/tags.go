@@ -2,11 +2,11 @@ package tags
 
 import (
 	"github.com/DisgoOrg/disgo/discord"
-	"github.com/KittyBot-Org/KittyBotGo/internal/types"
+	types2 "github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
 )
 
-var Module = types.DefaultCommandsModule{
-	Cmds: []types.Command{
+var Module = types2.DefaultCommandsModule{
+	Cmds: []types2.Command{
 		{
 			Create: discord.SlashCommandCreate{
 				CommandName: "tag",
@@ -22,10 +22,10 @@ var Module = types.DefaultCommandsModule{
 				},
 				DefaultPermission: true,
 			},
-			CommandHandler: map[string]types.CommandHandler{
+			CommandHandler: map[string]types2.CommandHandler{
 				"": tagHandler,
 			},
-			AutoCompleteHandler: map[string]types.AutocompleteHandler{
+			AutoCompleteHandler: map[string]types2.AutocompleteHandler{
 				"": autoCompleteTagHandler,
 			},
 		},
@@ -96,14 +96,14 @@ var Module = types.DefaultCommandsModule{
 				},
 				DefaultPermission: true,
 			},
-			CommandHandler: map[string]types.CommandHandler{
+			CommandHandler: map[string]types2.CommandHandler{
 				"create": createTagHandler,
 				"delete": deleteTagHandler,
 				"edit":   editTagHandler,
 				"info":   infoTagHandler,
 				"list":   listTagHandler,
 			},
-			AutoCompleteHandler: map[string]types.AutocompleteHandler{
+			AutoCompleteHandler: map[string]types2.AutocompleteHandler{
 				"list": autoCompleteTagHandler,
 				"info": autoCompleteTagHandler,
 			},

@@ -10,6 +10,7 @@ require (
 	github.com/DisgoOrg/snowflake v1.0.4
 	github.com/DisgoOrg/source-extensions-plugin v1.1.3
 	github.com/DisgoOrg/utils/paginator v0.0.0-20220302120550-3a6b33d77894
+	github.com/gorilla/mux v1.8.0
 	github.com/lithammer/fuzzysearch v1.1.3
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.12.1

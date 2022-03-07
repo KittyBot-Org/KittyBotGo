@@ -9,14 +9,14 @@ import (
 	"github.com/DisgoOrg/disgo/core/events"
 	"github.com/DisgoOrg/disgo/discord"
 	"github.com/DisgoOrg/disgolink/lavalink"
+	types2 "github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
 	"github.com/KittyBot-Org/KittyBotGo/internal/models"
-	"github.com/KittyBot-Org/KittyBotGo/internal/types"
 	"golang.org/x/text/message"
 )
 
 var trackRegex = regexp.MustCompile(`\[\x60(?P<title>.+)\x60]\(<(?P<url>.+)?>\)`)
 
-func checkPlayer(b *types.Bot, p *message.Printer, e *events.ComponentInteractionEvent) (*types.MusicPlayer, error) {
+func checkPlayer(b *types2.Bot, p *message.Printer, e *events.ComponentInteractionEvent) (*types2.MusicPlayer, error) {
 	player := b.MusicPlayers.Get(*e.GuildID)
 	if player == nil {
 		return nil, e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.components.no.player"), Flags: discord.MessageFlagEphemeral})
@@ -24,7 +24,7 @@ func checkPlayer(b *types.Bot, p *message.Printer, e *events.ComponentInteractio
 	return player, nil
 }
 
-func previousComponentHandler(b *types.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
+func previousComponentHandler(b *types2.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
 	player, err := checkPlayer(b, p, e)
 	if player == nil {
 		return err
@@ -42,7 +42,7 @@ func previousComponentHandler(b *types.Bot, p *message.Printer, e *events.Compon
 	return e.UpdateMessage(discord.MessageUpdate{Content: &msg, Components: &components})
 }
 
-func playPauseComponentHandler(b *types.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
+func playPauseComponentHandler(b *types2.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
 	player, err := checkPlayer(b, p, e)
 	if player == nil {
 		return err
@@ -72,7 +72,7 @@ func playPauseComponentHandler(b *types.Bot, p *message.Printer, e *events.Compo
 	return e.UpdateMessage(discord.MessageUpdate{Content: &msg, Components: &components})
 }
 
-func nextComponentHandler(b *types.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
+func nextComponentHandler(b *types2.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
 	player, err := checkPlayer(b, p, e)
 	if player == nil {
 		return err
@@ -90,7 +90,7 @@ func nextComponentHandler(b *types.Bot, p *message.Printer, e *events.ComponentI
 	return e.UpdateMessage(discord.MessageUpdate{Content: &msg, Components: &components})
 }
 
-func likeComponentHandler(b *types.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
+func likeComponentHandler(b *types2.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
 	allMatches := trackRegex.FindAllStringSubmatch(e.Message.Content, -1)
 	if allMatches == nil {
 		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.components.like.no.track"), Flags: discord.MessageFlagEphemeral})
