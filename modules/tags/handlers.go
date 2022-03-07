@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/DisgoOrg/disgo/core/events"
 	"github.com/DisgoOrg/disgo/discord"
@@ -171,11 +170,10 @@ func listTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationComma
 	}
 
 	return b.Paginator.Create(e.CreateInteraction, &paginator.Paginator{
-		PageFunc: func(page int, embed *discord.EmbedBuilder) discord.Embed {
-			return embed.SetTitle(p.Sprintf("modules.tags.commands.tags.list.title", len(tags))).SetDescription(pages[page]).Build()
+		PageFunc: func(page int, embed *discord.EmbedBuilder) {
+			embed.SetTitle(p.Sprintf("modules.tags.commands.tags.list.title", len(tags))).SetDescription(pages[page])
 		},
 		MaxPages:        len(pages),
-		Expiry:          time.Now(),
 		ExpiryLastUsage: true,
 	})
 }

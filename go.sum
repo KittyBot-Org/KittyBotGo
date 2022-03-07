@@ -45,8 +45,8 @@ github.com/DisgoOrg/snowflake v1.0.4 h1:hgeXSaXRDVdoNJ0rfHXyVsgxQMzctP346S5WXlBm
 github.com/DisgoOrg/snowflake v1.0.4/go.mod h1:jIQVlVmElm2OGt6v52ITf/71ODaU09chUCflxt8+3yM=
 github.com/DisgoOrg/source-extensions-plugin v1.1.3 h1:EfJGx2MNRdQXQXHHqsBlhA0/ZxE6qvPPVHbeUiUORHw=
 github.com/DisgoOrg/source-extensions-plugin v1.1.3/go.mod h1:Kt9k7r4UuM1uvWkxptKs6Cl7AB1bIPsg+v7i+AGdACs=
-github.com/DisgoOrg/utils/paginator v0.0.0-20220302120550-3a6b33d77894 h1:DbarBDx4hOh2f2wQs+U2tgglmGK8MQ+hcYJ4CXBzAyo=
-github.com/DisgoOrg/utils/paginator v0.0.0-20220302120550-3a6b33d77894/go.mod h1:sd7i6pZIUM2qdHo5YT02R+iLt9jRMJF5Z+dgVg0XbV8=
+github.com/DisgoOrg/utils/paginator v0.0.0-20220307230709-3de5c2daae80 h1:nsL5H9DrtvkaZVh6VkZHN/yBDChkwDkL6AFxqz8n1Qw=
+github.com/DisgoOrg/utils/paginator v0.0.0-20220307230709-3de5c2daae80/go.mod h1:sd7i6pZIUM2qdHo5YT02R+iLt9jRMJF5Z+dgVg0XbV8=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
