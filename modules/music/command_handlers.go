@@ -231,11 +231,10 @@ func queueHandler(b *types2.Bot, p *message.Printer, e *events.ApplicationComman
 	}
 
 	return b.Paginator.Create(e.CreateInteraction, &paginator.Paginator{
-		PageFunc: func(page int, embed *discord.EmbedBuilder) discord.Embed {
-			return embed.SetTitlef(p.Sprintf("modules.music.commands.queue.title", len(tracks))).SetDescription(pages[page]).Build()
+		PageFunc: func(page int, embed *discord.EmbedBuilder) {
+			embed.SetTitlef(p.Sprintf("modules.music.commands.queue.title", len(tracks))).SetDescription(pages[page])
 		},
 		MaxPages:        len(pages),
-		Expiry:          time.Now(),
 		ExpiryLastUsage: true,
 	})
 }
@@ -264,11 +263,10 @@ func historyHandler(b *types2.Bot, p *message.Printer, e *events.ApplicationComm
 	}
 
 	return b.Paginator.Create(e.CreateInteraction, &paginator.Paginator{
-		PageFunc: func(page int, embed *discord.EmbedBuilder) discord.Embed {
-			return embed.SetTitlef(p.Sprintf("modules.music.commands.history.title", len(tracks))).SetDescription(pages[page]).Build()
+		PageFunc: func(page int, embed *discord.EmbedBuilder) {
+			embed.SetTitlef(p.Sprintf("modules.music.commands.history.title", len(tracks))).SetDescription(pages[page])
 		},
 		MaxPages:        len(pages),
-		Expiry:          time.Now(),
 		ExpiryLastUsage: true,
 	})
 }
@@ -560,11 +558,10 @@ func likedSongsListHandler(b *types2.Bot, p *message.Printer, e *events.Applicat
 	}
 
 	return b.Paginator.Create(e.CreateInteraction, &paginator.Paginator{
-		PageFunc: func(page int, embed *discord.EmbedBuilder) discord.Embed {
-			return embed.SetTitlef(p.Sprintf("modules.music.commands.liked.songs.list.title", len(tracks))).SetDescription(pages[page]).Build()
+		PageFunc: func(page int, embed *discord.EmbedBuilder) {
+			embed.SetTitlef(p.Sprintf("modules.music.commands.liked.songs.list.title", len(tracks))).SetDescription(pages[page])
 		},
 		MaxPages:        len(pages),
-		Expiry:          time.Now(),
 		ExpiryLastUsage: true,
 	})
 }
