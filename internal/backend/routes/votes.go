@@ -28,40 +28,46 @@ func VotesHandler(b *types.Backend) http.HandlerFunc {
 		params := mux.Vars(r)
 
 		var (
-			userID     snowflake.Snowflake
-			botList    = types.BotList(params["bot_list"])
-			multiplier = 1
-			err        error
+			userID      snowflake.Snowflake
+			botListName = params["bot_list"]
+			botList     types.BotList
+			multiplier  = 1
+			err         error
 		)
 		defer r.Body.Close()
 
-		if b.Config.BotLists.Tokens[botList] != r.Header.Get("Authorization") {
+		if b.Config.BotLists.Tokens[botListName] != r.Header.Get("Authorization") {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
-		switch botList {
-		case types.TopGG:
+		switch botListName {
+		case types.TopGG.Name:
+			botList = types.TopGG
 			var v voteAddPayload
 			err = json.NewDecoder(r.Body).Decode(&v)
 			userID = v.User.ID
 
-		case types.BotListSpace:
+		case types.BotListSpace.Name:
+			botList = types.BotListSpace
 			var v voteAddPayload
 			err = json.NewDecoder(r.Body).Decode(&v)
 			userID = v.User.ID
 
-		case types.BotsForDiscordCom:
+		case types.BotsForDiscordCom.Name:
+			botList = types.BotsForDiscordCom
 			var v voteAddPayload2
 			err = json.NewDecoder(r.Body).Decode(&v)
 			userID = v.User
 
-		case types.DiscordBotListCom:
+		case types.DiscordBotListCom.Name:
+			botList = types.DiscordBotListCom
 			var v voteAddPayload
 			err = json.NewDecoder(r.Body).Decode(&v)
 			userID = v.ID
 
-		case types.DiscordservicesNet:
+		case types.DiscordservicesNet.Name:
+			botList = types.DiscordservicesNet
 			var v voteAddPayload
 			err = json.NewDecoder(r.Body).Decode(&v)
 			userID = v.User.ID
@@ -72,18 +78,14 @@ func VotesHandler(b *types.Backend) http.HandlerFunc {
 		}
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			b.Logger.Error("Error while handling bot list %s:", botList, err)
+			b.Logger.Error("Error while handling bot list %s:", botListName, err)
 			return
 		}
-		if err = addVote(b, userID, botList, multiplier); err != nil {
+		if err = b.AddVote(userID, botList, multiplier); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			b.Logger.Error("Error while handling bot list %s:", botList, err)
+			b.Logger.Error("Error while handling bot list %s:", botListName, err)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
 	}
-}
-
-func addVote(b *types.Backend, userID snowflake.Snowflake, botList types.BotList, multiplier int) error {
-	return b.RestServices.GuildService().AddMemberRole(b.Config.SupportGuildID, userID, b.Config.BotLists.VoterRoleID)
 }

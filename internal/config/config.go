@@ -30,13 +30,14 @@ func LoadConfig(v interface{}) error {
 }
 
 type Config struct {
-	DevMode        bool                  `json:"dev_mode"`
-	DevGuildIDs    []snowflake.Snowflake `json:"dev_guild_ids"`
-	SupportGuildID snowflake.Snowflake   `json:"support_guild_id"`
-	DevUserIDs     []snowflake.Snowflake `json:"dev_user_ids"`
-	LogLevel       log.Level             `json:"log_level"`
-	LogWebhook     LogWebhookConfig      `json:"log_webhook"`
-	Bot            BotConfig             `json:"bot"`
+	DevMode         bool                  `json:"dev_mode"`
+	DevGuildIDs     []snowflake.Snowflake `json:"dev_guild_ids"`
+	SupportGuildID  snowflake.Snowflake   `json:"support_guild_id"`
+	DevUserIDs      []snowflake.Snowflake `json:"dev_user_ids"`
+	LogLevel        log.Level             `json:"log_level"`
+	ErrorLogWebhook LogWebhookConfig      `json:"error_log_webhook"`
+	InfoLogWebhook  LogWebhookConfig      `json:"info_log_webhook"`
+	Bot             BotConfig             `json:"bot"`
 }
 
 type BotConfig struct {

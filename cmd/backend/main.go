@@ -11,6 +11,7 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/internal/backend/types"
 	"github.com/KittyBot-Org/KittyBotGo/internal/config"
 	"github.com/KittyBot-Org/KittyBotGo/internal/database"
+	"github.com/KittyBot-Org/KittyBotGo/modules"
 )
 
 var (
@@ -51,8 +52,15 @@ func main() {
 		os.Exit(0)
 	}
 
+	backend.LoadCommands(modules.Modules)
 	backend.SetupRestServices()
-
+	if err = backend.SetupPrometheusAPI(); err != nil {
+		backend.Logger.Fatal("Failed to setup prometheus api: ", err)
+	}
+	if err = backend.SetupScheduler(); err != nil {
+		backend.Logger.Fatal("Failed to setup scheduler: ", err)
+	}
+	defer backend.Scheduler.Shutdown()
 	backend.SetupServer(routes.Handler(backend))
 
 	backend.Logger.Info("Backend is running. Press CTRL-C to exit.")

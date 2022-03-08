@@ -1,6 +1,8 @@
 package types
 
 import (
+	"time"
+
 	"github.com/DisgoOrg/snowflake"
 	"github.com/KittyBot-Org/KittyBotGo/internal/config"
 	"github.com/KittyBot-Org/KittyBotGo/internal/database"
@@ -15,6 +17,8 @@ type Config struct {
 
 	BotInvite   string `json:"bot_invite"`
 	GuildInvite string `json:"guild_invite"`
+
+	PrometheusAddress string `json:"prometheus_address"`
 }
 
 type BackendConfig struct {
@@ -24,15 +28,55 @@ type BackendConfig struct {
 
 type BotListsConfig struct {
 	VoterRoleID snowflake.Snowflake `json:"voter_role_id"`
-	Tokens      map[BotList]string  `json:"tokens"`
+	Tokens      map[string]string   `json:"tokens"`
 }
 
-type BotList string
+type BotList struct {
+	Name         string
+	URL          string
+	BotURL       string
+	VoteCooldown time.Duration
+}
 
-const (
-	TopGG              BotList = "top_gg"
-	BotListSpace       BotList = "botlist_space"
-	BotsForDiscordCom  BotList = "bots_for_discord_com"
-	DiscordBotListCom  BotList = "discord_bot_list_com"
-	DiscordservicesNet BotList = "discordservices_net"
+var (
+	TopGG = BotList{
+		Name:         "top_gg",
+		URL:          "https://top.gg",
+		BotURL:       "/bot/%s",
+		VoteCooldown: 12 * time.Hour,
+	}
+	BotListSpace = BotList{
+		Name:         "botlist_space",
+		URL:          "https://botlist.space",
+		BotURL:       "/bot/%s",
+		VoteCooldown: 24 * time.Hour,
+	}
+	DiscordBotsGG = BotList{
+		Name:   "discord_bots_gg",
+		URL:    "https://botlist.space",
+		BotURL: "/bots/%s",
+	}
+	DiscordExtremeListXYZ = BotList{
+		Name:   "discord_extreme_list_xyz",
+		URL:    "https://discordextremelist.xyz",
+		BotURL: "/bots/%s",
+	}
+	BotsForDiscordCom = BotList{
+		Name:         "bots_for_discord_com",
+		URL:          "https://botsfordiscord.com",
+		BotURL:       "/bot/%s",
+		VoteCooldown: 24 * time.Hour,
+	}
+	DiscordBotListCom = BotList{
+		Name:         "discord_bot_list_com",
+		URL:          "https://discordbotlist.com",
+		BotURL:       "/bots/%s",
+		VoteCooldown: 12 * time.Hour,
+	}
+	DiscordservicesNet = BotList{
+		Name:         "discordservices_net",
+		URL:          "https://discordservices.net",
+		BotURL:       "/bot/%s",
+		VoteCooldown: 12 * time.Hour,
+	}
 )

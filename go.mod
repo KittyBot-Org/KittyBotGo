@@ -1,6 +1,6 @@
 module github.com/KittyBot-Org/KittyBotGo
 
-go 1.18
+go 1.17
 
 require (
 	github.com/DisgoOrg/disgo v0.7.3-0.20220308015325-5153b1e3767f
@@ -32,6 +32,7 @@ require (
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
+	github.com/procyon-projects/chrono v1.0.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
