@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/DisgoOrg/log"
+	"github.com/KittyBot-Org/KittyBotGo/internal/backend/routes"
 	"github.com/KittyBot-Org/KittyBotGo/internal/backend/types"
 	"github.com/KittyBot-Org/KittyBotGo/internal/config"
 	"github.com/KittyBot-Org/KittyBotGo/internal/database"
@@ -27,7 +28,7 @@ func init() {
 func main() {
 	var err error
 	logger := log.New(log.Ldate | log.Ltime | log.Lshortfile)
-	backend := types.Backend{
+	backend := &types.Backend{
 		Logger:  logger,
 		Version: version,
 	}
@@ -49,6 +50,10 @@ func main() {
 		backend.Logger.Infof("Exiting after syncing database tables")
 		os.Exit(0)
 	}
+
+	backend.SetupRestServices()
+
+	backend.SetupServer(routes.Handler(backend))
 
 	backend.Logger.Info("Backend is running. Press CTRL-C to exit.")
 	s := make(chan os.Signal, 1)

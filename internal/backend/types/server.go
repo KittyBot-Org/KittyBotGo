@@ -2,14 +2,12 @@ package types
 
 import (
 	"net/http"
-
-	"github.com/KittyBot-Org/KittyBotGo/internal/backend/routes"
 )
 
-func (b *Backend) SetupServer() {
+func (b *Backend) SetupServer(handler http.Handler) {
 	b.HTTPServer = &http.Server{
 		Addr:    b.Config.Backend.Port,
-		Handler: routes.Handler(b),
+		Handler: handler,
 	}
 
 	go func() {
