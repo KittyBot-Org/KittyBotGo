@@ -56,8 +56,9 @@ func (b *Backend) LoadCommands(modules []types.Module) {
 
 	for _, module := range modules {
 		if mod, ok := module.(types.CommandsModule); ok {
-			var cmds []discord.ApplicationCommandCreate
-			for i, cmd := range mod.Commands() {
+			commands := mod.Commands()
+			cmds := make([]discord.ApplicationCommandCreate, len(commands))
+			for i, cmd := range commands {
 				cmds[i] = cmd.Create
 			}
 			b.Commands = append(b.Commands, cmds...)

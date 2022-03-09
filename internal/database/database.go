@@ -24,6 +24,9 @@ func SetupDatabase(config Config, shouldSyncDBTables bool, devMode bool) (*bun.D
 	db := bun.NewDB(sqlDB, pgdialect.New())
 	db.AddQueryHook(bundebug.NewQueryHook(bundebug.WithVerbose(devMode)))
 	if shouldSyncDBTables {
+		if err := db.ResetModel(context.TODO(), (*models.Voter)(nil)); err != nil {
+			return nil, err
+		}
 		if err := db.ResetModel(context.TODO(), (*models.GuildSettings)(nil)); err != nil {
 			return nil, err
 		}

@@ -1,0 +1,45 @@
+services:
+  bot:
+    # image: docker.pkg.github.com/kittybot-org/kittybotgo/bot:latest
+    build:
+      context: ..
+      dockerfile: ./cmd/bot/Dockerfile
+    restart: unless-stopped
+    volumes:
+      - ../config.json:/app/config.json
+    command: --sync-commands=false --sync-db=false --exit-after-sync=false
+    networks:
+      - metrics
+  backend:
+    # image: docker.pkg.github.com/kittybot-org/kittybotgo/backend:latest
+    build:
+      context: ..
+      dockerfile: ./cmd/backend/Dockerfile
+    restart: unless-stopped
+    volumes:
+      - ../config.json:/app/config.json
+    command: --sync-db=false --exit-after-sync=false
+    networks:
+      - metrics
+    ports:
+      - "8080:8080"
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=1y'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./data/prometheus/:/prometheus/
+    networks:
+      - metrics
+    expose:
+      - 9090
+    ports:
+      - "9090:9090"
+
+networks:
+  metrics:

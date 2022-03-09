@@ -8,6 +8,7 @@ import (
 
 type Config struct {
 	config.Config
+	PrometheusEndpoint   string          `json:"prometheus_endpoint"`
 	Database             database.Config `json:"database"`
 	PlayHistoryCacheSize int             `json:"play_history_cache_size"`
 	Lavalink             LavalinkConfig  `json:"lavalink"`
