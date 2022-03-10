@@ -9,8 +9,7 @@ import (
 	"github.com/DisgoOrg/log"
 	"github.com/KittyBot-Org/KittyBotGo/internal/backend/routes"
 	"github.com/KittyBot-Org/KittyBotGo/internal/backend/types"
-	"github.com/KittyBot-Org/KittyBotGo/internal/config"
-	"github.com/KittyBot-Org/KittyBotGo/internal/database"
+	types2 "github.com/KittyBot-Org/KittyBotGo/internal/types"
 	"github.com/KittyBot-Org/KittyBotGo/modules"
 )
 
@@ -37,12 +36,12 @@ func main() {
 	backend.Logger.Infof("Syncing DB tables? %v", *shouldSyncDBTables)
 	backend.Logger.Infof("Exiting after syncing? %v", *exitAfterSync)
 
-	if err = config.LoadConfig(&backend.Config); err != nil {
+	if err = types2.LoadConfig(&backend.Config); err != nil {
 		backend.Logger.Fatal("Failed to load config: ", err)
 	}
 	logger.SetLevel(backend.Config.LogLevel)
 
-	if backend.DB, err = database.SetupDatabase(backend.Config.Database, *shouldSyncDBTables, backend.Config.DevMode); err != nil {
+	if backend.DB, err = types2.SetupDatabase(backend.Config.Database, *shouldSyncDBTables, backend.Config.DevMode); err != nil {
 		backend.Logger.Fatal("Failed to setup database: ", err)
 	}
 	defer backend.DB.Close()

@@ -1,4 +1,4 @@
-package config
+package types
 
 import (
 	"os"
@@ -37,13 +37,8 @@ type Config struct {
 	LogLevel        log.Level             `json:"log_level"`
 	ErrorLogWebhook LogWebhookConfig      `json:"error_log_webhook"`
 	InfoLogWebhook  LogWebhookConfig      `json:"info_log_webhook"`
-	Bot             BotConfig             `json:"bot"`
-}
-
-type BotConfig struct {
-	Token      string `json:"token"`
-	ShardIDs   []int  `json:"shard_ids"`
-	ShardCount int    `json:"shard_count"`
+	Token           string                `json:"token"`
+	Database        DatabaseConfig        `json:"database"`
 }
 
 type LogWebhookConfig struct {

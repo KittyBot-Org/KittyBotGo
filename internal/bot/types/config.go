@@ -2,16 +2,20 @@ package types
 
 import (
 	"github.com/DisgoOrg/disgolink/lavalink"
-	"github.com/KittyBot-Org/KittyBotGo/internal/config"
-	"github.com/KittyBot-Org/KittyBotGo/internal/database"
+	"github.com/KittyBot-Org/KittyBotGo/internal/types"
 )
 
 type Config struct {
-	config.Config
-	PrometheusEndpoint   string          `json:"prometheus_endpoint"`
-	Database             database.Config `json:"database"`
-	PlayHistoryCacheSize int             `json:"play_history_cache_size"`
-	Lavalink             LavalinkConfig  `json:"lavalink"`
+	types.Config
+	Bot                  BotConfig      `json:"bot"`
+	PlayHistoryCacheSize int            `json:"play_history_cache_size"`
+	Lavalink             LavalinkConfig `json:"lavalink"`
+	MetricsAddress       string         `json:"metrics_address"`
+}
+
+type BotConfig struct {
+	ShardIDs   []int `json:"shard_ids"`
+	ShardCount int   `json:"shard_count"`
 }
 
 type LavalinkConfig struct {

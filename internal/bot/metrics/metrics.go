@@ -50,8 +50,8 @@ func Setup(b *types.Bot) {
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
 	go func() {
-		if err := http.ListenAndServe(b.Config.PrometheusEndpoint, mux); err != nil {
-			b.Logger.Error("Failed to start metrics server", err)
+		if err := http.ListenAndServe(b.Config.MetricsAddress, mux); err != nil {
+			b.Logger.Error("Failed to start metrics server: ", err)
 		}
 	}()
 }

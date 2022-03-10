@@ -1,9 +1,8 @@
-package database
+package types
 
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/uptrace/bun/extra/bundebug"
 
@@ -13,9 +12,16 @@ import (
 	"github.com/uptrace/bun/driver/pgdriver"
 )
 
-func SetupDatabase(config Config, shouldSyncDBTables bool, devMode bool) (*bun.DB, error) {
+type DatabaseConfig struct {
+	Address  string `json:"address"`
+	User     string `json:"user"`
+	Password string `json:"password"`
+	DBName   string `json:"db_name"`
+}
+
+func SetupDatabase(config DatabaseConfig, shouldSyncDBTables bool, devMode bool) (*bun.DB, error) {
 	sqlDB := sql.OpenDB(pgdriver.NewConnector(
-		pgdriver.WithAddr(fmt.Sprintf("%s:%s", config.Host, config.Port)),
+		pgdriver.WithAddr(config.Address),
 		pgdriver.WithUser(config.User),
 		pgdriver.WithPassword(config.Password),
 		pgdriver.WithDatabase(config.DBName),

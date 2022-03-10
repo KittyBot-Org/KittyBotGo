@@ -4,26 +4,22 @@ import (
 	"time"
 
 	"github.com/DisgoOrg/snowflake"
-	"github.com/KittyBot-Org/KittyBotGo/internal/config"
-	"github.com/KittyBot-Org/KittyBotGo/internal/database"
+	"github.com/KittyBot-Org/KittyBotGo/internal/types"
 )
 
 type Config struct {
-	config.Config
-	Backend  BackendConfig   `json:"backend"`
-	Database database.Config `json:"database"`
+	types.Config
+	Backend BackendConfig `json:"backend"`
 
 	BotLists BotListsConfig `json:"bot_lists"`
 
-	BotInvite   string `json:"bot_invite"`
-	GuildInvite string `json:"guild_invite"`
-
-	PrometheusAddress string `json:"prometheus_address"`
+	BotInvite          string `json:"bot_invite"`
+	GuildInvite        string `json:"guild_invite"`
+	PrometheusEndpoint string `json:"prometheus_endpoint"`
 }
 
 type BackendConfig struct {
-	Token string `json:"token"`
-	Port  string `json:"port"`
+	Address string `json:"address"`
 }
 
 type BotListsConfig struct {

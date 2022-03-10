@@ -39,7 +39,7 @@ func getMetrics(ctx context.Context, b *types.Backend) (stats *Stats, err error)
 	if stats.GuildCount, err = getMetric(ctx, b, "kittybot_guild_count"); err != nil {
 		return nil, err
 	}
-	if stats.UserCount, err = getMetric(ctx, b, "kittybot_user_count"); err != nil {
+	/*if stats.UserCount, err = getMetric(ctx, b, "kittybot_user_count"); err != nil {
 		return nil, err
 	}
 	if stats.ShardCount, err = getMetric(ctx, b, "kittybot_shard_count"); err != nil {
@@ -47,7 +47,7 @@ func getMetrics(ctx context.Context, b *types.Backend) (stats *Stats, err error)
 	}
 	if stats.GuildCount, err = getMetric(ctx, b, "kittybot_audio_player_count"); err != nil {
 		return nil, err
-	}
+	}*/
 	return
 }
 
