@@ -4,11 +4,11 @@ import (
 	"time"
 
 	"github.com/DisgoOrg/snowflake"
-	"github.com/KittyBot-Org/KittyBotGo/internal/types"
+	"github.com/KittyBot-Org/KittyBotGo/internal/shared"
 )
 
 type Config struct {
-	types.Config
+	shared.Config
 	Backend BackendConfig `json:"backend"`
 
 	BotLists BotListsConfig `json:"bot_lists"`
