@@ -1,19 +1,23 @@
 package types
 
 import (
+	"context"
 	"github.com/DisgoOrg/disgolink/lavalink"
 	"github.com/DisgoOrg/snowflake"
+	"time"
 )
 
 var _ lavalink.PlayerEventListener = (*MusicPlayer)(nil)
 
 type MusicPlayer struct {
 	lavalink.Player
-	Bot       *Bot
-	Type      PlayerType
-	Queue     *MusicQueue
-	History   *MusicHistory
-	SkipVotes map[snowflake.Snowflake]struct{}
+	Bot               *Bot
+	Type              PlayerType
+	Queue             *MusicQueue
+	History           *MusicHistory
+	SkipVotes         map[snowflake.Snowflake]struct{}
+	DisconnectContext context.Context
+	DisconnectCancel  context.CancelFunc
 }
 
 func (p *MusicPlayer) OnPlayerPause(player lavalink.Player) {
@@ -66,6 +70,23 @@ func (p *MusicPlayer) OnTrackStuck(player lavalink.Player, track lavalink.AudioT
 
 func (p *MusicPlayer) OnWebSocketClosed(player lavalink.Player, code int, reason string, byRemote bool) {
 
+}
+
+func (p *MusicPlayer) PlanDisconnect() {
+	var ctx context.Context
+	ctx, p.DisconnectCancel = context.WithTimeout(context.Background(), 2*time.Minute)
+	defer p.DisconnectCancel()
+
+	<-ctx.Done()
+	if ctx.Err() == context.DeadlineExceeded {
+		if err := p.Bot.Bot.AudioController.Disconnect(context.TODO(), p.GuildID()); err != nil {
+			p.Bot.Logger.Error("Failed to disconnect from voice channel: ", err)
+		}
+	}
+}
+
+func (p *MusicPlayer) CancelDisconnect() {
+	p.DisconnectCancel()
 }
 
 type PlayerType int

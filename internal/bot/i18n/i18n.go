@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/KittyBot-Org/KittyBotGo/internal/types"
+	"github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 )

@@ -8,9 +8,10 @@ import (
 	"syscall"
 
 	"github.com/DisgoOrg/log"
-	"github.com/KittyBot-Org/KittyBotGo/internal/i18n"
-	"github.com/KittyBot-Org/KittyBotGo/internal/metrics"
-	"github.com/KittyBot-Org/KittyBotGo/internal/types"
+	"github.com/KittyBot-Org/KittyBotGo/internal/bot/i18n"
+	"github.com/KittyBot-Org/KittyBotGo/internal/bot/metrics"
+	"github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
+	"github.com/KittyBot-Org/KittyBotGo/internal/shared"
 	"github.com/KittyBot-Org/KittyBotGo/modules"
 )
 
@@ -33,7 +34,8 @@ func main() {
 	logger := log.New(log.Ldate | log.Ltime | log.Lshortfile)
 
 	bot := &types.Bot{
-		Logger: logger,
+		Logger:  logger,
+		Version: version,
 	}
 	bot.Logger.Infof("Starting bot version: %s", version)
 	bot.Logger.Infof("Syncing commands? %v", *shouldSyncCommands)
@@ -41,7 +43,7 @@ func main() {
 	bot.Logger.Infof("Exiting after syncing? %v", *exitAfterSync)
 	defer bot.Logger.Info("Shutting down bot...")
 
-	if err = bot.LoadConfig(); err != nil {
+	if err = shared.LoadConfig(&bot.Config); err != nil {
 		bot.Logger.Fatal("Failed to load config: ", err)
 	}
 	logger.SetLevel(bot.Config.LogLevel)
@@ -62,7 +64,7 @@ func main() {
 		bot.SyncCommands()
 	}
 
-	if err = bot.SetupDatabase(*shouldSyncDBTables); err != nil {
+	if bot.DB, err = shared.SetupDatabase(bot.Config.Database, *shouldSyncDBTables, bot.Config.DevMode); err != nil {
 		bot.Logger.Fatal("Failed to setup database: ", err)
 	}
 	defer bot.DB.Close()

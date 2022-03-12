@@ -2,11 +2,12 @@ package music
 
 import (
 	"github.com/DisgoOrg/disgo/core"
+	"github.com/DisgoOrg/disgo/core/events"
 	"github.com/DisgoOrg/disgo/discord"
 	"github.com/DisgoOrg/disgo/json"
 	"github.com/DisgoOrg/disgolink/lavalink"
 	"github.com/DisgoOrg/source-extensions-plugin"
-	"github.com/KittyBot-Org/KittyBotGo/internal/types"
+	"github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
 )
 
 var (
@@ -377,5 +378,31 @@ func (m module) Commands() []types.Command {
 }
 
 func (module) OnEvent(b *types.Bot, event core.Event) {
+	switch e := event.(type) {
+	case *events.GuildVoiceLeaveEvent:
+		player := b.MusicPlayers.Get(e.VoiceState.GuildID)
+		if player == nil {
+			return
+		}
+		if e.VoiceState.UserID == b.Bot.ApplicationID {
+			if err := player.Destroy(); err != nil {
+				b.Logger.Error("Failed to destroy music player: ", err)
+			}
+			b.MusicPlayers.Delete(e.VoiceState.GuildID)
+			return
+		}
+		if e.VoiceState.ChannelID == nil && e.OldVoiceState.ChannelID != nil {
+			botVoiceState := b.Bot.Caches.VoiceStates().Get(e.VoiceState.GuildID, e.Bot().ApplicationID)
+			if botVoiceState.ChannelID != nil && *botVoiceState.ChannelID == *e.OldVoiceState.ChannelID {
+				voiceStates := e.Bot().Caches.VoiceStates().FindAll(func(voiceState *core.VoiceState) bool {
+					return voiceState.ChannelID != nil && *voiceState.ChannelID == *botVoiceState.ChannelID
+				})
+				if len(voiceStates) == 0 {
+					go player.PlanDisconnect()
+				}
+			}
+			return
+		}
 
+	}
 }

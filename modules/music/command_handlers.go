@@ -14,8 +14,8 @@ import (
 	"github.com/DisgoOrg/snowflake"
 	"github.com/DisgoOrg/source-extensions-plugin"
 	"github.com/DisgoOrg/utils/paginator"
+	types "github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
 	"github.com/KittyBot-Org/KittyBotGo/internal/models"
-	"github.com/KittyBot-Org/KittyBotGo/internal/types"
 	"golang.org/x/text/message"
 )
 

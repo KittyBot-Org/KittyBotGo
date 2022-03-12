@@ -33,7 +33,7 @@ func (b *Bot) SetupPaginator() {
 }
 
 func (b *Bot) SetupBot() (err error) {
-	b.Bot, err = bot.New(b.Config.Bot.Token,
+	b.Bot, err = bot.New(b.Config.Token,
 		bot.WithLogger(b.Logger),
 		bot.WithGatewayOpts(gateway.WithGatewayIntents(discord.GatewayIntentGuilds, discord.GatewayIntentGuildVoiceStates)),
 		bot.WithEventListeners(b.Commands, b.Paginator, b.Listeners),

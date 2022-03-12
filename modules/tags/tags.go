@@ -2,7 +2,7 @@ package tags
 
 import (
 	"github.com/DisgoOrg/disgo/discord"
-	"github.com/KittyBot-Org/KittyBotGo/internal/types"
+	types "github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
 )
 
 var Module = types.DefaultCommandsModule{
