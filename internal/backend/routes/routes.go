@@ -17,6 +17,7 @@ func Handler(b *types.Backend) http.Handler {
 	router.HandleFunc("/bot_invite", BotInviteHandler(b)).Methods(http.MethodGet)
 	router.HandleFunc("/guild_invite", GuildInviteHandler(b)).Methods(http.MethodGet)
 	router.HandleFunc("/commands", CommandsHandler(b)).Methods(http.MethodGet)
+	router.HandleFunc("/notifications/{service}/callback", NotificationsHandler(b)).Methods(http.MethodPost)
 
 	return router
 }

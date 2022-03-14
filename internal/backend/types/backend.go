@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/DisgoOrg/disgo/discord"
 	"github.com/DisgoOrg/disgo/rest"
 	"github.com/DisgoOrg/log"
@@ -24,6 +25,8 @@ type Backend struct {
 	Commands      []discord.ApplicationCommandCreate
 	Config        Config
 	Version       string
+
+	PubSubClient *pubsub.Client
 }
 
 func (b *Backend) SetupRestServices() {
