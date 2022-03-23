@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/DisgoOrg/disgo/core/events"
+	"github.com/disgoorg/disgo/events"
 	"golang.org/x/text/message"
 )
 

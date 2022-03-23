@@ -1,8 +1,8 @@
 package types
 
 import (
-	"github.com/DisgoOrg/disgolink/lavalink"
 	"github.com/KittyBot-Org/KittyBotGo/internal/shared"
+	"github.com/disgoorg/disgolink/lavalink"
 )
 
 type Config struct {

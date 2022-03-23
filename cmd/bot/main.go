@@ -7,12 +7,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/DisgoOrg/log"
 	"github.com/KittyBot-Org/KittyBotGo/internal/bot/i18n"
 	"github.com/KittyBot-Org/KittyBotGo/internal/bot/metrics"
 	"github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
 	"github.com/KittyBot-Org/KittyBotGo/internal/shared"
 	"github.com/KittyBot-Org/KittyBotGo/modules"
+	"github.com/disgoorg/log"
 )
 
 var (
@@ -58,7 +58,7 @@ func main() {
 	if err = bot.SetupBot(); err != nil {
 		bot.Logger.Fatal("Failed to setup bot: ", err)
 	}
-	defer bot.Bot.Close(context.TODO())
+	defer bot.Client.Close(context.TODO())
 
 	if *shouldSyncCommands {
 		bot.SyncCommands()

@@ -3,8 +3,8 @@ package types
 import (
 	"time"
 
-	"github.com/DisgoOrg/snowflake"
 	"github.com/KittyBot-Org/KittyBotGo/internal/shared"
+	"github.com/disgoorg/snowflake"
 )
 
 type Config struct {

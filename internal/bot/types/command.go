@@ -1,8 +1,8 @@
 package types
 
 import (
-	"github.com/DisgoOrg/disgo/core/events"
-	"github.com/DisgoOrg/disgo/discord"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
 	"golang.org/x/text/message"
 )
 
@@ -31,14 +31,14 @@ func (b *Bot) SyncCommands() {
 	if b.Config.DevMode {
 		for _, guildID := range b.Config.DevGuildIDs {
 			b.Logger.Infof("Syncing Commands for guild %s...", guildID)
-			if _, err := b.Bot.SetGuildCommands(guildID, commands); err != nil {
+			if _, err := b.Client.Rest().ApplicationService().SetGuildCommands(b.Client.ApplicationID(), guildID, commands); err != nil {
 				b.Logger.Errorf("Failed to sync commands for guild %s: %s", guildID, err)
 			}
 		}
 		return
 	}
 	b.Logger.Infof("Syncing Commands global...")
-	if _, err := b.Bot.SetCommands(commands); err != nil {
+	if _, err := b.Client.Rest().ApplicationService().SetGlobalCommands(b.Client.ApplicationID(), commands); err != nil {
 		b.Logger.Errorf("Failed to sync commands global: %s", err)
 	}
 }

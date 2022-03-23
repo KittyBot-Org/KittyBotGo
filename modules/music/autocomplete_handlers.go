@@ -5,26 +5,23 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/DisgoOrg/disgo/core/events"
-	"github.com/DisgoOrg/disgo/discord"
 	"github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
 	"github.com/KittyBot-Org/KittyBotGo/internal/models"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
 	"github.com/lithammer/fuzzysearch/fuzzy"
 	"golang.org/x/text/message"
 )
 
 func playAutocompleteHandler(b *types.Bot, _ *message.Printer, e *events.AutocompleteInteractionEvent) error {
-	var query string
-	if q := e.Data.Options.String("query"); q != nil {
-		query = *q
-	}
+	query := e.Data.String("query")
 	var playHistory []models.PlayHistory
-	if err := b.DB.NewSelect().Model(&playHistory).Where("user_id = ?", e.User.ID).Scan(context.TODO()); err != nil {
+	if err := b.DB.NewSelect().Model(&playHistory).Where("user_id = ?", e.User().ID).Scan(context.TODO()); err != nil {
 		b.Logger.Error("Error adding music history entry: ", err)
 		return err
 	}
 	var likedSongs []models.LikedSong
-	if err := b.DB.NewSelect().Model(&likedSongs).Where("user_id = ?", e.User.ID).Scan(context.TODO()); err != nil {
+	if err := b.DB.NewSelect().Model(&likedSongs).Where("user_id = ?", e.User().ID).Scan(context.TODO()); err != nil {
 		b.Logger.Error("Failed to get music history entries: ", err)
 		return err
 	}
@@ -50,7 +47,14 @@ func playAutocompleteHandler(b *types.Bot, _ *message.Printer, e *events.Autocom
 	}
 
 	if query == "" {
-		return e.ResultMapString(unsortedResult)
+		var choices []discord.AutocompleteChoice
+		for key, value := range unsortedResult {
+			choices = append(choices, discord.AutocompleteChoiceString{
+				Name:  key,
+				Value: value,
+			})
+		}
+		return e.Result(choices)
 	}
 
 	ranks := fuzzy.RankFindFold(query, labels)
@@ -80,10 +84,10 @@ func playAutocompleteHandler(b *types.Bot, _ *message.Printer, e *events.Autocom
 	return e.Result(result)
 }
 
-func removeSongAutocompleteHandler(b *types.Bot, p *message.Printer, e *events.AutocompleteInteractionEvent) error {
-	player := b.MusicPlayers.Get(*e.GuildID)
+func removeSongAutocompleteHandler(b *types.Bot, _ *message.Printer, e *events.AutocompleteInteractionEvent) error {
+	player := b.MusicPlayers.Get(*e.GuildID())
 	if player == nil || player.Queue.Len() == 0 {
-		return e.ResultMapInt(nil)
+		return e.Result(nil)
 	}
 	tracks := make([]string, player.Queue.Len())
 
@@ -91,7 +95,7 @@ func removeSongAutocompleteHandler(b *types.Bot, p *message.Printer, e *events.A
 		tracks[i] = fmt.Sprintf("%d. %s", i+1, track.Info().Title)
 	}
 
-	ranks := fuzzy.RankFindFold(*e.Data.Options.String("song"), tracks)
+	ranks := fuzzy.RankFindFold(e.Data.String("song"), tracks)
 
 	choicesLen := len(ranks)
 	if choicesLen > 25 {
@@ -112,9 +116,9 @@ func removeSongAutocompleteHandler(b *types.Bot, p *message.Printer, e *events.A
 }
 
 func likedSongAutocompleteHandler(b *types.Bot, _ *message.Printer, e *events.AutocompleteInteractionEvent) error {
-	song := *e.Data.Options.String("song")
+	song := e.Data.String("song")
 	var likedSongs []models.LikedSong
-	if err := b.DB.NewSelect().Model(&likedSongs).Where("user_id = ?", e.User.ID).Scan(context.TODO()); err != nil {
+	if err := b.DB.NewSelect().Model(&likedSongs).Where("user_id = ?", e.User().ID).Scan(context.TODO()); err != nil {
 		return err
 	}
 	if (len(likedSongs) == 0) && song == "" {
@@ -130,7 +134,14 @@ func likedSongAutocompleteHandler(b *types.Bot, _ *message.Printer, e *events.Au
 	}
 
 	if song == "" {
-		return e.ResultMapString(unsortedResult)
+		var choices []discord.AutocompleteChoice
+		for key, value := range unsortedResult {
+			choices = append(choices, discord.AutocompleteChoiceString{
+				Name:  key,
+				Value: value,
+			})
+		}
+		return e.Result(choices)
 	}
 
 	ranks := fuzzy.RankFindFold(song, labels)

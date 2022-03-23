@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/DisgoOrg/snowflake"
 	"github.com/KittyBot-Org/KittyBotGo/internal/backend/types"
+	"github.com/disgoorg/snowflake"
 	"github.com/gorilla/mux"
 )
 

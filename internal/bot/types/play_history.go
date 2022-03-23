@@ -3,8 +3,8 @@ package types
 import (
 	"context"
 
-	"github.com/DisgoOrg/snowflake"
 	"github.com/KittyBot-Org/KittyBotGo/internal/models"
+	"github.com/disgoorg/snowflake"
 )
 
 func (b *Bot) AddPlayHistory(userID snowflake.Snowflake, title string, query string) {

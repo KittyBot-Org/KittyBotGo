@@ -6,18 +6,18 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/DisgoOrg/disgo/core/events"
-	"github.com/DisgoOrg/disgo/discord"
-	"github.com/DisgoOrg/disgolink/lavalink"
-	types "github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
+	"github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
 	"github.com/KittyBot-Org/KittyBotGo/internal/models"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
+	"github.com/disgoorg/disgolink/lavalink"
 	"golang.org/x/text/message"
 )
 
 var trackRegex = regexp.MustCompile(`\[\x60(?P<title>.+)\x60]\(<(?P<url>.+)?>\)`)
 
 func checkPlayer(b *types.Bot, p *message.Printer, e *events.ComponentInteractionEvent) (*types.MusicPlayer, error) {
-	player := b.MusicPlayers.Get(*e.GuildID)
+	player := b.MusicPlayers.Get(*e.GuildID())
 	if player == nil {
 		return nil, e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.components.no.player"), Flags: discord.MessageFlagEphemeral})
 	}
@@ -106,7 +106,7 @@ func likeComponentHandler(b *types.Bot, p *message.Printer, e *events.ComponentI
 	}
 
 	var likedSong models.LikedSong
-	err := b.DB.NewSelect().Model(&likedSong).Where("user_id = ? AND title like ?", e.User.ID, title).Scan(context.TODO())
+	err := b.DB.NewSelect().Model(&likedSong).Where("user_id = ? AND title like ?", e.User().ID, title).Scan(context.TODO())
 	if err != nil && err != sql.ErrNoRows {
 		return err
 	}
@@ -114,7 +114,7 @@ func likeComponentHandler(b *types.Bot, p *message.Printer, e *events.ComponentI
 	var msg string
 	if err != nil {
 		likedSong = models.LikedSong{
-			UserID: e.User.ID,
+			UserID: e.User().ID,
 			Query:  getTrackQuery(title, url),
 			Title:  title,
 		}

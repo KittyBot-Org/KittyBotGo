@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/DisgoOrg/disgo/discord"
-	"github.com/DisgoOrg/disgo/rest"
-	"github.com/DisgoOrg/log"
 	"github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/rest"
+	"github.com/disgoorg/log"
 	"github.com/procyon-projects/chrono"
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"

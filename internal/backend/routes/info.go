@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/DisgoOrg/disgo/info"
 	"github.com/KittyBot-Org/KittyBotGo/internal/backend/types"
+	"github.com/disgoorg/disgo"
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/model"
 )
@@ -70,7 +70,7 @@ func InfoHandler(b *types.Backend) http.HandlerFunc {
 			Stats
 		}{
 			BotVersion:   b.Version,
-			DisgoVersion: info.Version,
+			DisgoVersion: disgo.Version,
 			CommandCount: len(b.Commands),
 			Stats:        *stats,
 		}); err != nil {

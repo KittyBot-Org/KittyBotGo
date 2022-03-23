@@ -19,7 +19,7 @@ func NotificationsHandler(b *types.Backend) http.HandlerFunc {
 	})
 	return func(w http.ResponseWriter, r *http.Request) {
 		params := mux.Vars(r)
-		service, ok := params["service"]
+		_, ok := params["service"]
 		if !ok {
 			http.NotFound(w, r)
 			return

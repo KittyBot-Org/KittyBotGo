@@ -5,18 +5,17 @@ import (
 	"encoding/json"
 	"sync"
 
-	"github.com/DisgoOrg/disgolink/disgolink"
-	"github.com/DisgoOrg/disgolink/lavalink"
-	"github.com/DisgoOrg/snowflake"
-	"github.com/DisgoOrg/source-extensions-plugin"
 	"github.com/KittyBot-Org/KittyBotGo/internal/models"
+	"github.com/disgoorg/disgolink/disgolink"
+	"github.com/disgoorg/disgolink/lavalink"
+	"github.com/disgoorg/snowflake"
 )
 
 func (b *Bot) SetupLavalink() {
 	b.MusicPlayers = NewMusicPlayerMap(b)
-	b.Lavalink = disgolink.New(b.Bot, lavalink.WithPlugins(source_extensions.NewSpotifyPlugin(), source_extensions.NewAppleMusicPlugin()))
+	b.Lavalink = disgolink.New(b.Client /*lavalink.WithPlugins(source_extensions.NewSpotifyPlugin(), source_extensions.NewAppleMusicPlugin())*/)
 	b.RegisterNodes()
-	b.Bot.EventManager.AddEventListeners(b.Lavalink)
+	b.Client.EventManager().AddEventListeners(b.Lavalink)
 	/*b.Bot.EventManager.AddEventListeners(events.ListenerAdapter{
 		OnGuildReady: func(event *events.GuildReadyEvent) {
 			b.LoadPlayer(event.GuildID)
@@ -47,8 +46,8 @@ func (b *Bot) RegisterNodes() {
 }
 
 func (b *Bot) LoadPlayer(guildID snowflake.Snowflake) {
-	voiceState := b.Bot.Caches.VoiceStates().Get(guildID, b.Bot.SelfUser.ID)
-	if voiceState == nil {
+	voiceState, ok := b.Client.Caches().VoiceStates().Get(guildID, b.Client.SelfUser().ID)
+	if !ok {
 		return
 	}
 	var player models.MusicPlayer

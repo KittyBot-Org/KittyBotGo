@@ -3,7 +3,7 @@ package types
 import (
 	"sync"
 
-	"github.com/DisgoOrg/disgolink/lavalink"
+	"github.com/disgoorg/disgolink/lavalink"
 )
 
 func NewHistory() *MusicHistory {

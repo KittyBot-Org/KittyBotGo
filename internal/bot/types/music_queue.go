@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"sync"
 
-	"github.com/DisgoOrg/disgolink/lavalink"
+	"github.com/disgoorg/disgolink/lavalink"
 )
 
 type LoopingType int

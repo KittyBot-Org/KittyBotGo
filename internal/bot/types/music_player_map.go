@@ -3,7 +3,7 @@ package types
 import (
 	"sync"
 
-	"github.com/DisgoOrg/snowflake"
+	"github.com/disgoorg/snowflake"
 )
 
 func NewMusicPlayerMap(bot *Bot) *MusicPlayerMap {

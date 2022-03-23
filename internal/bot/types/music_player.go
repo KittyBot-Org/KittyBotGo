@@ -2,9 +2,10 @@ package types
 
 import (
 	"context"
-	"github.com/DisgoOrg/disgolink/lavalink"
-	"github.com/DisgoOrg/snowflake"
 	"time"
+
+	"github.com/disgoorg/disgolink/lavalink"
+	"github.com/disgoorg/snowflake"
 )
 
 var _ lavalink.PlayerEventListener = (*MusicPlayer)(nil)
@@ -79,7 +80,7 @@ func (p *MusicPlayer) PlanDisconnect() {
 
 	<-ctx.Done()
 	if ctx.Err() == context.DeadlineExceeded {
-		if err := p.Bot.Bot.AudioController.Disconnect(context.TODO(), p.GuildID()); err != nil {
+		if err := p.Bot.Client.Disconnect(context.TODO(), p.GuildID()); err != nil {
 			p.Bot.Logger.Error("Failed to disconnect from voice channel: ", err)
 		}
 	}

@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"github.com/DisgoOrg/snowflake"
+	"github.com/disgoorg/snowflake"
 )
 
 type PlayHistory struct {

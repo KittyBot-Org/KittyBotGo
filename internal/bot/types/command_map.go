@@ -3,8 +3,9 @@ package types
 import (
 	"strings"
 
-	"github.com/DisgoOrg/disgo/core"
-	"github.com/DisgoOrg/disgo/core/events"
+	"github.com/disgoorg/disgo/bot"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 )
@@ -21,11 +22,11 @@ type CommandMap struct {
 	commands map[string]Command
 }
 
-func (m *CommandMap) OnEvent(event core.Event) {
+func (m *CommandMap) OnEvent(event bot.Event) {
 	if e, ok := event.(*events.ApplicationCommandInteractionEvent); ok {
-		if cmd, ok := m.commands[e.Data.Name()]; ok {
+		if cmd, ok := m.commands[e.Data.CommandName()]; ok {
 			switch d := e.Data.(type) {
-			case core.SlashCommandInteractionData:
+			case discord.SlashCommandInteractionData:
 				if cmd.CommandHandler != nil {
 					printer := getMessagePrinter(e.BaseInteraction)
 					if cmd.Checks != nil && !cmd.Checks(m.bot, printer, e) {
@@ -33,12 +34,12 @@ func (m *CommandMap) OnEvent(event core.Event) {
 					}
 					if handler, ok := cmd.CommandHandler[buildCommandPath(d.SubCommandName, d.SubCommandGroupName)]; ok {
 						if err := handler(m.bot, printer, e); err != nil {
-							m.bot.Logger.Errorf("Failed to handle command \"%s\": %s", e.Data.Name(), err)
+							m.bot.Logger.Errorf("Failed to handle command \"%s\": %s", e.Data.CommandName(), err)
 						}
 						return
 					}
 				}
-				m.bot.Logger.Errorf("No command handler for \"%s\"", e.Data.Name())
+				m.bot.Logger.Errorf("No command handler for \"%s\"", e.Data.CommandName())
 			}
 		}
 	} else if e, ok := event.(*events.AutocompleteInteractionEvent); ok {
@@ -54,7 +55,7 @@ func (m *CommandMap) OnEvent(event core.Event) {
 			m.bot.Logger.Errorf("No autocomplete handler for command \"%s\"", e.Data.CommandName)
 		}
 	} else if e, ok := event.(*events.ComponentInteractionEvent); ok {
-		customID := e.Data.ID().String()
+		customID := e.Data.CustomID().String()
 		if !strings.HasPrefix(customID, "cmd:") {
 			return
 		}
@@ -74,14 +75,12 @@ func (m *CommandMap) OnEvent(event core.Event) {
 	}
 }
 
-func getMessagePrinter(i *core.BaseInteraction) *message.Printer {
-	lang, err := language.Parse(i.Locale.Code())
+func getMessagePrinter(i discord.BaseInteraction) *message.Printer {
+	lang, err := language.Parse(i.Locale().Code())
 	if err != nil && i.GuildLocale != nil {
-		i.Bot.Logger.Info("Failed to parse locale code, falling back to guild locale")
-		lang, _ = language.Parse(i.GuildLocale.Code())
+		lang, _ = language.Parse(i.GuildLocale().Code())
 	}
 	if lang == language.Und {
-		i.Bot.Logger.Info("Failed to parse locale code, falling back to default locale")
 		lang = language.English
 	}
 	return message.NewPrinter(lang)

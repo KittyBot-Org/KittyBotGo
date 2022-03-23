@@ -6,21 +6,21 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/DisgoOrg/disgo/core/events"
-	"github.com/DisgoOrg/disgo/discord"
-	"github.com/DisgoOrg/utils/paginator"
 	"github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
 	"github.com/KittyBot-Org/KittyBotGo/internal/models"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
+	"github.com/disgoorg/utils/paginator"
 	"github.com/lithammer/fuzzysearch/fuzzy"
 	"golang.org/x/text/message"
 )
 
 func tagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	data := e.SlashCommandInteractionData()
-	name := *data.Options.String("name")
+	name := data.String("name")
 	msg := p.Sprintf("modules.tags.commands.tag.not.found", name)
 	var tag models.Tag
-	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name like ?", *e.GuildID, name).Scan(context.TODO(), &tag); err == nil {
+	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name like ?", *e.GuildID(), name).Scan(context.TODO(), &tag); err == nil {
 		msg = tag.Content
 	}
 	if err := e.CreateMessage(discord.MessageCreate{
@@ -39,8 +39,8 @@ func tagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandIn
 func createTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	data := e.SlashCommandInteractionData()
 
-	name := *data.Options.String("name")
-	content := *data.Options.String("content")
+	name := data.String("name")
+	content := data.String("content")
 
 	if len(name) >= 64 {
 		return e.CreateMessage(discord.MessageCreate{
@@ -57,10 +57,10 @@ func createTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCom
 
 	var msg string
 	if _, err := b.DB.NewInsert().Model(&models.Tag{
-		GuildID: *e.GuildID,
+		GuildID: *e.GuildID(),
 		Name:    name,
 		Content: content,
-		OwnerID: e.User.ID,
+		OwnerID: e.User().ID,
 	}).Exec(context.TODO()); err != nil {
 		msg = p.Sprintf("modules.tags.commands.tags.create.error")
 	} else {
@@ -72,13 +72,13 @@ func createTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCom
 }
 
 func deleteTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
-	name := *e.SlashCommandInteractionData().Options.String("name")
+	name := e.SlashCommandInteractionData().String("name")
 	var msg string
 	var tag models.Tag
-	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name = ?", *e.GuildID, name).Scan(context.TODO(), &tag); err != nil {
+	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name = ?", *e.GuildID(), name).Scan(context.TODO(), &tag); err != nil {
 		msg = p.Sprintf("modules.tags.commands.tags.not.found", name)
 	} else {
-		if tag.OwnerID != e.User.ID && !e.Member.InteractionPermissions().Has(discord.PermissionManageServer) {
+		if tag.OwnerID != e.User().ID && !e.Member().Permissions.Has(discord.PermissionManageServer) {
 			msg = p.Sprintf("modules.tags.commands.tags.delete.no.permissions", name)
 		} else {
 			if _, err = b.DB.NewDelete().Model(&tag).WherePK().Exec(context.TODO()); err != nil {
@@ -96,16 +96,16 @@ func deleteTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCom
 
 func editTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	data := e.SlashCommandInteractionData()
-	name := *data.Options.String("name")
+	name := data.String("name")
 	var msg string
 	var tag models.Tag
-	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name = ?", *e.GuildID, name).Scan(context.TODO(), &tag); err != nil {
+	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name = ?", *e.GuildID(), name).Scan(context.TODO(), &tag); err != nil {
 		msg = p.Sprintf("modules.tags.commands.tags.not.found", name)
 	} else {
-		if tag.OwnerID != e.User.ID && !e.Member.InteractionPermissions().Has(discord.PermissionManageServer) {
+		if tag.OwnerID != e.User().ID && !e.Member().Permissions.Has(discord.PermissionManageServer) {
 			msg = p.Sprintf("modules.tags.commands.tags.edit.no.permissions", name)
 		} else {
-			tag.Content = *data.Options.String("content")
+			tag.Content = data.String("content")
 			if _, err = b.DB.NewUpdate().Model(&tag).Column("content").WherePK().Exec(context.TODO()); err != nil {
 				msg = p.Sprintf("modules.tags.commands.tags.edit.error")
 			} else {
@@ -120,9 +120,9 @@ func editTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationComma
 }
 
 func infoTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
-	name := *e.SlashCommandInteractionData().Options.String("name")
+	name := e.SlashCommandInteractionData().String("name")
 	var tag models.Tag
-	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name = ?", *e.GuildID, name).Scan(context.TODO(), &tag); err != nil {
+	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name = ?", *e.GuildID(), name).Scan(context.TODO(), &tag); err != nil {
 		return e.CreateMessage(discord.MessageCreate{
 			Content: p.Sprintf("modules.tags.commands.tags.not.found", name),
 		})
@@ -143,7 +143,7 @@ func infoTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationComma
 
 func listTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	var tags []models.Tag
-	if err := b.DB.NewSelect().Model(&tags).Where("guild_id = ?", *e.GuildID).Order("name ASC").Scan(context.TODO(), &tags); err != nil {
+	if err := b.DB.NewSelect().Model(&tags).Where("guild_id = ?", *e.GuildID()).Order("name ASC").Scan(context.TODO(), &tags); err != nil {
 		return e.CreateMessage(discord.MessageCreate{
 			Content: p.Sprintf("modules.tags.commands.tags.list.error"),
 		})
@@ -169,7 +169,7 @@ func listTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationComma
 		pages = append(pages, curDesc)
 	}
 
-	return b.Paginator.Create(e.CreateInteraction, &paginator.Paginator{
+	return b.Paginator.Create(e.Respond, &paginator.Paginator{
 		PageFunc: func(page int, embed *discord.EmbedBuilder) {
 			embed.SetTitle(p.Sprintf("modules.tags.commands.tags.list.title", len(tags))).SetDescription(pages[page])
 		},
@@ -179,10 +179,12 @@ func listTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationComma
 }
 
 func autoCompleteTagHandler(b *types.Bot, p *message.Printer, e *events.AutocompleteInteractionEvent) error {
-	response := make(map[string]string)
-	name := strings.ToLower(*e.Data.Options.String("name"))
-	var tags []models.Tag
-	if err := b.DB.NewSelect().Model(&tags).Where("guild_id = ?", *e.GuildID).Scan(context.TODO(), &tags); err == nil {
+	name := strings.ToLower(e.Data.String("name"))
+	var (
+		tags     []models.Tag
+		response []discord.AutocompleteChoice
+	)
+	if err := b.DB.NewSelect().Model(&tags).Where("guild_id = ?", *e.GuildID()).Scan(context.TODO(), &tags); err == nil {
 		var options []string
 		for _, tag := range tags {
 			options = append(options, tag.Name)
@@ -192,8 +194,11 @@ func autoCompleteTagHandler(b *types.Bot, p *message.Printer, e *events.Autocomp
 			if len(response) >= 25 {
 				break
 			}
-			response[option] = option
+			response = append(response, discord.AutocompleteChoiceString{
+				Name:  option,
+				Value: option,
+			})
 		}
 	}
-	return e.ResultMapString(response)
+	return e.Result(response)
 }

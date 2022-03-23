@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/DisgoOrg/snowflake"
+	"github.com/disgoorg/snowflake"
 )
 
 type MusicPlayer struct {

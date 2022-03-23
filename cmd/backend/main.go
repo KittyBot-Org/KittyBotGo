@@ -6,11 +6,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/DisgoOrg/log"
 	"github.com/KittyBot-Org/KittyBotGo/internal/backend/routes"
 	"github.com/KittyBot-Org/KittyBotGo/internal/backend/types"
 	"github.com/KittyBot-Org/KittyBotGo/internal/shared"
 	"github.com/KittyBot-Org/KittyBotGo/modules"
+	"github.com/disgoorg/log"
 )
 
 var (

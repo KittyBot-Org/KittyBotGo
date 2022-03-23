@@ -1,15 +1,15 @@
 package types
 
 import (
-	"github.com/DisgoOrg/disgo/core/events"
-	"github.com/DisgoOrg/disgo/discord"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
 	"golang.org/x/text/message"
 )
 
 var (
 	IsDev CommandCheck = func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) bool {
 		for _, v := range b.Config.DevUserIDs {
-			if v == e.User.ID {
+			if v == e.User().ID {
 				return true
 			}
 		}
@@ -24,7 +24,7 @@ var (
 	}
 
 	HasMusicPlayer CommandCheck = func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) bool {
-		if !b.MusicPlayers.Has(*e.GuildID) {
+		if !b.MusicPlayers.Has(*e.GuildID()) {
 			if err := e.CreateMessage(discord.NewMessageCreateBuilder().
 				SetContent(p.Sprintf("checks.has.music.player")).
 				SetEphemeral(true).
@@ -38,7 +38,7 @@ var (
 	}
 
 	HasQueueItems CommandCheck = func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) bool {
-		if b.MusicPlayers.Get(*e.GuildID).Queue.Len() == 0 {
+		if b.MusicPlayers.Get(*e.GuildID()).Queue.Len() == 0 {
 			if err := e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("checks.has.queue.items")}); err != nil {
 				b.Logger.Error(err)
 			}
@@ -48,7 +48,7 @@ var (
 	}
 
 	HasHistoryItems CommandCheck = func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) bool {
-		if b.MusicPlayers.Get(*e.GuildID).History.Len() == 0 {
+		if b.MusicPlayers.Get(*e.GuildID()).History.Len() == 0 {
 			if err := e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("checks.has.history.items")}); err != nil {
 				b.Logger.Error(err)
 			}
@@ -58,7 +58,7 @@ var (
 	}
 
 	IsMemberConnectedToVoiceChannel CommandCheck = func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) bool {
-		if voiceState := e.Member.VoiceState(); voiceState == nil || voiceState.ChannelID == nil {
+		if voiceState, ok := e.Client().Caches().VoiceStates().Get(*e.GuildID(), e.User().ID); !ok || voiceState.ChannelID == nil {
 			if err := e.CreateMessage(discord.NewMessageCreateBuilder().
 				SetContent(p.Sprintf("modules.music.not.in.voice")).
 				SetEphemeral(true).
@@ -72,7 +72,7 @@ var (
 	}
 
 	IsPlaying CommandCheck = func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) bool {
-		if b.MusicPlayers.Get(*e.GuildID).PlayingTrack() == nil {
+		if b.MusicPlayers.Get(*e.GuildID()).PlayingTrack() == nil {
 			if err := e.CreateMessage(discord.NewMessageCreateBuilder().
 				SetContent(p.Sprintf("checks.is.playing")).
 				SetEphemeral(true).

@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/DisgoOrg/snowflake"
 	"github.com/KittyBot-Org/KittyBotGo/internal/models"
+	"github.com/disgoorg/snowflake"
 )
 
 func (b *Backend) AddVote(userID snowflake.Snowflake, botList BotList, multiplier int) error {

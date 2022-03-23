@@ -1,8 +1,8 @@
 package tags
 
 import (
-	"github.com/DisgoOrg/disgo/discord"
-	types "github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
+	"github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
+	"github.com/disgoorg/disgo/discord"
 )
 
 var Module = types.DefaultCommandsModule{
