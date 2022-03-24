@@ -77,7 +77,7 @@ func (m *CommandMap) OnEvent(event bot.Event) {
 
 func getMessagePrinter(i discord.BaseInteraction) *message.Printer {
 	lang, err := language.Parse(i.Locale().Code())
-	if err != nil && i.GuildLocale != nil {
+	if err != nil && i.GuildLocale() != nil {
 		lang, _ = language.Parse(i.GuildLocale().Code())
 	}
 	if lang == language.Und {
