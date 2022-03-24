@@ -30,10 +30,7 @@ type Backend struct {
 }
 
 func (b *Backend) SetupRestServices() {
-	config := &rest.DefaultConfig
-	config.Logger = b.Logger
-	config.BotTokenFunc = func() string { return b.Config.Token }
-	rest.NewServices(rest.NewClient(config))
+	rest.NewServices(rest.NewClient(b.Config.Token, rest.WithLogger(b.Logger)))
 }
 
 func (b *Backend) SetupPrometheusAPI() error {

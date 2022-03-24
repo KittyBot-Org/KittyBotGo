@@ -2,20 +2,14 @@ module github.com/KittyBot-Org/KittyBotGo
 
 go 1.18
 
-replace (
-	github.com/disgoorg/disgolink/disgolink => ../disgolink/disgolink
-	github.com/disgoorg/disgolink/lavalink => ../disgolink/lavalink
-	github.com/disgoorg/utils/paginator => ../utils/paginator
-)
-
 require (
 	cloud.google.com/go/pubsub v1.3.1
-	github.com/disgoorg/disgo v0.7.5-0.20220323120832-ce5cfadab11a
-	github.com/disgoorg/disgolink/disgolink v1.4.1
-	github.com/disgoorg/disgolink/lavalink v1.4.1
+	github.com/disgoorg/disgo v0.7.5-0.20220324004509-5258d0308759
+	github.com/disgoorg/disgolink/disgolink v1.5.0
+	github.com/disgoorg/disgolink/lavalink v1.5.0
 	github.com/disgoorg/log v1.2.0
 	github.com/disgoorg/snowflake v1.1.0
-	github.com/disgoorg/utils/paginator v0.0.0-20220307230709-3de5c2daae80
+	github.com/disgoorg/utils/paginator v0.0.0-20220324002608-4f4098bd27c9
 	github.com/gorilla/mux v1.8.0
 	github.com/lithammer/fuzzysearch v1.1.3
 	github.com/pkg/errors v0.9.1
