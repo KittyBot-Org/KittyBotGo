@@ -70,12 +70,12 @@ func playHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandI
 			giveSearchSelection(b, p, e, tracks)
 		},
 		func() {
-			if _, err := e.Client().Rest().InteractionService().UpdateInteractionResponse(e.ApplicationID(), e.Token(), discord.NewMessageUpdateBuilder().SetContent(p.Sprintf("modules.music.commands.play.no.results")).Build()); err != nil {
+			if _, err := e.Client().Rest().Interactions().UpdateInteractionResponse(e.ApplicationID(), e.Token(), discord.NewMessageUpdateBuilder().SetContent(p.Sprintf("modules.music.commands.play.no.results")).Build()); err != nil {
 				b.Logger.Error(err)
 			}
 		},
 		func(ex lavalink.FriendlyException) {
-			if _, err := e.Client().Rest().InteractionService().UpdateInteractionResponse(e.ApplicationID(), e.Token(), discord.NewMessageUpdateBuilder().SetContent(p.Sprintf("modules.music.commands.play.exception", ex.Message)).Build()); err != nil {
+			if _, err := e.Client().Rest().Interactions().UpdateInteractionResponse(e.ApplicationID(), e.Token(), discord.NewMessageUpdateBuilder().SetContent(p.Sprintf("modules.music.commands.play.exception", ex.Message)).Build()); err != nil {
 				b.Logger.Error(err)
 			}
 		},
@@ -90,7 +90,7 @@ func playAndQueue(b *types.Bot, p *message.Printer, i discord.BaseInteraction, t
 	}
 	var voiceChannelID snowflake.Snowflake
 	if voiceState, ok := b.Client.Caches().VoiceStates().Get(*i.GuildID(), i.User().ID); !ok || voiceState.ChannelID == nil {
-		if _, err := b.Client.Rest().InteractionService().UpdateInteractionResponse(i.ApplicationID(), i.Token(), discord.NewMessageUpdateBuilder().SetContent(p.Sprintf("modules.music.not.in.voice")).ClearContainerComponents().Build()); err != nil {
+		if _, err := b.Client.Rest().Interactions().UpdateInteractionResponse(i.ApplicationID(), i.Token(), discord.NewMessageUpdateBuilder().SetContent(p.Sprintf("modules.music.not.in.voice")).ClearContainerComponents().Build()); err != nil {
 			b.Logger.Error(err)
 		}
 		return
@@ -99,7 +99,7 @@ func playAndQueue(b *types.Bot, p *message.Printer, i discord.BaseInteraction, t
 	}
 	if voiceState, ok := b.Client.Caches().VoiceStates().Get(*i.GuildID(), b.Client.ID()); !ok || voiceState.ChannelID == nil || *voiceState.ChannelID != voiceChannelID {
 		if err := b.Client.Connect(context.TODO(), *i.GuildID(), voiceChannelID); err != nil {
-			if _, err = b.Client.Rest().InteractionService().UpdateInteractionResponse(i.ApplicationID(), i.Token(), discord.NewMessageUpdateBuilder().SetContent(p.Sprintf("modules.music.no.permissions")).ClearContainerComponents().Build()); err != nil {
+			if _, err = b.Client.Rest().Interactions().UpdateInteractionResponse(i.ApplicationID(), i.Token(), discord.NewMessageUpdateBuilder().SetContent(p.Sprintf("modules.music.no.permissions")).ClearContainerComponents().Build()); err != nil {
 				b.Logger.Error(err)
 			}
 			return
@@ -118,12 +118,12 @@ func playAndQueue(b *types.Bot, p *message.Printer, i discord.BaseInteraction, t
 			tracks = tracks[1:]
 		}
 		if err := player.Play(track); err != nil {
-			if _, err = b.Client.Rest().InteractionService().UpdateInteractionResponse(i.ApplicationID(), i.Token(), discord.NewMessageUpdateBuilder().SetContent(p.Sprintf("modules.music.commands.play.error")).ClearContainerComponents().Build()); err != nil {
+			if _, err = b.Client.Rest().Interactions().UpdateInteractionResponse(i.ApplicationID(), i.Token(), discord.NewMessageUpdateBuilder().SetContent(p.Sprintf("modules.music.commands.play.error")).ClearContainerComponents().Build()); err != nil {
 				b.Logger.Error("Error while playing song: ", err)
 			}
 			return
 		}
-		if _, err := b.Client.Rest().InteractionService().UpdateInteractionResponse(i.ApplicationID(), i.Token(), discord.NewMessageUpdateBuilder().
+		if _, err := b.Client.Rest().Interactions().UpdateInteractionResponse(i.ApplicationID(), i.Token(), discord.NewMessageUpdateBuilder().
 			SetContent(p.Sprintf("modules.music.commands.play.now.playing", track.Info().Title, *track.Info().URI)).
 			SetContainerComponents(getMusicControllerComponents(track)).
 			Build(),
@@ -131,7 +131,7 @@ func playAndQueue(b *types.Bot, p *message.Printer, i discord.BaseInteraction, t
 			b.Logger.Error("Error while updating interaction message: ", err)
 		}
 	} else {
-		if _, err := b.Client.Rest().InteractionService().UpdateInteractionResponse(i.ApplicationID(), i.Token(), discord.NewMessageUpdateBuilder().
+		if _, err := b.Client.Rest().Interactions().UpdateInteractionResponse(i.ApplicationID(), i.Token(), discord.NewMessageUpdateBuilder().
 			SetContent(p.Sprintf("modules.music.commands.play.added.to.queue", len(tracks))).
 			SetContainerComponents(getMusicControllerComponents(nil)).
 			Build(),
@@ -165,14 +165,14 @@ func giveSearchSelection(b *types.Bot, p *message.Printer, event *events.Applica
 			Value:       strconv.Itoa(i),
 		})
 	}
-	if _, err := event.Client().Rest().InteractionService().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.NewMessageUpdateBuilder().
+	if _, err := event.Client().Rest().Interactions().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.NewMessageUpdateBuilder().
 		SetContent(p.Sprintf("modules.music.autocomplete.select.songs")).
 		AddActionRow(discord.NewSelectMenu(discord.CustomID("play:search:"+event.ID()), p.Sprintf("modules.music.commands.play.select.songs"), options...).WithMaxValues(len(options))).
 		Build()); err != nil {
 		b.Logger.Error(err)
 	}
 	go func() {
-		collectorChan, cancel := bot.NewCollector(event.Client(), func(e *events.ComponentInteractionEvent) bool {
+		collectorChan, cancel := bot.NewEventCollector(event.Client(), func(e *events.ComponentInteractionEvent) bool {
 			return e.Data.CustomID() == discord.CustomID("play:search:"+event.ID())
 		})
 		defer cancel()
@@ -198,7 +198,7 @@ func giveSearchSelection(b *types.Bot, p *message.Printer, event *events.Applica
 				return
 
 			case <-time.After(time.Second * 30):
-				if _, err := event.Client().Rest().InteractionService().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.NewMessageUpdateBuilder().
+				if _, err := event.Client().Rest().Interactions().UpdateInteractionResponse(event.ApplicationID(), event.Token(), discord.NewMessageUpdateBuilder().
 					SetContent(p.Sprintf("modules.music.commands.play.search.timed.out")).
 					ClearContainerComponents().
 					Build(),

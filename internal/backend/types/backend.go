@@ -18,7 +18,7 @@ import (
 type Backend struct {
 	Logger        log.Logger
 	DB            *bun.DB
-	RestServices  rest.Services
+	Rest          rest.Rest
 	PrometheusAPI v1.API
 	HTTPServer    *http.Server
 	Scheduler     chrono.TaskScheduler
@@ -30,7 +30,7 @@ type Backend struct {
 }
 
 func (b *Backend) SetupRestServices() {
-	rest.NewServices(rest.NewClient(b.Config.Token, rest.WithLogger(b.Logger)))
+	rest.NewRest(rest.NewClient(b.Config.Token, rest.WithLogger(b.Logger)))
 }
 
 func (b *Backend) SetupPrometheusAPI() error {

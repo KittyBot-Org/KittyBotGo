@@ -20,7 +20,7 @@ func (b *Backend) AddVote(userID snowflake.Snowflake, botList BotList, multiplie
 		Exec(context.TODO()); err != nil {
 		return err
 	}
-	return b.RestServices.GuildService().AddMemberRole(b.Config.SupportGuildID, userID, b.Config.BotLists.VoterRoleID)
+	return b.Rest.Members().AddMemberRole(b.Config.SupportGuildID, userID, b.Config.BotLists.VoterRoleID)
 }
 
 func (b *Backend) VoteTask(ctx context.Context) {
@@ -31,7 +31,7 @@ func (b *Backend) VoteTask(ctx context.Context) {
 		return
 	}
 	for _, voter := range voters {
-		if err = b.RestServices.GuildService().RemoveMemberRole(b.Config.SupportGuildID, voter.ID, b.Config.BotLists.VoterRoleID); err != nil {
+		if err = b.Rest.Members().RemoveMemberRole(b.Config.SupportGuildID, voter.ID, b.Config.BotLists.VoterRoleID); err != nil {
 			b.Logger.Error("failed to remove voter role: ", err)
 		}
 	}

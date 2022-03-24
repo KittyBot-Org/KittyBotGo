@@ -56,10 +56,10 @@ github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGX
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/disgoorg/disgo v0.7.5-0.20220324004509-5258d0308759 h1:lXdvK5LMnJNPu+pJrfu2KX1gllVRfrgeh6mN6U1gYIY=
-github.com/disgoorg/disgo v0.7.5-0.20220324004509-5258d0308759/go.mod h1:Mdxar1sGpJt2nPgG8MacO1moeBhdCpwL9VGhpyR/4mA=
-github.com/disgoorg/disgolink/disgolink v1.5.0 h1:OPC9esnICK0Xf393p8qtfMsrECa/jPCfRbqRKBZdm/c=
-github.com/disgoorg/disgolink/disgolink v1.5.0/go.mod h1:eiu/2ju/BdFmWB9S8rftMebl8l0s+kq1N6hqt0oWQiU=
+github.com/disgoorg/disgo v0.7.5-0.20220324204756-810616082805 h1:DkQS7SUdfYMsC5G68Dkmkd7XJOnd4pCCko6N4KQFAF0=
+github.com/disgoorg/disgo v0.7.5-0.20220324204756-810616082805/go.mod h1:Mdxar1sGpJt2nPgG8MacO1moeBhdCpwL9VGhpyR/4mA=
+github.com/disgoorg/disgolink/disgolink v1.5.1-0.20220324211621-78ab06c9f4d9 h1:q3ZDg1yFm6NWK/KFExBwidMxePyziIbpyoQVRFezYHw=
+github.com/disgoorg/disgolink/disgolink v1.5.1-0.20220324211621-78ab06c9f4d9/go.mod h1:rabaSQ9Aw30d4EeBgM/PLqqNne0IjyeFeywustN/5mI=
 github.com/disgoorg/disgolink/lavalink v1.5.0 h1:kIZK5HUtl3KYEhnEWehObypQOwwlBBaQzSL/UnXTQ38=
 github.com/disgoorg/disgolink/lavalink v1.5.0/go.mod h1:SwZ+KLXcPrJcpRuUXJP1NDTcEUYvcLMG6IjLqMBqaX8=
 github.com/disgoorg/log v1.2.0 h1:sqlXnu/ZKAlIlHV9IO+dbMto7/hCQ474vlIdMWk8QKo=

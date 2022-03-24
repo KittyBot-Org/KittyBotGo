@@ -4,8 +4,8 @@ go 1.18
 
 require (
 	cloud.google.com/go/pubsub v1.3.1
-	github.com/disgoorg/disgo v0.7.5-0.20220324004509-5258d0308759
-	github.com/disgoorg/disgolink/disgolink v1.5.0
+	github.com/disgoorg/disgo v0.7.5-0.20220324204756-810616082805
+	github.com/disgoorg/disgolink/disgolink v1.5.1-0.20220324211621-78ab06c9f4d9
 	github.com/disgoorg/disgolink/lavalink v1.5.0
 	github.com/disgoorg/log v1.2.0
 	github.com/disgoorg/snowflake v1.1.0
