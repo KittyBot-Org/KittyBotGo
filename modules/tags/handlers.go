@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
-	"github.com/KittyBot-Org/KittyBotGo/internal/models"
+	"github.com/KittyBot-Org/KittyBotGo/internal/db"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/utils/paginator"
@@ -19,7 +19,7 @@ func tagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandIn
 	data := e.SlashCommandInteractionData()
 	name := data.String("name")
 	msg := p.Sprintf("modules.tags.commands.tag.not.found", name)
-	var tag models.Tag
+	var tag db.Tag
 	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name like ?", *e.GuildID(), name).Scan(context.TODO(), &tag); err == nil {
 		msg = tag.Content
 	}
@@ -56,7 +56,7 @@ func createTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCom
 	}
 
 	var msg string
-	if _, err := b.DB.NewInsert().Model(&models.Tag{
+	if _, err := b.DB.NewInsert().Model(&db.Tag{
 		GuildID: *e.GuildID(),
 		Name:    name,
 		Content: content,
@@ -74,7 +74,7 @@ func createTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCom
 func deleteTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	name := e.SlashCommandInteractionData().String("name")
 	var msg string
-	var tag models.Tag
+	var tag db.Tag
 	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name = ?", *e.GuildID(), name).Scan(context.TODO(), &tag); err != nil {
 		msg = p.Sprintf("modules.tags.commands.tags.not.found", name)
 	} else {
@@ -98,7 +98,7 @@ func editTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationComma
 	data := e.SlashCommandInteractionData()
 	name := data.String("name")
 	var msg string
-	var tag models.Tag
+	var tag db.Tag
 	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name = ?", *e.GuildID(), name).Scan(context.TODO(), &tag); err != nil {
 		msg = p.Sprintf("modules.tags.commands.tags.not.found", name)
 	} else {
@@ -121,7 +121,7 @@ func editTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationComma
 
 func infoTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	name := e.SlashCommandInteractionData().String("name")
-	var tag models.Tag
+	var tag db.Tag
 	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name = ?", *e.GuildID(), name).Scan(context.TODO(), &tag); err != nil {
 		return e.CreateMessage(discord.MessageCreate{
 			Content: p.Sprintf("modules.tags.commands.tags.not.found", name),
@@ -142,7 +142,7 @@ func infoTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationComma
 }
 
 func listTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
-	var tags []models.Tag
+	var tags []db.Tag
 	if err := b.DB.NewSelect().Model(&tags).Where("guild_id = ?", *e.GuildID()).Order("name ASC").Scan(context.TODO(), &tags); err != nil {
 		return e.CreateMessage(discord.MessageCreate{
 			Content: p.Sprintf("modules.tags.commands.tags.list.error"),
@@ -181,7 +181,7 @@ func listTagHandler(b *types.Bot, p *message.Printer, e *events.ApplicationComma
 func autoCompleteTagHandler(b *types.Bot, p *message.Printer, e *events.AutocompleteInteractionEvent) error {
 	name := strings.ToLower(e.Data.String("name"))
 	var (
-		tags     []models.Tag
+		tags     []db.Tag
 		response []discord.AutocompleteChoice
 	)
 	if err := b.DB.NewSelect().Model(&tags).Where("guild_id = ?", *e.GuildID()).Scan(context.TODO(), &tags); err == nil {

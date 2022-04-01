@@ -4,13 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/KittyBot-Org/KittyBotGo/internal/models"
+	"github.com/KittyBot-Org/KittyBotGo/internal/db"
 	"github.com/disgoorg/snowflake"
 )
 
 func (b *Backend) AddVote(userID snowflake.Snowflake, botList BotList, multiplier int) error {
 	voteDuration := botList.VoteCooldown * 2 * time.Duration(multiplier)
-	voter := models.Voter{
+	voter := db.Voter{
 		ID:        userID,
 		ExpiresAt: time.Now().Add(voteDuration),
 	}
@@ -24,7 +24,7 @@ func (b *Backend) AddVote(userID snowflake.Snowflake, botList BotList, multiplie
 }
 
 func (b *Backend) VoteTask(ctx context.Context) {
-	var voters []models.Voter
+	var voters []db.Voter
 	_, err := b.DB.NewSelect().Model(&voters).Where("expires_at < ?", time.Now()).Exec(ctx)
 	if err != nil {
 		b.Logger.Error("failed to fetch expired votes: ", err)

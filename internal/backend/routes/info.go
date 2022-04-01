@@ -3,12 +3,12 @@ package routes
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/KittyBot-Org/KittyBotGo/internal/backend/types"
 	"github.com/disgoorg/disgo"
-	"github.com/pkg/errors"
 	"github.com/prometheus/common/model"
 )
 
@@ -30,7 +30,7 @@ func getMetric(ctx context.Context, b *types.Backend, query string) (int, error)
 	}
 	vectorResult, ok := result.(model.Vector)
 	if !ok {
-		return 0, errors.Errorf("unexpected result type %T for query: %s", result, query)
+		return 0, fmt.Errorf("unexpected result type %T for query: %s", result, query)
 	}
 	return int(vectorResult[0].Value), nil
 }

@@ -1,4 +1,4 @@
-package models
+package db
 
 import (
 	"time"
@@ -6,7 +6,12 @@ import (
 	"github.com/disgoorg/snowflake"
 )
 
-type PlayHistory struct {
+type PlayHistory interface {
+	Get(userID snowflake.Snowflake) ([]PlayHistoryModel, error)
+	Add(model PlayHistoryModel) error
+}
+
+type PlayHistoryModel struct {
 	UserID     snowflake.Snowflake `bun:"user_id,pk"`
 	Query      string              `bun:"query,notnull"`
 	Title      string              `bun:"title,pk"`

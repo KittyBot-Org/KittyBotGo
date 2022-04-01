@@ -1,4 +1,4 @@
-package models
+package db
 
 import (
 	"time"
@@ -6,7 +6,13 @@ import (
 	"github.com/disgoorg/snowflake"
 )
 
-type LikedSong struct {
+type LikedSongs interface {
+	Get(userID snowflake.Snowflake) ([]LikedSongModel, error)
+	Add(model LikedSongModel) error
+	Delete(userID snowflake.Snowflake, title string) error
+}
+
+type LikedSongModel struct {
 	UserID    snowflake.Snowflake `bun:"user_id,pk"`
 	Query     string              `bun:"query,notnull"`
 	Title     string              `bun:"title,pk"`

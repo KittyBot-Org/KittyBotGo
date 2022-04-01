@@ -1,10 +1,15 @@
-package models
+package db
 
 import (
 	"github.com/disgoorg/snowflake"
 )
 
-type MusicPlayer struct {
+type MusicPlayers interface {
+	GetAndDelete(guildID snowflake.Snowflake) (MusicPlayerModel, error)
+	Add(model MusicPlayerModel) error
+}
+
+type MusicPlayerModel struct {
 	GuildID              snowflake.Snowflake   `bun:"guild_id,pk,notnull"`
 	State                []byte                `bun:"state,notnull"`
 	PlayingTrackUserData *AudioTrackData       `bun:"playing_track_user_data"`

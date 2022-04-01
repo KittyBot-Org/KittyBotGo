@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"sync"
 
-	"github.com/KittyBot-Org/KittyBotGo/internal/models"
+	"github.com/KittyBot-Org/KittyBotGo/internal/db"
 	"github.com/disgoorg/disgolink/disgolink"
 	"github.com/disgoorg/disgolink/lavalink"
 	"github.com/disgoorg/snowflake"
@@ -50,7 +50,7 @@ func (b *Bot) LoadPlayer(guildID snowflake.Snowflake) {
 	if !ok {
 		return
 	}
-	var player models.MusicPlayer
+	var player db.MusicPlayer
 	if _, err := b.DB.NewDelete().Model(&player).Where("guild_id = ?", voiceState.GuildID).Returning("*").Exec(context.TODO()); err != nil {
 		b.Logger.Error("Failed to delete & return player: ", err)
 		return
@@ -117,29 +117,29 @@ func (b *Bot) SavePlayers() {
 			b.Logger.Error("Failed to marshal player: ", err)
 			continue
 		}
-		var trackData *models.AudioTrackData
+		var trackData *db.AudioTrackData
 		if player.PlayingTrack() != nil {
-			data := player.PlayingTrack().UserData().(models.AudioTrackData)
+			data := player.PlayingTrack().UserData().(db.AudioTrackData)
 			trackData = &data
 		}
-		queue := make([]models.AudioTrack, player.Queue.Len())
+		queue := make([]db.AudioTrack, player.Queue.Len())
 		for i, track := range player.Queue.Tracks() {
 			encodedTrack, err := b.Lavalink.EncodeTrack(track)
 			if err != nil {
 				b.Logger.Error("Failed to encode queue track: ", err)
 				continue
 			}
-			queue[i] = models.AudioTrack{Track: encodedTrack, UserData: track.UserData().(models.AudioTrackData)}
+			queue[i] = db.AudioTrack{Track: encodedTrack, UserData: track.UserData().(db.AudioTrackData)}
 		}
 
-		history := make([]models.AudioTrack, player.History.Len())
+		history := make([]db.AudioTrack, player.History.Len())
 		for i, track := range player.History.Tracks() {
 			encodedTrack, err := b.Lavalink.EncodeTrack(track)
 			if err != nil {
 				b.Logger.Error("Failed to encode history track: ", err)
 				continue
 			}
-			history[i] = models.AudioTrack{Track: encodedTrack, UserData: track.UserData().(models.AudioTrackData)}
+			history[i] = db.AudioTrack{Track: encodedTrack, UserData: track.UserData().(db.AudioTrackData)}
 		}
 
 		skipVotes := make([]snowflake.Snowflake, len(player.SkipVotes))
@@ -149,7 +149,7 @@ func (b *Bot) SavePlayers() {
 			i++
 		}
 
-		if _, err = b.DB.NewInsert().Model(&models.MusicPlayer{
+		if _, err = b.DB.NewInsert().Model(&db.MusicPlayer{
 			GuildID:              player.GuildID(),
 			State:                resumeData,
 			PlayingTrackUserData: trackData,

@@ -1,12 +1,12 @@
 package types
 
 import (
-	"github.com/KittyBot-Org/KittyBotGo/internal/shared"
+	"github.com/KittyBot-Org/KittyBotGo/internal/config"
 	"github.com/disgoorg/disgolink/lavalink"
 )
 
 type Config struct {
-	shared.Config
+	config.Config
 	Bot                  BotConfig      `json:"bot"`
 	PlayHistoryCacheSize int            `json:"play_history_cache_size"`
 	Lavalink             LavalinkConfig `json:"lavalink"`

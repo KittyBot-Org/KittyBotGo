@@ -1,4 +1,4 @@
-package shared
+package db
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/uptrace/bun/extra/bundebug"
 
-	"github.com/KittyBot-Org/KittyBotGo/internal/models"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
@@ -30,22 +29,22 @@ func SetupDatabase(config DatabaseConfig, shouldSyncDBTables bool, devMode bool)
 	db := bun.NewDB(sqlDB, pgdialect.New())
 	db.AddQueryHook(bundebug.NewQueryHook(bundebug.WithVerbose(devMode)))
 	if shouldSyncDBTables {
-		if err := db.ResetModel(context.TODO(), (*models.Voter)(nil)); err != nil {
+		if err := db.ResetModel(context.TODO(), (*VoterModel)(nil)); err != nil {
 			return nil, err
 		}
-		if err := db.ResetModel(context.TODO(), (*models.GuildSettings)(nil)); err != nil {
+		if err := db.ResetModel(context.TODO(), (*GuildSettings)(nil)); err != nil {
 			return nil, err
 		}
-		if err := db.ResetModel(context.TODO(), (*models.Tag)(nil)); err != nil {
+		if err := db.ResetModel(context.TODO(), (*Tag)(nil)); err != nil {
 			return nil, err
 		}
-		if err := db.ResetModel(context.TODO(), (*models.MusicPlayer)(nil)); err != nil {
+		if err := db.ResetModel(context.TODO(), (*MusicPlayer)(nil)); err != nil {
 			return nil, err
 		}
-		if err := db.ResetModel(context.TODO(), (*models.PlayHistory)(nil)); err != nil {
+		if err := db.ResetModel(context.TODO(), (*PlayHistory)(nil)); err != nil {
 			return nil, err
 		}
-		if err := db.ResetModel(context.TODO(), (*models.LikedSong)(nil)); err != nil {
+		if err := db.ResetModel(context.TODO(), (*LikedSong)(nil)); err != nil {
 			return nil, err
 		}
 	}

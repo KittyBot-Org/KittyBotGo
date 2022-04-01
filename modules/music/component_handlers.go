@@ -7,7 +7,7 @@ import (
 	"regexp"
 
 	"github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
-	"github.com/KittyBot-Org/KittyBotGo/internal/models"
+	"github.com/KittyBot-Org/KittyBotGo/internal/db"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgolink/lavalink"
@@ -105,7 +105,7 @@ func likeComponentHandler(b *types.Bot, p *message.Printer, e *events.ComponentI
 		url = &matches[trackRegex.SubexpIndex("url")]
 	}
 
-	var likedSong models.LikedSong
+	var likedSong db.LikedSong
 	err := b.DB.NewSelect().Model(&likedSong).Where("user_id = ? AND title like ?", e.User().ID, title).Scan(context.TODO())
 	if err != nil && err != sql.ErrNoRows {
 		return err
@@ -113,7 +113,7 @@ func likeComponentHandler(b *types.Bot, p *message.Printer, e *events.ComponentI
 	fmt.Printf("likedSong: %v\n", likedSong)
 	var msg string
 	if err != nil {
-		likedSong = models.LikedSong{
+		likedSong = db.LikedSong{
 			UserID: e.User().ID,
 			Query:  getTrackQuery(title, url),
 			Title:  title,

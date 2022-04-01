@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
-	"github.com/KittyBot-Org/KittyBotGo/internal/models"
+	"github.com/KittyBot-Org/KittyBotGo/internal/db"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/lithammer/fuzzysearch/fuzzy"
@@ -15,12 +15,12 @@ import (
 
 func playAutocompleteHandler(b *types.Bot, _ *message.Printer, e *events.AutocompleteInteractionEvent) error {
 	query := e.Data.String("query")
-	var playHistory []models.PlayHistory
+	var playHistory []db.PlayHistory
 	if err := b.DB.NewSelect().Model(&playHistory).Where("user_id = ?", e.User().ID).Scan(context.TODO()); err != nil {
 		b.Logger.Error("Error adding music history entry: ", err)
 		return err
 	}
-	var likedSongs []models.LikedSong
+	var likedSongs []db.LikedSong
 	if err := b.DB.NewSelect().Model(&likedSongs).Where("user_id = ?", e.User().ID).Scan(context.TODO()); err != nil {
 		b.Logger.Error("Failed to get music history entries: ", err)
 		return err
@@ -117,7 +117,7 @@ func removeSongAutocompleteHandler(b *types.Bot, _ *message.Printer, e *events.A
 
 func likedSongAutocompleteHandler(b *types.Bot, _ *message.Printer, e *events.AutocompleteInteractionEvent) error {
 	song := e.Data.String("song")
-	var likedSongs []models.LikedSong
+	var likedSongs []db.LikedSong
 	if err := b.DB.NewSelect().Model(&likedSongs).Where("user_id = ?", e.User().ID).Scan(context.TODO()); err != nil {
 		return err
 	}

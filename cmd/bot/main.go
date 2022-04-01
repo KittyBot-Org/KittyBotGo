@@ -10,7 +10,8 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/internal/bot/i18n"
 	"github.com/KittyBot-Org/KittyBotGo/internal/bot/metrics"
 	"github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
-	"github.com/KittyBot-Org/KittyBotGo/internal/shared"
+	"github.com/KittyBot-Org/KittyBotGo/internal/config"
+	"github.com/KittyBot-Org/KittyBotGo/internal/db"
 	"github.com/KittyBot-Org/KittyBotGo/modules"
 	"github.com/disgoorg/log"
 )
@@ -43,7 +44,7 @@ func main() {
 	bot.Logger.Infof("Exiting after syncing? %v", *exitAfterSync)
 	defer bot.Logger.Info("Shutting down bot...")
 
-	if err = shared.LoadConfig(&bot.Config); err != nil {
+	if err = config.LoadConfig(&bot.Config); err != nil {
 		bot.Logger.Fatal("Failed to load config: ", err)
 	}
 	logger.SetLevel(bot.Config.LogLevel)
@@ -64,7 +65,7 @@ func main() {
 		bot.SyncCommands()
 	}
 
-	if bot.DB, err = shared.SetupDatabase(bot.Config.Database, *shouldSyncDBTables, bot.Config.DevMode); err != nil {
+	if bot.DB, err = db.SetupDatabase(bot.Config.Database, *shouldSyncDBTables, bot.Config.DevMode); err != nil {
 		bot.Logger.Fatal("Failed to setup database: ", err)
 	}
 	defer bot.DB.Close()

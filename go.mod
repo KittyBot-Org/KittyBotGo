@@ -4,15 +4,14 @@ go 1.18
 
 require (
 	cloud.google.com/go/pubsub v1.3.1
-	github.com/disgoorg/disgo v0.7.5-0.20220324204756-810616082805
-	github.com/disgoorg/disgolink/disgolink v1.5.1-0.20220324211621-78ab06c9f4d9
-	github.com/disgoorg/disgolink/lavalink v1.5.0
+	github.com/disgoorg/disgo v0.8.8
+	github.com/disgoorg/disgolink/disgolink v1.5.1
+	github.com/disgoorg/disgolink/lavalink v1.5.1
 	github.com/disgoorg/log v1.2.0
 	github.com/disgoorg/snowflake v1.1.0
 	github.com/disgoorg/utils/paginator v0.0.0-20220324002608-4f4098bd27c9
 	github.com/gorilla/mux v1.8.0
 	github.com/lithammer/fuzzysearch v1.1.3
-	github.com/pkg/errors v0.9.1
 	github.com/procyon-projects/chrono v1.0.0
 	github.com/prometheus/client_golang v1.12.1
 	github.com/prometheus/common v0.32.1
@@ -49,13 +48,14 @@ require (
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	go.opencensus.io v0.22.4 // indirect
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
+	golang.org/x/exp v0.0.0-20220325121720-054d8573a5d8 // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
-	golang.org/x/mod v0.3.0 // indirect
+	golang.org/x/mod v0.6.0-dev.0.20211013180041-c96bc1413d57 // indirect
 	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect
 	golang.org/x/oauth2 v0.0.0-20210514164344-f6687ab2804c // indirect
-	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a // indirect
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
-	golang.org/x/tools v0.0.0-20200825202427-b303f430e36d // indirect
+	golang.org/x/tools v0.1.8-0.20211029000441-d6a9af8af023 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/api v0.30.0 // indirect
 	google.golang.org/appengine v1.6.6 // indirect

@@ -1,12 +1,13 @@
-package shared
+package config
 
 import (
+	"errors"
 	"os"
 
+	"github.com/KittyBot-Org/KittyBotGo/internal/db"
 	"github.com/disgoorg/disgo/json"
 	"github.com/disgoorg/log"
 	"github.com/disgoorg/snowflake"
-	"github.com/pkg/errors"
 )
 
 func LoadConfig(v interface{}) error {
@@ -38,7 +39,7 @@ type Config struct {
 	ErrorLogWebhook LogWebhookConfig      `json:"error_log_webhook"`
 	InfoLogWebhook  LogWebhookConfig      `json:"info_log_webhook"`
 	Token           string                `json:"token"`
-	Database        DatabaseConfig        `json:"database"`
+	Database        db.DatabaseConfig     `json:"database"`
 }
 
 type LogWebhookConfig struct {
