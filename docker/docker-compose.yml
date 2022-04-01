@@ -1,6 +1,6 @@
 services:
   bot:
-    # image: docker.pkg.github.com/kittybot-org/kittybotgo/bot:latest
+    # image: docker.pkg.github.com/kittybot-org/kittybotgo/dbot:latest
     build:
       context: ..
       dockerfile: ./cmd/bot/Dockerfile

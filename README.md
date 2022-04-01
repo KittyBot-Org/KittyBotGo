@@ -16,3 +16,7 @@ Optional CLI Flags:
 - `--sync-commands=true`: Synchronize commands with the discord.
 - `--sync-db=true`: Synchronize database.
 - `--exit-after-sync=true`: Exit after db & commands sync.
+
+```bash
+$ jet -dsn=postgresql://user:pass@localhost:5432/jetdb -schema=dvds -path=./internal/db/.gen
+```

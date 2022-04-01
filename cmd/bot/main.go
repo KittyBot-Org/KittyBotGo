@@ -3,16 +3,16 @@ package main
 import (
 	"context"
 	"flag"
+	"github.com/KittyBot-Org/KittyBotGo/internal/dbot"
+	"github.com/KittyBot-Org/KittyBotGo/internal/i18n"
+	"github.com/KittyBot-Org/KittyBotGo/internal/metrics"
+	"github.com/KittyBot-Org/KittyBotGo/internal/modules"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/KittyBot-Org/KittyBotGo/internal/bot/i18n"
-	"github.com/KittyBot-Org/KittyBotGo/internal/bot/metrics"
-	"github.com/KittyBot-Org/KittyBotGo/internal/bot/types"
 	"github.com/KittyBot-Org/KittyBotGo/internal/config"
 	"github.com/KittyBot-Org/KittyBotGo/internal/db"
-	"github.com/KittyBot-Org/KittyBotGo/modules"
 	"github.com/disgoorg/log"
 )
 
@@ -34,15 +34,15 @@ func main() {
 	var err error
 	logger := log.New(log.Ldate | log.Ltime | log.Lshortfile)
 
-	bot := &types.Bot{
+	bot := &dbot.Bot{
 		Logger:  logger,
 		Version: version,
 	}
-	bot.Logger.Infof("Starting bot version: %s", version)
+	bot.Logger.Infof("Starting dbot version: %s", version)
 	bot.Logger.Infof("Syncing commands? %v", *shouldSyncCommands)
 	bot.Logger.Infof("Syncing DB tables? %v", *shouldSyncDBTables)
 	bot.Logger.Infof("Exiting after syncing? %v", *exitAfterSync)
-	defer bot.Logger.Info("Shutting down bot...")
+	defer bot.Logger.Info("Shutting down dbot...")
 
 	if err = config.LoadConfig(&bot.Config); err != nil {
 		bot.Logger.Fatal("Failed to load config: ", err)
@@ -57,7 +57,7 @@ func main() {
 	bot.SetupPaginator()
 
 	if err = bot.SetupBot(); err != nil {
-		bot.Logger.Fatal("Failed to setup bot: ", err)
+		bot.Logger.Fatal("Failed to setup dbot: ", err)
 	}
 	defer bot.Client.Close(context.TODO())
 
@@ -82,7 +82,7 @@ func main() {
 	defer bot.SavePlayers()
 
 	if err = bot.StartBot(); err != nil {
-		bot.Logger.Fatal("Failed to start bot: ", err)
+		bot.Logger.Fatal("Failed to start dbot: ", err)
 	}
 
 	bot.Logger.Info("Bot is running. Press CTRL-C to exit.")

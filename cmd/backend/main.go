@@ -2,15 +2,15 @@ package main
 
 import (
 	"flag"
+	"github.com/KittyBot-Org/KittyBotGo/internal/backend"
+	"github.com/KittyBot-Org/KittyBotGo/internal/modules"
+	routes2 "github.com/KittyBot-Org/KittyBotGo/internal/routes"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/KittyBot-Org/KittyBotGo/internal/backend/routes"
-	"github.com/KittyBot-Org/KittyBotGo/internal/backend/types"
 	"github.com/KittyBot-Org/KittyBotGo/internal/config"
 	"github.com/KittyBot-Org/KittyBotGo/internal/db"
-	"github.com/KittyBot-Org/KittyBotGo/modules"
 	"github.com/disgoorg/log"
 )
 
@@ -29,7 +29,7 @@ func init() {
 func main() {
 	var err error
 	logger := log.New(log.Ldate | log.Ltime | log.Lshortfile)
-	backend := &types.Backend{
+	backend := &backend.Backend{
 		Logger:  logger,
 		Version: version,
 	}
@@ -61,7 +61,7 @@ func main() {
 		backend.Logger.Fatal("Failed to setup scheduler: ", err)
 	}
 	defer backend.Scheduler.Shutdown()
-	backend.SetupServer(routes.Handler(backend))
+	backend.SetupServer(routes2.Handler(backend))
 
 	backend.Logger.Info("Backend is running. Press CTRL-C to exit.")
 	s := make(chan os.Signal, 1)
