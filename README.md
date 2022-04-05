@@ -18,5 +18,5 @@ Optional CLI Flags:
 - `--exit-after-sync=true`: Exit after db & commands sync.
 
 ```bash
-$ jet -dsn=postgresql://user:pass@localhost:5432/jetdb -schema=dvds -path=./internal/db/.gen
+$ jet -dsn=postgresql://user:pass@localhost:5432/jetdb?sslmode=disable -schema=dvds -path=./internal/db/.gen
 ```

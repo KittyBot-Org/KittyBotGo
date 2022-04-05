@@ -1,13 +1,12 @@
 package db
 
-import "github.com/disgoorg/snowflake"
+import (
+	. "github.com/KittyBot-Org/KittyBotGo/internal/db/.gen/kittybot-go/public/model"
+	"github.com/disgoorg/snowflake"
+)
 
-type GuildSettings interface {
-	Get(guildID snowflake.Snowflake) (GuildSettingsModel, error)
-	Set(model GuildSettingsModel) error
+type GuildSettingsDB interface {
+	Get(guildID snowflake.Snowflake) (GuildSettings, error)
+	Set(model GuildSettings) error
 	Delete(guildID snowflake.Snowflake) error
-}
-
-type GuildSettingsModel struct {
-	ID snowflake.Snowflake `bun:"id,pk,notnull"`
 }

@@ -3,6 +3,7 @@ package dbot
 import (
 	"context"
 
+	"github.com/KittyBot-Org/KittyBotGo/internal/db"
 	"github.com/disgoorg/disgo"
 	"github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgo/discord"
@@ -10,7 +11,6 @@ import (
 	"github.com/disgoorg/disgolink/disgolink"
 	"github.com/disgoorg/log"
 	"github.com/disgoorg/utils/paginator"
-	"github.com/uptrace/bun"
 )
 
 const KittyBotColor = 0x4c50c1
@@ -23,7 +23,7 @@ type Bot struct {
 	Paginator    *paginator.Manager
 	Commands     *CommandMap
 	Listeners    *Listeners
-	DB           *bun.DB
+	DB           db.DB
 	Config       Config
 	Version      string
 }

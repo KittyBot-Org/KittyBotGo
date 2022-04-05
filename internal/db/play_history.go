@@ -1,19 +1,17 @@
 package db
 
 import (
-	"time"
+	"database/sql"
 
+	. "github.com/KittyBot-Org/KittyBotGo/internal/db/.gen/kittybot-go/public/model"
 	"github.com/disgoorg/snowflake"
 )
 
-type PlayHistory interface {
-	Get(userID snowflake.Snowflake) ([]PlayHistoryModel, error)
-	Add(model PlayHistoryModel) error
+type PlayHistoriesDB interface {
+	Get(userID snowflake.Snowflake) ([]PlayHistories, error)
+	Add(model PlayHistories) error
 }
 
-type PlayHistoryModel struct {
-	UserID     snowflake.Snowflake `bun:"user_id,pk"`
-	Query      string              `bun:"query,notnull"`
-	Title      string              `bun:"title,pk"`
-	LastUsedAt time.Time           `bun:"last_used_at,nullzero,notnull,default:current_timestamp"`
+type PlayHistoriesDBImpl struct {
+	db *sql.DB
 }

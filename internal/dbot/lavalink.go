@@ -9,11 +9,12 @@ import (
 	"github.com/disgoorg/disgolink/disgolink"
 	"github.com/disgoorg/disgolink/lavalink"
 	"github.com/disgoorg/snowflake"
+	"github.com/disgoorg/source-extensions-plugin"
 )
 
 func (b *Bot) SetupLavalink() {
 	b.MusicPlayers = NewMusicPlayerMap(b)
-	b.Lavalink = disgolink.New(b.Client /*lavalink.WithPlugins(source_extensions.NewSpotifyPlugin(), source_extensions.NewAppleMusicPlugin())*/)
+	b.Lavalink = disgolink.New(b.Client, lavalink.WithPlugins(source_extensions.NewSpotifyPlugin(), source_extensions.NewAppleMusicPlugin()))
 	b.RegisterNodes()
 	b.Client.EventManager().AddEventListeners(b.Lavalink)
 	/*b.Bot.EventManager.AddEventListeners(events.ListenerAdapter{
@@ -50,14 +51,15 @@ func (b *Bot) LoadPlayer(guildID snowflake.Snowflake) {
 	if !ok {
 		return
 	}
-	var player db.MusicPlayer
-	if _, err := b.DB.NewDelete().Model(&player).Where("guild_id = ?", voiceState.GuildID).Returning("*").Exec(context.TODO()); err != nil {
+
+	player, err := b.DB.MusicPlayers().GetAndDelete(voiceState.GuildID)
+	if err != nil {
 		b.Logger.Error("Failed to delete & return player: ", err)
 		return
 	}
 
 	var restoreState lavalink.PlayerRestoreState
-	if err := json.Unmarshal(player.State, &restoreState); err != nil {
+	if err = json.Unmarshal(player.State, &restoreState); err != nil {
 		b.Logger.Error("Failed to unmarshal player state: ", err)
 		return
 	}

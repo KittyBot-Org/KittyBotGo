@@ -6,7 +6,7 @@ import (
 	"github.com/disgoorg/snowflake"
 )
 
-type Voters interface {
+type VotersDB interface {
 	Get(userID snowflake.Snowflake) (VoterModel, error)
 	GetAll(expiresAt time.Time) ([]VoterModel, error)
 	Set(model VoterModel) error

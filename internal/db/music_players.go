@@ -1,30 +1,33 @@
 package db
 
 import (
+	"database/sql"
+
+	. "github.com/KittyBot-Org/KittyBotGo/internal/db/.gen/kittybot-go/public/model"
+	"github.com/KittyBot-Org/KittyBotGo/internal/db/.gen/kittybot-go/public/table"
 	"github.com/disgoorg/snowflake"
+	. "github.com/go-jet/jet/v2/postgres"
 )
 
-type MusicPlayers interface {
-	GetAndDelete(guildID snowflake.Snowflake) (MusicPlayerModel, error)
-	Add(model MusicPlayerModel) error
+type MusicPlayersDB interface {
+	GetAndDelete(guildID snowflake.Snowflake) (MusicPlayers, error)
+	Add(model MusicPlayers) error
 }
 
-type MusicPlayerModel struct {
-	GuildID              snowflake.Snowflake   `bun:"guild_id,pk,notnull"`
-	State                []byte                `bun:"state,notnull"`
-	PlayingTrackUserData *AudioTrackData       `bun:"playing_track_user_data"`
-	Type                 int                   `bun:"type,notnull"`
-	Queue                []AudioTrack          `bun:"queue,notnull"`
-	LoopingType          int                   `bun:"looping_type,notnull"`
-	History              []AudioTrack          `bun:"history,notnull"`
-	SkipVotes            []snowflake.Snowflake `bun:"skip_votes,notnull"`
+type musicPlayersDBImpl struct {
+	db *sql.DB
 }
 
-type AudioTrack struct {
-	Track    string         `json:"track"`
-	UserData AudioTrackData `json:"user_data"`
-}
+func (s *musicPlayersDBImpl) GetAndDelete(guildID snowflake.Snowflake) (MusicPlayers, error) {
+	var models []MusicPlayers
+	err := SELECT(table.LikedSongs.AllColumns).
+		FROM(table.LikedSongs).
+		WHERE(table.LikedSongs.UserID.EQ(String(userID.String()))).
+		Query(s.db, &models)
 
-type AudioTrackData struct {
-	Requester snowflake.Snowflake `json:"requester"`
+	return models, err
+}
+func (s *musicPlayersDBImpl) Add(model MusicPlayers) error {
+	_, err := table.MusicPlayers.INSERT(table.MusicPlayers.AllColumns).MODEL(model).ON_CONFLICT(table.MusicPlayers.GuildID).DO_UPDATE(nil).Exec(s.db)
+	return err
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/disgoorg/snowflake"
 )
 
-type Tags interface {
+type TagsDB interface {
 	Get(guildID snowflake.Snowflake, name string) (TagModel, error)
 	GetAll(guildID snowflake.Snowflake) ([]TagModel, error)
 	Set(model TagModel) error
