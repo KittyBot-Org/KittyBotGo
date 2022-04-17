@@ -3,9 +3,11 @@ package tags
 import (
 	"context"
 	"fmt"
-	"github.com/KittyBot-Org/KittyBotGo/internal/dbot"
 	"strconv"
 	"strings"
+
+	"github.com/KittyBot-Org/KittyBotGo/internal/db/.gen/kittybot-go/public/model"
+	"github.com/KittyBot-Org/KittyBotGo/internal/dbot"
 
 	"github.com/KittyBot-Org/KittyBotGo/internal/db"
 	"github.com/disgoorg/disgo/discord"
@@ -19,7 +21,7 @@ func tagHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInt
 	data := e.SlashCommandInteractionData()
 	name := data.String("name")
 	msg := p.Sprintf("modules.tags.commands.tag.not.found", name)
-	var tag db.Tag
+	var tag model.Tags
 	if err := b.DB.NewSelect().Model(&tag).Where("guild_id = ? AND name like ?", *e.GuildID(), name).Scan(context.TODO(), &tag); err == nil {
 		msg = tag.Content
 	}

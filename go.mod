@@ -4,9 +4,9 @@ go 1.18
 
 require (
 	cloud.google.com/go/pubsub v1.3.1
-	github.com/disgoorg/disgo v0.8.8
-	github.com/disgoorg/disgolink/disgolink v1.5.1
-	github.com/disgoorg/disgolink/lavalink v1.5.1
+	github.com/disgoorg/disgo v0.8.9
+	github.com/disgoorg/disgolink/disgolink v1.5.3
+	github.com/disgoorg/disgolink/lavalink v1.5.3
 	github.com/disgoorg/log v1.2.0
 	github.com/disgoorg/snowflake v1.1.0
 	github.com/disgoorg/source-extensions-plugin v1.2.1
@@ -17,7 +17,6 @@ require (
 	github.com/procyon-projects/chrono v1.0.0
 	github.com/prometheus/client_golang v1.12.1
 	github.com/prometheus/common v0.32.1
-	github.com/uptrace/bun v1.1.3
 	golang.org/x/text v0.3.7
 )
 
@@ -32,7 +31,6 @@ require (
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/googleapis/gax-go/v2 v2.0.5 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
-	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/jstemmer/go-junit-report v0.9.1 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
@@ -43,9 +41,6 @@ require (
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/sasha-s/go-csync v0.0.0-20210812194225-61421b77c44b // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
-	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
-	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
-	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	go.opencensus.io v0.22.4 // indirect
 	golang.org/x/exp v0.0.0-20220325121720-054d8573a5d8 // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect

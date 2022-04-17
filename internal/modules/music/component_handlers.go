@@ -1,13 +1,11 @@
 package music
 
 import (
-	"context"
 	"database/sql"
-	"fmt"
-	"github.com/KittyBot-Org/KittyBotGo/internal/dbot"
 	"regexp"
 
-	"github.com/KittyBot-Org/KittyBotGo/internal/db"
+	"github.com/KittyBot-Org/KittyBotGo/internal/dbot"
+
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgolink/lavalink"
@@ -105,25 +103,19 @@ func likeComponentHandler(b *dbot.Bot, p *message.Printer, e *events.ComponentIn
 		url = &matches[trackRegex.SubexpIndex("url")]
 	}
 
-	var likedSong db.LikedSong
-	err := b.DB.NewSelect().Model(&likedSong).Where("user_id = ? AND title like ?", e.User().ID, title).Scan(context.TODO())
+	_, err := b.DB.LikedSongs().Get(e.User().ID, title)
 	if err != nil && err != sql.ErrNoRows {
 		return err
 	}
-	fmt.Printf("likedSong: %v\n", likedSong)
+
 	var msg string
-	if err != nil {
-		likedSong = db.LikedSong{
-			UserID: e.User().ID,
-			Query:  getTrackQuery(title, url),
-			Title:  title,
-		}
-		if _, err = b.DB.NewInsert().Model(&likedSong).Exec(context.TODO()); err != nil {
+	if err == sql.ErrNoRows {
+		if err = b.DB.LikedSongs().Add(e.User().ID, getTrackQuery(title, url), title); err != nil {
 			b.Logger.Error("Error adding music history entry: ", err)
 		}
 		msg = p.Sprintf("modules.music.components.like.added", title, url)
 	} else {
-		if _, err = b.DB.NewDelete().Model(&likedSong).WherePK().Exec(context.TODO()); err != nil {
+		if err = b.DB.LikedSongs().Delete(e.User().ID, title); err != nil {
 			b.Logger.Error("Error adding music history entry: ", err)
 		}
 		msg = p.Sprintf("modules.music.components.like.removed", title, url)

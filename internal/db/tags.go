@@ -1,23 +1,35 @@
 package db
 
 import (
-	"time"
+	"database/sql"
 
+	. "github.com/KittyBot-Org/KittyBotGo/internal/db/.gen/kittybot-go/public/model"
 	"github.com/disgoorg/snowflake"
 )
 
 type TagsDB interface {
-	Get(guildID snowflake.Snowflake, name string) (TagModel, error)
-	GetAll(guildID snowflake.Snowflake) ([]TagModel, error)
-	Set(model TagModel) error
+	Get(guildID snowflake.Snowflake, name string) (Tags, error)
+	GetAll(guildID snowflake.Snowflake) ([]Tags, error)
+	Set(model Tags) error
 	Delete(guildID snowflake.Snowflake, name string) error
 }
 
-type TagModel struct {
-	GuildID   snowflake.Snowflake `bun:"guild_id,pk"`
-	OwnerID   snowflake.Snowflake `bun:"owner_id,notnull"`
-	Name      string              `bun:"name,pk"`
-	Content   string              `bun:"content,notnull"`
-	Uses      int                 `bun:"uses,default:0"`
-	CreatedAt time.Time           `bun:"created_at,nullzero,notnull,default:current_timestamp"`
+type tagsDBImpl struct {
+	db *sql.DB
+}
+
+func (t *tagsDBImpl) Get(guildID snowflake.Snowflake, name string) (Tags, error) {
+	return Tags{}, nil
+}
+
+func (t *tagsDBImpl) GetAll(guildID snowflake.Snowflake) ([]Tags, error) {
+	return nil, nil
+}
+
+func (t *tagsDBImpl) Set(model Tags) error {
+	return nil
+}
+
+func (t *tagsDBImpl) Delete(guildID snowflake.Snowflake, name string) error {
+	return nil
 }

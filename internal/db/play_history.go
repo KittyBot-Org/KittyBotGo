@@ -9,9 +9,17 @@ import (
 
 type PlayHistoriesDB interface {
 	Get(userID snowflake.Snowflake) ([]PlayHistories, error)
-	Add(model PlayHistories) error
+	Add(userID snowflake.Snowflake, query string, title string) error
 }
 
-type PlayHistoriesDBImpl struct {
+type playHistoriesDBImpl struct {
 	db *sql.DB
+}
+
+func (h *playHistoriesDBImpl) Get(userID snowflake.Snowflake) ([]PlayHistories, error) {
+	return nil, nil
+}
+
+func (h *playHistoriesDBImpl) Add(userID snowflake.Snowflake, query string, title string) error {
+	return nil
 }

@@ -3,12 +3,13 @@ package music
 import (
 	"context"
 	"fmt"
-	"github.com/KittyBot-Org/KittyBotGo/internal/dbot"
 	"regexp"
 	"strconv"
 	"time"
 
-	"github.com/KittyBot-Org/KittyBotGo/internal/db"
+	"github.com/KittyBot-Org/KittyBotGo/internal/db/.gen/kittybot-go/public/model"
+	"github.com/KittyBot-Org/KittyBotGo/internal/dbot"
+
 	"github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
@@ -58,15 +59,21 @@ func playHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandIn
 	}
 	return b.Lavalink.BestRestClient().LoadItemHandler(context.TODO(), query, lavalink.NewResultHandler(
 		func(track lavalink.AudioTrack) {
-			b.AddPlayHistory(e.User().ID, track.Info().Title, query)
+			if err := b.DB.PlayHistory().Add(e.User().ID, track.Info().Title, query); err != nil {
+				b.Logger.Error("Failed to add track to play history: ", err)
+			}
 			playAndQueue(b, p, e.BaseInteraction, track)
 		},
 		func(playlist lavalink.AudioPlaylist) {
-			b.AddPlayHistory(e.User().ID, playlist.Name(), query)
+			if err := b.DB.PlayHistory().Add(e.User().ID, playlist.Name(), query); err != nil {
+				b.Logger.Error("Failed to add track to play history: ", err)
+			}
 			playAndQueue(b, p, e.BaseInteraction, playlist.Tracks()...)
 		},
 		func(tracks []lavalink.AudioTrack) {
-			b.AddPlayHistory(e.User().ID, data.String("query"), query)
+			if err := b.DB.PlayHistory().Add(e.User().ID, data.String("query"), query); err != nil {
+				b.Logger.Error("Failed to add track to play history: ", err)
+			}
 			giveSearchSelection(b, p, e, tracks)
 		},
 		func() {
@@ -107,7 +114,7 @@ func playAndQueue(b *dbot.Bot, p *message.Printer, i discord.BaseInteraction, tr
 	}
 
 	for ii := range tracks {
-		tracks[ii].SetUserData(db.AudioTrackData{
+		tracks[ii].SetUserData(dbot.AudioTrackData{
 			Requester: i.User().ID,
 		})
 	}
@@ -220,7 +227,7 @@ func queueHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandI
 		tracksCounter int
 	)
 	for i, track := range tracks {
-		trackStr := fmt.Sprintf("%d. [`%s`](<%s>) - %s [<@%s>]\n", i+1, track.Info().Title, *track.Info().URI, track.Info().Length, track.UserData().(db.AudioTrackData).Requester)
+		trackStr := fmt.Sprintf("%d. [`%s`](<%s>) - %s [<@%s>]\n", i+1, track.Info().Title, *track.Info().URI, track.Info().Length, track.UserData().(dbot.AudioTrackData).Requester)
 		if len(page)+len(trackStr) > 4096 || tracksCounter >= 10 {
 			pages = append(pages, page)
 			page = ""
@@ -253,7 +260,7 @@ func historyHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationComman
 	)
 	for i := len(tracks) - 1; i >= 0; i-- {
 		track := tracks[i]
-		trackStr := fmt.Sprintf("%d. [`%s`](<%s>) - %s [<@%s>]\n", len(tracks)-i, track.Info().Title, *track.Info().URI, track.Info().Length, track.UserData().(db.AudioTrackData).Requester)
+		trackStr := fmt.Sprintf("%d. [`%s`](<%s>) - %s [<@%s>]\n", len(tracks)-i, track.Info().Title, *track.Info().URI, track.Info().Length, track.UserData().(dbot.AudioTrackData).Requester)
 		if len(page)+len(trackStr) > 4096 || tracksCounter >= 10 {
 			pages = append(pages, page)
 			page = ""
@@ -301,7 +308,7 @@ func removeUserSongsHandler(b *dbot.Bot, p *message.Printer, e *events.Applicati
 
 	removedTracks := 0
 	for i, track := range player.Queue.Tracks() {
-		if track.UserData().(db.AudioTrackData).Requester == userID {
+		if track.UserData().(dbot.AudioTrackData).Requester == userID {
 			player.Queue.Remove(i - removedTracks)
 			removedTracks++
 		}
@@ -375,7 +382,7 @@ func nowPlayingHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCom
 		SetTitle(i.Title).
 		SetURL(*i.URI).
 		AddField(p.Sprintf("modules.music.commands.now.playing.author"), i.Author, true).
-		AddField(p.Sprintf("modules.music.commands.now.playing.requested.by"), fmt.Sprintf("<@%s>", track.UserData().(db.AudioTrackData).Requester), true).
+		AddField(p.Sprintf("modules.music.commands.now.playing.requested.by"), fmt.Sprintf("<@%s>", track.UserData().(dbot.AudioTrackData).Requester), true).
 		AddField(p.Sprintf("modules.music.commands.now.playing.volume"), fmt.Sprintf("%d%%", player.Volume()), true).
 		SetThumbnail(getArtworkURL(player.PlayingTrack())).
 		SetFooterText(p.Sprintf("modules.music.commands.now.playing.footer", player.Queue.Len()))
@@ -537,8 +544,9 @@ func getArtworkURL(track lavalink.AudioTrack) string {
 }
 
 func likedSongsListHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
-	var tracks []db.LikedSong
-	if err := b.DB.NewSelect().Model(&tracks).Where("user_id = ?", e.User().ID).Scan(context.TODO()); err != nil {
+	var tracks []model.LikedSongs
+	tracks, err := b.DB.LikedSongs().Get(e.User().ID)
+	if err != nil {
 		return err
 	}
 	if len(tracks) == 0 {
@@ -576,14 +584,14 @@ func likedSongsListHandler(b *dbot.Bot, p *message.Printer, e *events.Applicatio
 func likedSongsRemoveHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	songName := e.SlashCommandInteractionData().String("song")
 
-	if _, err := b.DB.NewDelete().Model((*db.LikedSong)(nil)).Where("user_id = ? AND title like ?", e.User().ID, songName).Exec(context.TODO()); err != nil {
+	if err := b.DB.LikedSongs().Delete(e.User().ID, songName); err != nil {
 		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.liked.songs.remove.error"), Flags: discord.MessageFlagEphemeral})
 	}
 	return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.liked.songs.remove.success", songName)})
 }
 
 func likedSongsClearHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
-	if _, err := b.DB.NewDelete().Model((*db.LikedSong)(nil)).Where("user_id = ?", e.User().ID).Exec(context.TODO()); err != nil {
+	if err := b.DB.LikedSongs().DeleteAll(e.User().ID); err != nil {
 		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.liked.songs.clear.error"), Flags: discord.MessageFlagEphemeral})
 	}
 	return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.liked.songs.clear.success")})
