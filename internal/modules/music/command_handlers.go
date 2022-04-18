@@ -58,19 +58,19 @@ func playHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandIn
 	}
 	return b.Lavalink.BestRestClient().LoadItemHandler(context.TODO(), query, lavalink.NewResultHandler(
 		func(track lavalink.AudioTrack) {
-			if err := b.DB.PlayHistory().Add(e.User().ID, track.Info().Title, query); err != nil {
+			if err := b.DB.PlayHistory().Add(e.User().ID, query, track.Info().Title); err != nil {
 				b.Logger.Error("Failed to add track to play history: ", err)
 			}
 			playAndQueue(b, p, e.BaseInteraction, track)
 		},
 		func(playlist lavalink.AudioPlaylist) {
-			if err := b.DB.PlayHistory().Add(e.User().ID, playlist.Name(), query); err != nil {
+			if err := b.DB.PlayHistory().Add(e.User().ID, query, playlist.Name()); err != nil {
 				b.Logger.Error("Failed to add track to play history: ", err)
 			}
 			playAndQueue(b, p, e.BaseInteraction, playlist.Tracks()...)
 		},
 		func(tracks []lavalink.AudioTrack) {
-			if err := b.DB.PlayHistory().Add(e.User().ID, data.String("query"), query); err != nil {
+			if err := b.DB.PlayHistory().Add(e.User().ID, query, data.String("query")); err != nil {
 				b.Logger.Error("Failed to add track to play history: ", err)
 			}
 			giveSearchSelection(b, p, e, tracks)
