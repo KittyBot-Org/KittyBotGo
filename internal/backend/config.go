@@ -34,13 +34,13 @@ var (
 	TopGG = BotList{
 		Name:         "top_gg",
 		URL:          "https://top.gg",
-		BotURL:       "/dbot/%s",
+		BotURL:       "/kbot/%s",
 		VoteCooldown: 12 * time.Hour,
 	}
 	BotListSpace = BotList{
 		Name:         "botlist_space",
 		URL:          "https://botlist.space",
-		BotURL:       "/dbot/%s",
+		BotURL:       "/kbot/%s",
 		VoteCooldown: 24 * time.Hour,
 	}
 	DiscordBotsGG = BotList{
@@ -56,7 +56,7 @@ var (
 	BotsForDiscordCom = BotList{
 		Name:         "bots_for_discord_com",
 		URL:          "https://botsfordiscord.com",
-		BotURL:       "/dbot/%s",
+		BotURL:       "/kbot/%s",
 		VoteCooldown: 24 * time.Hour,
 	}
 	DiscordBotListCom = BotList{
@@ -68,7 +68,7 @@ var (
 	DiscordservicesNet = BotList{
 		Name:         "discordservices_net",
 		URL:          "https://discordservices.net",
-		BotURL:       "/dbot/%s",
+		BotURL:       "/kbot/%s",
 		VoteCooldown: 12 * time.Hour,
 	}
 )

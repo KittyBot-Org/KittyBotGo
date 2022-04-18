@@ -1,13 +1,11 @@
 package music
 
 import (
-	"context"
 	"database/sql"
-	"fmt"
-	"github.com/KittyBot-Org/KittyBotGo/internal/dbot"
 	"regexp"
 
-	"github.com/KittyBot-Org/KittyBotGo/internal/db"
+	"github.com/KittyBot-Org/KittyBotGo/internal/kbot"
+
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgolink/lavalink"
@@ -16,7 +14,7 @@ import (
 
 var trackRegex = regexp.MustCompile(`\[\x60(?P<title>.+)\x60]\(<(?P<url>.+)?>\)`)
 
-func checkPlayer(b *dbot.Bot, p *message.Printer, e *events.ComponentInteractionEvent) (*dbot.MusicPlayer, error) {
+func checkPlayer(b *kbot.Bot, p *message.Printer, e *events.ComponentInteractionEvent) (*kbot.MusicPlayer, error) {
 	player := b.MusicPlayers.Get(*e.GuildID())
 	if player == nil {
 		return nil, e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.components.no.player"), Flags: discord.MessageFlagEphemeral})
@@ -24,7 +22,7 @@ func checkPlayer(b *dbot.Bot, p *message.Printer, e *events.ComponentInteraction
 	return player, nil
 }
 
-func previousComponentHandler(b *dbot.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
+func previousComponentHandler(b *kbot.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
 	player, err := checkPlayer(b, p, e)
 	if player == nil {
 		return err
@@ -42,7 +40,7 @@ func previousComponentHandler(b *dbot.Bot, p *message.Printer, e *events.Compone
 	return e.UpdateMessage(discord.MessageUpdate{Content: &msg, Components: &components})
 }
 
-func playPauseComponentHandler(b *dbot.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
+func playPauseComponentHandler(b *kbot.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
 	player, err := checkPlayer(b, p, e)
 	if player == nil {
 		return err
@@ -72,7 +70,7 @@ func playPauseComponentHandler(b *dbot.Bot, p *message.Printer, e *events.Compon
 	return e.UpdateMessage(discord.MessageUpdate{Content: &msg, Components: &components})
 }
 
-func nextComponentHandler(b *dbot.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
+func nextComponentHandler(b *kbot.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
 	player, err := checkPlayer(b, p, e)
 	if player == nil {
 		return err
@@ -90,7 +88,7 @@ func nextComponentHandler(b *dbot.Bot, p *message.Printer, e *events.ComponentIn
 	return e.UpdateMessage(discord.MessageUpdate{Content: &msg, Components: &components})
 }
 
-func likeComponentHandler(b *dbot.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
+func likeComponentHandler(b *kbot.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
 	allMatches := trackRegex.FindAllStringSubmatch(e.Message.Content, -1)
 	if allMatches == nil {
 		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.components.like.no.track"), Flags: discord.MessageFlagEphemeral})
@@ -105,25 +103,19 @@ func likeComponentHandler(b *dbot.Bot, p *message.Printer, e *events.ComponentIn
 		url = &matches[trackRegex.SubexpIndex("url")]
 	}
 
-	var likedSong db.LikedSong
-	err := b.DB.NewSelect().Model(&likedSong).Where("user_id = ? AND title like ?", e.User().ID, title).Scan(context.TODO())
+	_, err := b.DB.LikedSongs().Get(e.User().ID, title)
 	if err != nil && err != sql.ErrNoRows {
 		return err
 	}
-	fmt.Printf("likedSong: %v\n", likedSong)
+
 	var msg string
-	if err != nil {
-		likedSong = db.LikedSong{
-			UserID: e.User().ID,
-			Query:  getTrackQuery(title, url),
-			Title:  title,
-		}
-		if _, err = b.DB.NewInsert().Model(&likedSong).Exec(context.TODO()); err != nil {
+	if err == sql.ErrNoRows {
+		if err = b.DB.LikedSongs().Add(e.User().ID, getTrackQuery(title, url), title); err != nil {
 			b.Logger.Error("Error adding music history entry: ", err)
 		}
 		msg = p.Sprintf("modules.music.components.like.added", title, url)
 	} else {
-		if _, err = b.DB.NewDelete().Model(&likedSong).WherePK().Exec(context.TODO()); err != nil {
+		if err = b.DB.LikedSongs().Delete(e.User().ID, title); err != nil {
 			b.Logger.Error("Error adding music history entry: ", err)
 		}
 		msg = p.Sprintf("modules.music.components.like.removed", title, url)

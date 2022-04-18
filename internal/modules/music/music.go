@@ -1,7 +1,7 @@
 package music
 
 import (
-	"github.com/KittyBot-Org/KittyBotGo/internal/dbot"
+	"github.com/KittyBot-Org/KittyBotGo/internal/kbot"
 	"github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
@@ -11,17 +11,17 @@ import (
 )
 
 var (
-	_ dbot.Module         = (*module)(nil)
-	_ dbot.CommandsModule = (*module)(nil)
-	_ dbot.ListenerModule = (*module)(nil)
+	_ kbot.Module         = (*module)(nil)
+	_ kbot.CommandsModule = (*module)(nil)
+	_ kbot.ListenerModule = (*module)(nil)
 )
 
 var Module = module{}
 
 type module struct{}
 
-func (m module) Commands() []dbot.Command {
-	return []dbot.Command{
+func (m module) Commands() []kbot.Command {
+	return []kbot.Command{
 		{
 			Create: discord.SlashCommandCreate{
 				CommandName: "play",
@@ -62,11 +62,11 @@ func (m module) Commands() []dbot.Command {
 				},
 				DefaultPermission: true,
 			},
-			Checks: dbot.IsMemberConnectedToVoiceChannel,
-			CommandHandler: map[string]dbot.CommandHandler{
+			Checks: kbot.IsMemberConnectedToVoiceChannel,
+			CommandHandler: map[string]kbot.CommandHandler{
 				"": playHandler,
 			},
-			AutoCompleteHandler: map[string]dbot.AutocompleteHandler{
+			AutoCompleteHandler: map[string]kbot.AutocompleteHandler{
 				"": playAutocompleteHandler,
 			},
 		},
@@ -76,8 +76,8 @@ func (m module) Commands() []dbot.Command {
 				Description:       "Shows the current queue.",
 				DefaultPermission: true,
 			},
-			Checks: dbot.HasMusicPlayer.And(dbot.HasQueueItems),
-			CommandHandler: map[string]dbot.CommandHandler{
+			Checks: kbot.HasMusicPlayer.And(kbot.HasQueueItems),
+			CommandHandler: map[string]kbot.CommandHandler{
 				"": queueHandler,
 			},
 		},
@@ -87,8 +87,8 @@ func (m module) Commands() []dbot.Command {
 				Description:       "Shows the current history.",
 				DefaultPermission: true,
 			},
-			Checks: dbot.HasMusicPlayer.And(dbot.HasHistoryItems),
-			CommandHandler: map[string]dbot.CommandHandler{
+			Checks: kbot.HasMusicPlayer.And(kbot.HasHistoryItems),
+			CommandHandler: map[string]kbot.CommandHandler{
 				"": historyHandler,
 			},
 		},
@@ -123,12 +123,12 @@ func (m module) Commands() []dbot.Command {
 				},
 				DefaultPermission: true,
 			},
-			Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasQueueItems),
-			CommandHandler: map[string]dbot.CommandHandler{
+			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel).And(kbot.HasQueueItems),
+			CommandHandler: map[string]kbot.CommandHandler{
 				"song":       removeSongHandler,
 				"user-songs": removeUserSongsHandler,
 			},
-			AutoCompleteHandler: map[string]dbot.AutocompleteHandler{
+			AutoCompleteHandler: map[string]kbot.AutocompleteHandler{
 				"song": removeSongAutocompleteHandler,
 			},
 		},
@@ -138,8 +138,8 @@ func (m module) Commands() []dbot.Command {
 				Description:       "Removes all songs from your queue.",
 				DefaultPermission: true,
 			},
-			Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasQueueItems),
-			CommandHandler: map[string]dbot.CommandHandler{
+			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel).And(kbot.HasQueueItems),
+			CommandHandler: map[string]kbot.CommandHandler{
 				"": clearQueueHandler,
 			},
 		},
@@ -149,8 +149,8 @@ func (m module) Commands() []dbot.Command {
 				Description:       "Stops the playing music.",
 				DefaultPermission: true,
 			},
-			Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel),
-			CommandHandler: map[string]dbot.CommandHandler{
+			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel),
+			CommandHandler: map[string]kbot.CommandHandler{
 				"": stopHandler,
 			},
 		},
@@ -166,23 +166,23 @@ func (m module) Commands() []dbot.Command {
 						Choices: []discord.ApplicationCommandOptionChoiceInt{
 							{
 								Name:  "Off",
-								Value: int(dbot.LoopingTypeOff),
+								Value: int(kbot.LoopingTypeOff),
 							},
 							{
 								Name:  "Repeat Song",
-								Value: int(dbot.LoopingTypeRepeatSong),
+								Value: int(kbot.LoopingTypeRepeatSong),
 							},
 							{
 								Name:  "Repeat Queue",
-								Value: int(dbot.LoopingTypeRepeatQueue),
+								Value: int(kbot.LoopingTypeRepeatQueue),
 							},
 						},
 					},
 				},
 				DefaultPermission: true,
 			},
-			Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel),
-			CommandHandler: map[string]dbot.CommandHandler{
+			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel),
+			CommandHandler: map[string]kbot.CommandHandler{
 				"": loopHandler,
 			},
 		},
@@ -192,11 +192,11 @@ func (m module) Commands() []dbot.Command {
 				Description:       "Tells you about the currently playing song.",
 				DefaultPermission: true,
 			},
-			Checks: dbot.HasMusicPlayer.And(dbot.IsPlaying),
-			CommandHandler: map[string]dbot.CommandHandler{
+			Checks: kbot.HasMusicPlayer.And(kbot.IsPlaying),
+			CommandHandler: map[string]kbot.CommandHandler{
 				"": nowPlayingHandler,
 			},
-			ComponentHandler: map[string]dbot.ComponentHandler{
+			ComponentHandler: map[string]kbot.ComponentHandler{
 				"previous":   previousComponentHandler,
 				"play-pause": playPauseComponentHandler,
 				"next":       nextComponentHandler,
@@ -209,8 +209,8 @@ func (m module) Commands() []dbot.Command {
 				Description:       "Pauses or resumes the music.",
 				DefaultPermission: true,
 			},
-			Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel),
-			CommandHandler: map[string]dbot.CommandHandler{
+			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel),
+			CommandHandler: map[string]kbot.CommandHandler{
 				"": pauseHandler,
 			},
 		},
@@ -229,8 +229,8 @@ func (m module) Commands() []dbot.Command {
 				},
 				DefaultPermission: true,
 			},
-			Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel),
-			CommandHandler: map[string]dbot.CommandHandler{
+			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel),
+			CommandHandler: map[string]kbot.CommandHandler{
 				"": volumeHandler,
 			},
 		},
@@ -247,8 +247,8 @@ func (m module) Commands() []dbot.Command {
 				},
 				DefaultPermission: true,
 			},
-			Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel),
-			CommandHandler: map[string]dbot.CommandHandler{
+			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel),
+			CommandHandler: map[string]kbot.CommandHandler{
 				"": bassBoostHandler,
 			},
 		},
@@ -285,8 +285,8 @@ func (m module) Commands() []dbot.Command {
 				},
 				DefaultPermission: true,
 			},
-			Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel),
-			CommandHandler: map[string]dbot.CommandHandler{
+			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel),
+			CommandHandler: map[string]kbot.CommandHandler{
 				"": seekHandler,
 			},
 		},
@@ -296,8 +296,8 @@ func (m module) Commands() []dbot.Command {
 				Description:       "Stops the song and starts the next one.",
 				DefaultPermission: true,
 			},
-			Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasQueueItems),
-			CommandHandler: map[string]dbot.CommandHandler{
+			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel).And(kbot.HasQueueItems),
+			CommandHandler: map[string]kbot.CommandHandler{
 				"": nextHandler,
 			},
 		},
@@ -307,8 +307,8 @@ func (m module) Commands() []dbot.Command {
 				Description:       "Stops the song and starts the previous one.",
 				DefaultPermission: true,
 			},
-			Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasHistoryItems),
-			CommandHandler: map[string]dbot.CommandHandler{
+			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel).And(kbot.HasHistoryItems),
+			CommandHandler: map[string]kbot.CommandHandler{
 				"": previousHandler,
 			},
 		},
@@ -318,8 +318,8 @@ func (m module) Commands() []dbot.Command {
 				Description:       "Shuffles the queue of songs.",
 				DefaultPermission: true,
 			},
-			Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasQueueItems),
-			CommandHandler: map[string]dbot.CommandHandler{
+			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel).And(kbot.HasQueueItems),
+			CommandHandler: map[string]kbot.CommandHandler{
 				"": shuffleHandler,
 			},
 		},
@@ -363,13 +363,13 @@ func (m module) Commands() []dbot.Command {
 					},*/
 				},
 			},
-			CommandHandler: map[string]dbot.CommandHandler{
+			CommandHandler: map[string]kbot.CommandHandler{
 				"list":   likedSongsListHandler,
 				"remove": likedSongsRemoveHandler,
 				"clear":  likedSongsClearHandler,
 				"play":   likedSongsPlayHandler,
 			},
-			AutoCompleteHandler: map[string]dbot.AutocompleteHandler{
+			AutoCompleteHandler: map[string]kbot.AutocompleteHandler{
 				"remove": likedSongAutocompleteHandler,
 				//"play":   likedSongAutocompleteHandler,
 			},
@@ -377,7 +377,7 @@ func (m module) Commands() []dbot.Command {
 	}
 }
 
-func (module) OnEvent(b *dbot.Bot, event bot.Event) {
+func (module) OnEvent(b *kbot.Bot, event bot.Event) {
 	switch e := event.(type) {
 	case *events.GuildVoiceLeaveEvent:
 		player := b.MusicPlayers.Get(e.VoiceState.GuildID)

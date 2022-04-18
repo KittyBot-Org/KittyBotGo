@@ -78,12 +78,12 @@ func VotesHandler(b *backend.Backend) http.HandlerFunc {
 		}
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			b.Logger.Error("Error while handling dbot list %s:", botListName, err)
+			b.Logger.Error("Error while handling kbot list %s:", botListName, err)
 			return
 		}
 		if err = b.AddVote(userID, botList, multiplier); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			b.Logger.Error("Error while handling dbot list %s:", botListName, err)
+			b.Logger.Error("Error while handling kbot list %s:", botListName, err)
 			return
 		}
 		w.WriteHeader(http.StatusOK)

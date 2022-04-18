@@ -1,19 +1,45 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 
+	. "github.com/KittyBot-Org/KittyBotGo/internal/db/.gen/kittybot-go/public/model"
+	"github.com/KittyBot-Org/KittyBotGo/internal/db/.gen/kittybot-go/public/table"
 	"github.com/disgoorg/snowflake"
+	. "github.com/go-jet/jet/v2/postgres"
 )
 
-type Voters interface {
-	Get(userID snowflake.Snowflake) (VoterModel, error)
-	GetAll(expiresAt time.Time) ([]VoterModel, error)
-	Set(model VoterModel) error
+type VotersDB interface {
+	GetAll(expiresAt time.Time) ([]Voter, error)
+	Add(userID snowflake.Snowflake, duration time.Duration) error
 	Delete(userID snowflake.Snowflake) error
 }
 
-type VoterModel struct {
-	UserID    snowflake.Snowflake `bun:"user_id,pk,notnull"`
-	ExpiresAt time.Time           `bun:"expires_at,notnull"`
+type votersDBImpl struct {
+	db *sql.DB
+}
+
+func (v *votersDBImpl) GetAll(expiresAt time.Time) ([]Voter, error) {
+	var voters []Voter
+	err := table.Voter.SELECT(table.Voter.AllColumns).
+		WHERE(table.Voter.ExpiresAt.LT(TimestampT(expiresAt))).
+		Query(v.db, &voters)
+	return voters, err
+}
+
+func (v *votersDBImpl) Add(userID snowflake.Snowflake, duration time.Duration) error {
+	_, err := table.Voter.INSERT(table.Voter.AllColumns).
+		VALUES(userID, time.Now().Add(duration)).
+		ON_CONFLICT(table.Voter.UserID).
+		DO_UPDATE(SET(table.Voter.ExpiresAt.SET(table.Voter.ExpiresAt.ADD(INTERVALd(duration))))).
+		Exec(v.db)
+	return err
+}
+
+func (v *votersDBImpl) Delete(userID snowflake.Snowflake) error {
+	_, err := table.Voter.DELETE().
+		WHERE(table.Voter.UserID.EQ(String(userID.String()))).
+		Exec(v.db)
+	return err
 }

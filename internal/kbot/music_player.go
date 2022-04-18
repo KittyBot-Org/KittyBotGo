@@ -1,4 +1,4 @@
-package dbot
+package kbot
 
 import (
 	"context"
@@ -9,6 +9,10 @@ import (
 )
 
 var _ lavalink.PlayerEventListener = (*MusicPlayer)(nil)
+
+type AudioTrackData struct {
+	Requester snowflake.Snowflake `json:"requester"`
+}
 
 type MusicPlayer struct {
 	lavalink.Player

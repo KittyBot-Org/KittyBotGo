@@ -1,4 +1,4 @@
-package dbot
+package kbot
 
 import (
 	"github.com/KittyBot-Org/KittyBotGo/internal/config"
@@ -7,7 +7,7 @@ import (
 
 type Config struct {
 	config.Config
-	Bot                  BotConfig      `json:"dbot"`
+	Bot                  BotConfig      `json:"kbot"`
 	PlayHistoryCacheSize int            `json:"play_history_cache_size"`
 	Lavalink             LavalinkConfig `json:"lavalink"`
 	MetricsAddress       string         `json:"metrics_address"`

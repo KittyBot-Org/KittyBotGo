@@ -8,7 +8,7 @@ COPY . .
 
 RUN go mod download && \
     go mod verify && \
-    go build -ldflags="-X 'main.version=${VERSION}'" -o dbot cmd/dbot/main.go
+    go build -ldflags="-X 'main.version=${VERSION}'" -o bot cmd/bot/main.go
 
 FROM alpine
 

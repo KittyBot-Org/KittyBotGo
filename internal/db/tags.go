@@ -1,23 +1,68 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 
+	. "github.com/KittyBot-Org/KittyBotGo/internal/db/.gen/kittybot-go/public/model"
+	"github.com/KittyBot-Org/KittyBotGo/internal/db/.gen/kittybot-go/public/table"
 	"github.com/disgoorg/snowflake"
+	. "github.com/go-jet/jet/v2/postgres"
 )
 
-type Tags interface {
-	Get(guildID snowflake.Snowflake, name string) (TagModel, error)
-	GetAll(guildID snowflake.Snowflake) ([]TagModel, error)
-	Set(model TagModel) error
+type TagsDB interface {
+	Get(guildID snowflake.Snowflake, name string) (Tag, error)
+	GetAll(guildID snowflake.Snowflake) ([]Tag, error)
+	Create(guildID snowflake.Snowflake, ownerID snowflake.Snowflake, name string, content string) error
+	Edit(guildID snowflake.Snowflake, name string, content string) error
+	IncrementUses(guildID snowflake.Snowflake, name string) error
 	Delete(guildID snowflake.Snowflake, name string) error
 }
 
-type TagModel struct {
-	GuildID   snowflake.Snowflake `bun:"guild_id,pk"`
-	OwnerID   snowflake.Snowflake `bun:"owner_id,notnull"`
-	Name      string              `bun:"name,pk"`
-	Content   string              `bun:"content,notnull"`
-	Uses      int                 `bun:"uses,default:0"`
-	CreatedAt time.Time           `bun:"created_at,nullzero,notnull,default:current_timestamp"`
+type tagsDBImpl struct {
+	db *sql.DB
+}
+
+func (t *tagsDBImpl) Get(guildID snowflake.Snowflake, name string) (Tag, error) {
+	var tag Tag
+	err := table.Tag.SELECT(table.Tag.AllColumns).
+		WHERE(table.Tag.GuildID.EQ(String(guildID.String())).AND(table.Tag.Name.EQ(String(name)))).
+		Query(t.db, &tag)
+	return tag, err
+}
+
+func (t *tagsDBImpl) GetAll(guildID snowflake.Snowflake) ([]Tag, error) {
+	var tags []Tag
+	err := table.Tag.SELECT(table.Tag.AllColumns).
+		WHERE(table.Tag.GuildID.EQ(String(guildID.String()))).
+		Query(t.db, &tags)
+	return tags, err
+}
+
+func (t *tagsDBImpl) Create(guildID snowflake.Snowflake, ownerID snowflake.Snowflake, name string, content string) error {
+	_, err := table.Tag.INSERT(table.Tag.AllColumns).VALUES(guildID, ownerID, name, content, 0, time.Now()).Exec(t.db)
+	return err
+}
+
+func (t *tagsDBImpl) Edit(guildID snowflake.Snowflake, name string, content string) error {
+	_, err := table.Tag.UPDATE(table.Tag.Content).
+		SET(content).
+		WHERE(table.Tag.GuildID.EQ(String(guildID.String())).AND(table.Tag.Name.EQ(String(name)))).
+		Exec(t.db)
+	return err
+}
+
+func (t *tagsDBImpl) IncrementUses(guildID snowflake.Snowflake, name string) error {
+	_, err := table.Tag.UPDATE(table.Tag.Uses).
+		SET(table.Tag.Uses.ADD(Int(1))).
+		WHERE(table.Tag.GuildID.EQ(String(guildID.String())).AND(table.Tag.Name.EQ(String(name)))).
+		Exec(t.db)
+	return err
+}
+
+func (t *tagsDBImpl) Delete(guildID snowflake.Snowflake, name string) error {
+	_, err := table.Tag.DELETE().
+		WHERE(table.Tag.GuildID.EQ(String(guildID.String())).AND(table.Tag.Name.EQ(String(name)))).
+		Exec(t.db)
+	return err
 }

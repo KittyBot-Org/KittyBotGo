@@ -3,17 +3,18 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/KittyBot-Org/KittyBotGo/internal/dbot"
-	"github.com/KittyBot-Org/KittyBotGo/internal/i18n"
-	"github.com/KittyBot-Org/KittyBotGo/internal/metrics"
-	"github.com/KittyBot-Org/KittyBotGo/internal/modules"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/KittyBot-Org/KittyBotGo/internal/config"
 	"github.com/KittyBot-Org/KittyBotGo/internal/db"
+	"github.com/KittyBot-Org/KittyBotGo/internal/i18n"
+	"github.com/KittyBot-Org/KittyBotGo/internal/kbot"
+	"github.com/KittyBot-Org/KittyBotGo/internal/metrics"
+	"github.com/KittyBot-Org/KittyBotGo/internal/modules"
 	"github.com/disgoorg/log"
+	_ "github.com/lib/pq"
 )
 
 var (
@@ -31,61 +32,63 @@ func init() {
 }
 
 func main() {
-	var err error
 	logger := log.New(log.Ldate | log.Ltime | log.Lshortfile)
+	logger.Info("Starting discord kbot version: ", version)
 
-	bot := &dbot.Bot{
+	var cfg kbot.Config
+	if err := config.LoadConfig(&cfg); err != nil {
+		logger.Fatal("Failed to load config: ", err)
+	}
+	logger.SetLevel(cfg.LogLevel)
+
+	logger.Info("Syncing commands? ", *shouldSyncCommands)
+	logger.Info("Syncing DB tables? ", *shouldSyncDBTables)
+	logger.Info("Exiting after syncing? ", *exitAfterSync)
+	defer logger.Info("Shutting down discord kbot...")
+
+	b := &kbot.Bot{
 		Logger:  logger,
+		Config:  cfg,
 		Version: version,
 	}
-	bot.Logger.Infof("Starting dbot version: %s", version)
-	bot.Logger.Infof("Syncing commands? %v", *shouldSyncCommands)
-	bot.Logger.Infof("Syncing DB tables? %v", *shouldSyncDBTables)
-	bot.Logger.Infof("Exiting after syncing? %v", *exitAfterSync)
-	defer bot.Logger.Info("Shutting down dbot...")
 
-	if err = config.LoadConfig(&bot.Config); err != nil {
-		bot.Logger.Fatal("Failed to load config: ", err)
-	}
-	logger.SetLevel(bot.Config.LogLevel)
-
-	if err = i18n.Setup(bot); err != nil {
-		bot.Logger.Fatal("Failed to setup i18n: ", err)
+	if err := i18n.Setup(b); err != nil {
+		b.Logger.Fatal("Failed to setup i18n: ", err)
 	}
 
-	bot.LoadModules(modules.Modules)
-	bot.SetupPaginator()
+	b.LoadModules(modules.Modules)
+	b.SetupPaginator()
 
-	if err = bot.SetupBot(); err != nil {
-		bot.Logger.Fatal("Failed to setup dbot: ", err)
+	if err := b.SetupBot(); err != nil {
+		b.Logger.Fatal("Failed to setup discord kbot: ", err)
 	}
-	defer bot.Client.Close(context.TODO())
+	defer b.Client.Close(context.TODO())
 
 	if *shouldSyncCommands {
-		bot.SyncCommands()
+		b.SyncCommands()
 	}
 
-	if bot.DB, err = db.SetupDatabase(bot.Config.Database, *shouldSyncDBTables, bot.Config.DevMode); err != nil {
-		bot.Logger.Fatal("Failed to setup database: ", err)
+	var err error
+	if b.DB, err = db.SetupDatabase(b.Config.Database); err != nil {
+		b.Logger.Fatal("Failed to setup database: ", err)
 	}
-	defer bot.DB.Close()
+	defer b.DB.Close()
 
 	if *exitAfterSync {
-		bot.Logger.Infof("Exiting after syncing commands and database tables")
+		b.Logger.Infof("Exiting after syncing commands and database tables")
 		os.Exit(0)
 	}
 
-	metrics.Setup(bot)
+	metrics.Setup(b)
 
-	bot.SetupLavalink()
-	defer bot.Lavalink.Close()
-	defer bot.SavePlayers()
+	b.SetupLavalink()
+	defer b.Lavalink.Close()
 
-	if err = bot.StartBot(); err != nil {
-		bot.Logger.Fatal("Failed to start dbot: ", err)
+	if err = b.StartBot(); err != nil {
+		b.Logger.Fatal("Failed to start discord kbot: ", err)
 	}
 
-	bot.Logger.Info("Bot is running. Press CTRL-C to exit.")
+	b.Logger.Info("Bot is running. Press CTRL-C to exit.")
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-s

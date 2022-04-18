@@ -1,12 +1,12 @@
 package tags
 
 import (
-	"github.com/KittyBot-Org/KittyBotGo/internal/dbot"
+	"github.com/KittyBot-Org/KittyBotGo/internal/kbot"
 	"github.com/disgoorg/disgo/discord"
 )
 
-var Module = dbot.DefaultCommandsModule{
-	Cmds: []dbot.Command{
+var Module = kbot.DefaultCommandsModule{
+	Cmds: []kbot.Command{
 		{
 			Create: discord.SlashCommandCreate{
 				CommandName: "tag",
@@ -22,10 +22,10 @@ var Module = dbot.DefaultCommandsModule{
 				},
 				DefaultPermission: true,
 			},
-			CommandHandler: map[string]dbot.CommandHandler{
+			CommandHandler: map[string]kbot.CommandHandler{
 				"": tagHandler,
 			},
-			AutoCompleteHandler: map[string]dbot.AutocompleteHandler{
+			AutoCompleteHandler: map[string]kbot.AutocompleteHandler{
 				"": autoCompleteTagHandler,
 			},
 		},
@@ -96,14 +96,14 @@ var Module = dbot.DefaultCommandsModule{
 				},
 				DefaultPermission: true,
 			},
-			CommandHandler: map[string]dbot.CommandHandler{
+			CommandHandler: map[string]kbot.CommandHandler{
 				"create": createTagHandler,
 				"delete": deleteTagHandler,
 				"edit":   editTagHandler,
 				"info":   infoTagHandler,
 				"list":   listTagHandler,
 			},
-			AutoCompleteHandler: map[string]dbot.AutocompleteHandler{
+			AutoCompleteHandler: map[string]kbot.AutocompleteHandler{
 				"list": autoCompleteTagHandler,
 				"info": autoCompleteTagHandler,
 			},

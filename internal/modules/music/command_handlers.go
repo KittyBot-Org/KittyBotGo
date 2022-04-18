@@ -3,12 +3,12 @@ package music
 import (
 	"context"
 	"fmt"
-	"github.com/KittyBot-Org/KittyBotGo/internal/dbot"
 	"regexp"
 	"strconv"
 	"time"
 
-	"github.com/KittyBot-Org/KittyBotGo/internal/db"
+	"github.com/KittyBot-Org/KittyBotGo/internal/kbot"
+
 	"github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
@@ -41,7 +41,7 @@ var (
 	}
 )
 
-func playHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func playHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	data := e.SlashCommandInteractionData()
 
 	query := data.String("query")
@@ -58,15 +58,21 @@ func playHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandIn
 	}
 	return b.Lavalink.BestRestClient().LoadItemHandler(context.TODO(), query, lavalink.NewResultHandler(
 		func(track lavalink.AudioTrack) {
-			b.AddPlayHistory(e.User().ID, track.Info().Title, query)
+			if err := b.DB.PlayHistory().Add(e.User().ID, track.Info().Title, query); err != nil {
+				b.Logger.Error("Failed to add track to play history: ", err)
+			}
 			playAndQueue(b, p, e.BaseInteraction, track)
 		},
 		func(playlist lavalink.AudioPlaylist) {
-			b.AddPlayHistory(e.User().ID, playlist.Name(), query)
+			if err := b.DB.PlayHistory().Add(e.User().ID, playlist.Name(), query); err != nil {
+				b.Logger.Error("Failed to add track to play history: ", err)
+			}
 			playAndQueue(b, p, e.BaseInteraction, playlist.Tracks()...)
 		},
 		func(tracks []lavalink.AudioTrack) {
-			b.AddPlayHistory(e.User().ID, data.String("query"), query)
+			if err := b.DB.PlayHistory().Add(e.User().ID, data.String("query"), query); err != nil {
+				b.Logger.Error("Failed to add track to play history: ", err)
+			}
 			giveSearchSelection(b, p, e, tracks)
 		},
 		func() {
@@ -82,10 +88,10 @@ func playHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandIn
 	))
 }
 
-func playAndQueue(b *dbot.Bot, p *message.Printer, i discord.BaseInteraction, tracks ...lavalink.AudioTrack) {
+func playAndQueue(b *kbot.Bot, p *message.Printer, i discord.BaseInteraction, tracks ...lavalink.AudioTrack) {
 	player := b.MusicPlayers.Get(*i.GuildID())
 	if player == nil {
-		player = b.MusicPlayers.New(*i.GuildID(), dbot.PlayerTypeMusic, dbot.LoopingTypeOff)
+		player = b.MusicPlayers.New(*i.GuildID(), kbot.PlayerTypeMusic, kbot.LoopingTypeOff)
 		b.MusicPlayers.Add(player)
 	}
 	var voiceChannelID snowflake.Snowflake
@@ -107,7 +113,7 @@ func playAndQueue(b *dbot.Bot, p *message.Printer, i discord.BaseInteraction, tr
 	}
 
 	for ii := range tracks {
-		tracks[ii].SetUserData(db.AudioTrackData{
+		tracks[ii].SetUserData(kbot.AudioTrackData{
 			Requester: i.User().ID,
 		})
 	}
@@ -144,7 +150,7 @@ func playAndQueue(b *dbot.Bot, p *message.Printer, i discord.BaseInteraction, tr
 	}
 }
 
-func giveSearchSelection(b *dbot.Bot, p *message.Printer, event *events.ApplicationCommandInteractionEvent, tracks []lavalink.AudioTrack) {
+func giveSearchSelection(b *kbot.Bot, p *message.Printer, event *events.ApplicationCommandInteractionEvent, tracks []lavalink.AudioTrack) {
 	var options []discord.SelectMenuOption
 	for i, track := range tracks {
 		if len(options) >= 25 {
@@ -211,7 +217,7 @@ func giveSearchSelection(b *dbot.Bot, p *message.Printer, event *events.Applicat
 	}()
 }
 
-func queueHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func queueHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	tracks := b.MusicPlayers.Get(*e.GuildID()).Queue.Tracks()
 
 	var (
@@ -220,7 +226,7 @@ func queueHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandI
 		tracksCounter int
 	)
 	for i, track := range tracks {
-		trackStr := fmt.Sprintf("%d. [`%s`](<%s>) - %s [<@%s>]\n", i+1, track.Info().Title, *track.Info().URI, track.Info().Length, track.UserData().(db.AudioTrackData).Requester)
+		trackStr := fmt.Sprintf("%d. [`%s`](<%s>) - %s [<@%s>]\n", i+1, track.Info().Title, *track.Info().URI, track.Info().Length, track.UserData().(kbot.AudioTrackData).Requester)
 		if len(page)+len(trackStr) > 4096 || tracksCounter >= 10 {
 			pages = append(pages, page)
 			page = ""
@@ -243,7 +249,7 @@ func queueHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandI
 	})
 }
 
-func historyHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func historyHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	tracks := b.MusicPlayers.Get(*e.GuildID()).History.Tracks()
 
 	var (
@@ -253,7 +259,7 @@ func historyHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationComman
 	)
 	for i := len(tracks) - 1; i >= 0; i-- {
 		track := tracks[i]
-		trackStr := fmt.Sprintf("%d. [`%s`](<%s>) - %s [<@%s>]\n", len(tracks)-i, track.Info().Title, *track.Info().URI, track.Info().Length, track.UserData().(db.AudioTrackData).Requester)
+		trackStr := fmt.Sprintf("%d. [`%s`](<%s>) - %s [<@%s>]\n", len(tracks)-i, track.Info().Title, *track.Info().URI, track.Info().Length, track.UserData().(kbot.AudioTrackData).Requester)
 		if len(page)+len(trackStr) > 4096 || tracksCounter >= 10 {
 			pages = append(pages, page)
 			page = ""
@@ -276,7 +282,7 @@ func historyHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationComman
 	})
 }
 
-func removeSongHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func removeSongHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	player := b.MusicPlayers.Get(*e.GuildID())
 	strIndex := e.SlashCommandInteractionData().String("song")
 	index, err := strconv.Atoi(strIndex)
@@ -295,13 +301,13 @@ func removeSongHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCom
 	})
 }
 
-func removeUserSongsHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func removeUserSongsHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	player := b.MusicPlayers.Get(*e.GuildID())
 	userID := e.SlashCommandInteractionData().Snowflake("user")
 
 	removedTracks := 0
 	for i, track := range player.Queue.Tracks() {
-		if track.UserData().(db.AudioTrackData).Requester == userID {
+		if track.UserData().(kbot.AudioTrackData).Requester == userID {
 			player.Queue.Remove(i - removedTracks)
 			removedTracks++
 		}
@@ -320,12 +326,12 @@ func removeUserSongsHandler(b *dbot.Bot, p *message.Printer, e *events.Applicati
 	)
 }
 
-func clearQueueHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func clearQueueHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	b.MusicPlayers.Get(*e.GuildID()).Queue.Clear()
 	return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.clear.cleared")})
 }
 
-func stopHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func stopHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	player := b.MusicPlayers.Get(*e.GuildID())
 	if err := player.Destroy(); err != nil {
 		b.Logger.Error("Failed to destroy player: ", err)
@@ -336,7 +342,7 @@ func stopHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandIn
 		return err
 	}
 	if err := b.Client.Disconnect(context.TODO(), *e.GuildID()); err != nil {
-		b.Logger.Error("Failed to disconnect dbot: ", err)
+		b.Logger.Error("Failed to disconnect kbot: ", err)
 		err = e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.stop.disconnect.error")})
 		if err != nil {
 			b.Logger.Error("Failed to send message: ", err)
@@ -347,16 +353,16 @@ func stopHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandIn
 	return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.stop.stopped")})
 }
 
-func loopHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func loopHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	data := e.SlashCommandInteractionData()
 	player := b.MusicPlayers.Get(*e.GuildID())
-	loopingType := dbot.LoopingType(data.Int("looping-type"))
+	loopingType := kbot.LoopingType(data.Int("looping-type"))
 	player.Queue.SetType(loopingType)
 	emoji := ""
 	switch loopingType {
-	case dbot.LoopingTypeRepeatSong:
+	case kbot.LoopingTypeRepeatSong:
 		emoji = "🔂"
-	case dbot.LoopingTypeRepeatQueue:
+	case kbot.LoopingTypeRepeatQueue:
 		emoji = "🔁"
 	}
 	return e.CreateMessage(discord.MessageCreate{
@@ -364,18 +370,18 @@ func loopHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandIn
 	})
 }
 
-func nowPlayingHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func nowPlayingHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	player := b.MusicPlayers.Get(*e.GuildID())
 
 	track := player.PlayingTrack()
 	i := track.Info()
 	embed := discord.NewEmbedBuilder().
-		SetColor(dbot.KittyBotColor).
+		SetColor(kbot.KittyBotColor).
 		SetAuthorName(p.Sprintf("modules.music.commands.now.playing.title")).
 		SetTitle(i.Title).
 		SetURL(*i.URI).
 		AddField(p.Sprintf("modules.music.commands.now.playing.author"), i.Author, true).
-		AddField(p.Sprintf("modules.music.commands.now.playing.requested.by"), fmt.Sprintf("<@%s>", track.UserData().(db.AudioTrackData).Requester), true).
+		AddField(p.Sprintf("modules.music.commands.now.playing.requested.by"), fmt.Sprintf("<@%s>", track.UserData().(kbot.AudioTrackData).Requester), true).
 		AddField(p.Sprintf("modules.music.commands.now.playing.volume"), fmt.Sprintf("%d%%", player.Volume()), true).
 		SetThumbnail(getArtworkURL(player.PlayingTrack())).
 		SetFooterText(p.Sprintf("modules.music.commands.now.playing.footer", player.Queue.Len()))
@@ -386,10 +392,10 @@ func nowPlayingHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCom
 		p := int(float64(t1) / float64(t2) * 10)
 		bar[p] = "🔘"
 		loopString := ""
-		if player.Queue.LoopingType() == dbot.LoopingTypeRepeatSong {
+		if player.Queue.LoopingType() == kbot.LoopingTypeRepeatSong {
 			loopString = "🔂"
 		}
-		if player.Queue.LoopingType() == dbot.LoopingTypeRepeatQueue {
+		if player.Queue.LoopingType() == kbot.LoopingTypeRepeatQueue {
 			loopString = "🔁"
 		}
 		embed.Description += fmt.Sprintf("\n\n%s / %s %s\n%s", formatPosition(t1), formatPosition(t2), loopString, bar)
@@ -400,7 +406,7 @@ func nowPlayingHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCom
 	})
 }
 
-func pauseHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func pauseHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	player := b.MusicPlayers.Get(*e.GuildID())
 	pause := !player.Paused()
 	if err := player.Pause(pause); err != nil {
@@ -424,7 +430,7 @@ func pauseHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandI
 	})
 }
 
-func volumeHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func volumeHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	player := b.MusicPlayers.Get(*e.GuildID())
 	volume := e.SlashCommandInteractionData().Int("volume")
 	if err := player.SetVolume(volume); err != nil {
@@ -435,7 +441,7 @@ func volumeHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommand
 	})
 }
 
-func bassBoostHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func bassBoostHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	player := b.MusicPlayers.Get(*e.GuildID())
 	enable := e.SlashCommandInteractionData().Bool("enable")
 	if enable {
@@ -458,7 +464,7 @@ func bassBoostHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationComm
 	})
 }
 
-func seekHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func seekHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	data := e.SlashCommandInteractionData()
 	player := b.MusicPlayers.Get(*e.GuildID())
 	position := data.Int("position")
@@ -479,7 +485,7 @@ func seekHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandIn
 	})
 }
 
-func nextHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func nextHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	player := b.MusicPlayers.Get(*e.GuildID())
 	nextTrack := player.Queue.Pop()
 
@@ -492,7 +498,7 @@ func nextHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandIn
 	})
 }
 
-func previousHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func previousHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	player := b.MusicPlayers.Get(*e.GuildID())
 	nextTrack := player.History.Last()
 
@@ -505,7 +511,7 @@ func previousHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationComma
 	})
 }
 
-func shuffleHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func shuffleHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	b.MusicPlayers.Get(*e.GuildID()).Queue.Shuffle()
 	return e.CreateMessage(discord.MessageCreate{
 		Content: p.Sprintf("modules.music.commands.shuffle"),
@@ -536,9 +542,9 @@ func getArtworkURL(track lavalink.AudioTrack) string {
 	return ""
 }
 
-func likedSongsListHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
-	var tracks []db.LikedSong
-	if err := b.DB.NewSelect().Model(&tracks).Where("user_id = ?", e.User().ID).Scan(context.TODO()); err != nil {
+func likedSongsListHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+	tracks, err := b.DB.LikedSongs().GetAll(e.User().ID)
+	if err != nil {
 		return err
 	}
 	if len(tracks) == 0 {
@@ -573,22 +579,22 @@ func likedSongsListHandler(b *dbot.Bot, p *message.Printer, e *events.Applicatio
 	})
 }
 
-func likedSongsRemoveHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func likedSongsRemoveHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	songName := e.SlashCommandInteractionData().String("song")
 
-	if _, err := b.DB.NewDelete().Model((*db.LikedSong)(nil)).Where("user_id = ? AND title like ?", e.User().ID, songName).Exec(context.TODO()); err != nil {
+	if err := b.DB.LikedSongs().Delete(e.User().ID, songName); err != nil {
 		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.liked.songs.remove.error"), Flags: discord.MessageFlagEphemeral})
 	}
 	return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.liked.songs.remove.success", songName)})
 }
 
-func likedSongsClearHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
-	if _, err := b.DB.NewDelete().Model((*db.LikedSong)(nil)).Where("user_id = ?", e.User().ID).Exec(context.TODO()); err != nil {
+func likedSongsClearHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+	if err := b.DB.LikedSongs().DeleteAll(e.User().ID); err != nil {
 		return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.liked.songs.clear.error"), Flags: discord.MessageFlagEphemeral})
 	}
 	return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.liked.songs.clear.success")})
 }
 
-func likedSongsPlayHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func likedSongsPlayHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	return nil
 }

@@ -26,8 +26,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
-      - name: dbot go build
-        run: go build cmd/dbot/main.go
+      - name: bot go build
+        run: go build cmd/bot/main.go
 
       - name: backend go build
         run: go build cmd/backend/main.go
