@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/KittyBot-Org/KittyBotGo/internal/dbot"
+	"github.com/KittyBot-Org/KittyBotGo/internal/kbot"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
@@ -12,7 +12,7 @@ import (
 	"golang.org/x/text/message"
 )
 
-func playAutocompleteHandler(b *dbot.Bot, _ *message.Printer, e *events.AutocompleteInteractionEvent) error {
+func playAutocompleteHandler(b *kbot.Bot, _ *message.Printer, e *events.AutocompleteInteractionEvent) error {
 	query := e.Data.String("query")
 	playHistory, err := b.DB.PlayHistory().Get(e.User().ID)
 	if err != nil {
@@ -83,7 +83,7 @@ func playAutocompleteHandler(b *dbot.Bot, _ *message.Printer, e *events.Autocomp
 	return e.Result(result)
 }
 
-func removeSongAutocompleteHandler(b *dbot.Bot, _ *message.Printer, e *events.AutocompleteInteractionEvent) error {
+func removeSongAutocompleteHandler(b *kbot.Bot, _ *message.Printer, e *events.AutocompleteInteractionEvent) error {
 	player := b.MusicPlayers.Get(*e.GuildID())
 	if player == nil || player.Queue.Len() == 0 {
 		return e.Result(nil)
@@ -114,7 +114,7 @@ func removeSongAutocompleteHandler(b *dbot.Bot, _ *message.Printer, e *events.Au
 	return e.Result(choices)
 }
 
-func likedSongAutocompleteHandler(b *dbot.Bot, _ *message.Printer, e *events.AutocompleteInteractionEvent) error {
+func likedSongAutocompleteHandler(b *kbot.Bot, _ *message.Printer, e *events.AutocompleteInteractionEvent) error {
 	song := e.Data.String("song")
 	likedSongs, err := b.DB.LikedSongs().GetAll(e.User().ID)
 	if err != nil {

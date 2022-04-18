@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/KittyBot-Org/KittyBotGo/internal/dbot"
+	"github.com/KittyBot-Org/KittyBotGo/internal/kbot"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
@@ -16,7 +16,7 @@ import (
 	"golang.org/x/text/message"
 )
 
-func tagHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func tagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	data := e.SlashCommandInteractionData()
 	name := strings.ToLower(data.String("name"))
 	var msg string
@@ -35,7 +35,7 @@ func tagHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInt
 	return e.CreateMessage(discord.MessageCreate{Content: msg})
 }
 
-func createTagHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func createTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	data := e.SlashCommandInteractionData()
 	name := strings.ToLower(data.String("name"))
 	content := data.String("content")
@@ -55,7 +55,7 @@ func createTagHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationComm
 	return responses.Errorf(e, p, "modules.tags.commands.tags.create.success", name)
 }
 
-func deleteTagHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func deleteTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	name := strings.ToLower(e.SlashCommandInteractionData().String("name"))
 	tag, err := b.DB.Tags().Get(*e.GuildID(), name)
 	if err == sql.ErrNoRows {
@@ -74,7 +74,7 @@ func deleteTagHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationComm
 	return responses.Successf(e, p, "modules.tags.commands.tags.delete.success", name)
 }
 
-func editTagHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func editTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	data := e.SlashCommandInteractionData()
 	name := strings.ToLower(data.String("name"))
 	content := data.String("content")
@@ -97,7 +97,7 @@ func editTagHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationComman
 	return responses.Successf(e, p, "modules.tags.commands.tags.edit.success", name)
 }
 
-func infoTagHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func infoTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	name := strings.ToLower(e.SlashCommandInteractionData().String("name"))
 
 	tag, err := b.DB.Tags().Get(*e.GuildID(), name)
@@ -113,14 +113,14 @@ func infoTagHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationComman
 		AddField(p.Sprintf("modules.tags.commands.tags.info.owner"), "<@"+tag.OwnerID+">", true).
 		AddField(p.Sprintf("modules.tags.commands.tags.info.uses"), strconv.FormatInt(tag.Uses, 10), true).
 		AddField(p.Sprintf("modules.tags.commands.tags.info.created.at"), fmt.Sprintf("%s (%s)", discord.NewTimestamp(discord.TimestampStyleNone, tag.CreatedAt), discord.NewTimestamp(discord.TimestampStyleRelative, tag.CreatedAt)), false).
-		SetColor(dbot.KittyBotColor).
+		SetColor(kbot.KittyBotColor).
 		Build()
 	return e.CreateMessage(discord.MessageCreate{
 		Embeds: []discord.Embed{embed},
 	})
 }
 
-func listTagHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func listTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	tags, err := b.DB.Tags().GetAll(*e.GuildID())
 	if err != nil {
 		return responses.Errorf(e, p, "modules.tags.commands.tags.list.error")
@@ -153,7 +153,7 @@ func listTagHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationComman
 	})
 }
 
-func autoCompleteTagHandler(b *dbot.Bot, p *message.Printer, e *events.AutocompleteInteractionEvent) error {
+func autoCompleteTagHandler(b *kbot.Bot, p *message.Printer, e *events.AutocompleteInteractionEvent) error {
 	name := strings.ToLower(e.Data.String("name"))
 
 	tags, err := b.DB.Tags().GetAll(*e.GuildID())

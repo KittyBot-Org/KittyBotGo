@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/KittyBot-Org/KittyBotGo/internal/bend"
+	"github.com/KittyBot-Org/KittyBotGo/internal/backend"
 	"net/http"
 	"time"
 
@@ -20,7 +20,7 @@ type Stats struct {
 	AudioPlayerCount int      `json:"audio_player_count"`
 }
 
-func getMetric(ctx context.Context, b *bend.Backend, query string) (int, error) {
+func getMetric(ctx context.Context, b *backend.Backend, query string) (int, error) {
 	result, warnings, err := b.PrometheusAPI.Query(ctx, query, time.Time{})
 	if err != nil {
 		return 0, err
@@ -35,7 +35,7 @@ func getMetric(ctx context.Context, b *bend.Backend, query string) (int, error) 
 	return int(vectorResult[0].Value), nil
 }
 
-func getMetrics(ctx context.Context, b *bend.Backend) (stats *Stats, err error) {
+func getMetrics(ctx context.Context, b *backend.Backend) (stats *Stats, err error) {
 	if stats.GuildCount, err = getMetric(ctx, b, "kittybot_guild_count"); err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func getMetrics(ctx context.Context, b *bend.Backend) (stats *Stats, err error) 
 	return
 }
 
-func InfoHandler(b *bend.Backend) http.HandlerFunc {
+func InfoHandler(b *backend.Backend) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		stats, err := getMetrics(r.Context(), b)
 		if err != nil {

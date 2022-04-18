@@ -1,7 +1,7 @@
 package metrics
 
 import (
-	"github.com/KittyBot-Org/KittyBotGo/internal/dbot"
+	"github.com/KittyBot-Org/KittyBotGo/internal/kbot"
 	"net/http"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -37,16 +37,16 @@ var (
 
 	CommandsHandledCounter = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "kittybot_commands_handled",
-		Help: "The total number of commands handled by the dbot",
+		Help: "The total number of commands handled by the kbot",
 	})
 
 	ComponentsHandledCounter = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "kittybot_components_handled",
-		Help: "The total number of components handled by the dbot",
+		Help: "The total number of components handled by the kbot",
 	})
 )
 
-func Setup(b *dbot.Bot) {
+func Setup(b *kbot.Bot) {
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
 	go func() {

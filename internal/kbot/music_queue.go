@@ -1,4 +1,4 @@
-package dbot
+package kbot
 
 import (
 	"math/rand"

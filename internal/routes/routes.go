@@ -2,13 +2,13 @@ package routes
 
 import (
 	"encoding/json"
-	"github.com/KittyBot-Org/KittyBotGo/internal/bend"
+	"github.com/KittyBot-Org/KittyBotGo/internal/backend"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
-func Handler(b *bend.Backend) http.Handler {
+func Handler(b *backend.Backend) http.Handler {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/info", InfoHandler(b)).Methods(http.MethodGet)
@@ -28,7 +28,7 @@ func HealthCheckHandler(w http.ResponseWriter, _ *http.Request) {
 	_, _ = w.Write([]byte("alive"))
 }
 
-func CommandsHandler(b *bend.Backend) http.HandlerFunc {
+func CommandsHandler(b *backend.Backend) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)

@@ -3,7 +3,7 @@ package i18n
 import (
 	"embed"
 	"encoding/json"
-	"github.com/KittyBot-Org/KittyBotGo/internal/dbot"
+	"github.com/KittyBot-Org/KittyBotGo/internal/kbot"
 	"strings"
 
 	"golang.org/x/text/language"
@@ -13,7 +13,7 @@ import (
 //go:embed languages/*.json
 var languages embed.FS
 
-func Setup(bot *dbot.Bot) error {
+func Setup(bot *kbot.Bot) error {
 	entries, err := languages.ReadDir("languages")
 	if err != nil {
 		return err
@@ -48,7 +48,7 @@ func Setup(bot *dbot.Bot) error {
 	return nil
 }
 
-func parseData(bot *dbot.Bot, lang language.Tag, data map[string]interface{}, path string) {
+func parseData(bot *kbot.Bot, lang language.Tag, data map[string]interface{}, path string) {
 	for key, value := range data {
 		if value == nil {
 			continue

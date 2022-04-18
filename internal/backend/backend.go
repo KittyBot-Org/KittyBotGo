@@ -1,8 +1,8 @@
-package bend
+package backend
 
 import (
 	"github.com/KittyBot-Org/KittyBotGo/internal/db"
-	"github.com/KittyBot-Org/KittyBotGo/internal/dbot"
+	"github.com/KittyBot-Org/KittyBotGo/internal/kbot"
 	"net/http"
 	"time"
 
@@ -48,11 +48,11 @@ func (b *Backend) SetupScheduler() error {
 	return nil
 }
 
-func (b *Backend) LoadCommands(modules []dbot.Module) {
+func (b *Backend) LoadCommands(modules []kbot.Module) {
 	b.Logger.Info("Loading commands...")
 
 	for _, module := range modules {
-		if mod, ok := module.(dbot.CommandsModule); ok {
+		if mod, ok := module.(kbot.CommandsModule); ok {
 			commands := mod.Commands()
 			cmds := make([]discord.ApplicationCommandCreate, len(commands))
 			for i, cmd := range commands {

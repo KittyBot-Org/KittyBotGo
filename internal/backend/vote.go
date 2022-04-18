@@ -1,4 +1,4 @@
-package bend
+package backend
 
 import (
 	"context"

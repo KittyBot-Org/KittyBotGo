@@ -8,7 +8,7 @@ COPY . .
 
 RUN go mod download && \
     go mod verify && \
-    go build -ldflags="-X 'main.version=${VERSION}'" -o bend cmd/bend/main.go
+    go build -ldflags="-X 'main.version=${VERSION}'" -o backend cmd/backend/main.go
 
 FROM alpine
 
