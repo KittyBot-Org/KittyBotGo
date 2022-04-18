@@ -29,8 +29,8 @@ jobs:
       - name: bot go build
         run: go build cmd/bot/main.go
 
-      - name: bend go build
-        run: go build cmd/bend/main.go
+      - name: backend go build
+        run: go build cmd/backend/main.go
 
       - name: go vet
         run: go vet -v ./...
