@@ -11,7 +11,7 @@ import (
 type VotersDB interface {
 	Get(userID snowflake.Snowflake) (Voter, error)
 	GetAll(expiresAt time.Time) ([]Voter, error)
-	Set(model Voter) error
+	Add(userID snowflake.Snowflake, duration time.Duration) error
 	Delete(userID snowflake.Snowflake) error
 }
 
@@ -27,7 +27,7 @@ func (v *votersDBImpl) GetAll(expiresAt time.Time) ([]Voter, error) {
 	return nil, nil
 }
 
-func (v *votersDBImpl) Set(model Voter) error {
+func (v *votersDBImpl) Add(userID snowflake.Snowflake, duration time.Duration) error {
 	return nil
 }
 
