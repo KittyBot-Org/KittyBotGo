@@ -11,9 +11,9 @@ import (
 	"github.com/go-jet/jet/v2/postgres"
 )
 
-var PlayHistories = newPlayHistoriesTable("public", "play_histories", "")
+var PlayHistory = newPlayHistoryTable("public", "play_history", "")
 
-type playHistoriesTable struct {
+type playHistoryTable struct {
 	postgres.Table
 
 	//Columns
@@ -26,30 +26,30 @@ type playHistoriesTable struct {
 	MutableColumns postgres.ColumnList
 }
 
-type PlayHistoriesTable struct {
-	playHistoriesTable
+type PlayHistoryTable struct {
+	playHistoryTable
 
-	EXCLUDED playHistoriesTable
+	EXCLUDED playHistoryTable
 }
 
-// AS creates new PlayHistoriesTable with assigned alias
-func (a PlayHistoriesTable) AS(alias string) *PlayHistoriesTable {
-	return newPlayHistoriesTable(a.SchemaName(), a.TableName(), alias)
+// AS creates new PlayHistoryTable with assigned alias
+func (a PlayHistoryTable) AS(alias string) *PlayHistoryTable {
+	return newPlayHistoryTable(a.SchemaName(), a.TableName(), alias)
 }
 
-// Schema creates new PlayHistoriesTable with assigned schema name
-func (a PlayHistoriesTable) FromSchema(schemaName string) *PlayHistoriesTable {
-	return newPlayHistoriesTable(schemaName, a.TableName(), a.Alias())
+// Schema creates new PlayHistoryTable with assigned schema name
+func (a PlayHistoryTable) FromSchema(schemaName string) *PlayHistoryTable {
+	return newPlayHistoryTable(schemaName, a.TableName(), a.Alias())
 }
 
-func newPlayHistoriesTable(schemaName, tableName, alias string) *PlayHistoriesTable {
-	return &PlayHistoriesTable{
-		playHistoriesTable: newPlayHistoriesTableImpl(schemaName, tableName, alias),
-		EXCLUDED:           newPlayHistoriesTableImpl("", "excluded", ""),
+func newPlayHistoryTable(schemaName, tableName, alias string) *PlayHistoryTable {
+	return &PlayHistoryTable{
+		playHistoryTable: newPlayHistoryTableImpl(schemaName, tableName, alias),
+		EXCLUDED:         newPlayHistoryTableImpl("", "excluded", ""),
 	}
 }
 
-func newPlayHistoriesTableImpl(schemaName, tableName, alias string) playHistoriesTable {
+func newPlayHistoryTableImpl(schemaName, tableName, alias string) playHistoryTable {
 	var (
 		UserIDColumn     = postgres.StringColumn("user_id")
 		QueryColumn      = postgres.StringColumn("query")
@@ -59,7 +59,7 @@ func newPlayHistoriesTableImpl(schemaName, tableName, alias string) playHistorie
 		mutableColumns   = postgres.ColumnList{QueryColumn, LastUsedAtColumn}
 	)
 
-	return playHistoriesTable{
+	return playHistoryTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns

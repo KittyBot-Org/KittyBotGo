@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-type LikedSongs struct {
+type LikedSong struct {
 	UserID    string `sql:"primary_key"`
 	Query     string
 	Title     string `sql:"primary_key"`

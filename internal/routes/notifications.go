@@ -2,14 +2,14 @@ package routes
 
 import (
 	"context"
-	"github.com/KittyBot-Org/KittyBotGo/internal/backend"
+	"github.com/KittyBot-Org/KittyBotGo/internal/bend"
 	"net/http"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/gorilla/mux"
 )
 
-func NotificationsHandler(b *backend.Backend) http.HandlerFunc {
+func NotificationsHandler(b *bend.Backend) http.HandlerFunc {
 	sub, _ := b.PubSubClient.CreateSubscription(context.TODO(), "notifications", pubsub.SubscriptionConfig{
 		Topic: b.PubSubClient.Topic("notifications"),
 	})

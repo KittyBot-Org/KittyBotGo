@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/KittyBot-Org/KittyBotGo/internal/db/.gen/kittybot-go/public/model"
 	"github.com/KittyBot-Org/KittyBotGo/internal/dbot"
 
 	"github.com/disgoorg/disgo/bot"
@@ -544,8 +543,7 @@ func getArtworkURL(track lavalink.AudioTrack) string {
 }
 
 func likedSongsListHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
-	var tracks []model.LikedSongs
-	tracks, err := b.DB.LikedSongs().Get(e.User().ID)
+	tracks, err := b.DB.LikedSongs().GetAll(e.User().ID)
 	if err != nil {
 		return err
 	}

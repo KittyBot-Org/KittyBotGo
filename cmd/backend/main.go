@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
-	"github.com/KittyBot-Org/KittyBotGo/internal/backend"
+	"github.com/KittyBot-Org/KittyBotGo/internal/bend"
 	"github.com/KittyBot-Org/KittyBotGo/internal/modules"
-	routes2 "github.com/KittyBot-Org/KittyBotGo/internal/routes"
+	"github.com/KittyBot-Org/KittyBotGo/internal/routes"
 	"os"
 	"os/signal"
 	"syscall"
@@ -29,20 +29,23 @@ func init() {
 func main() {
 	var err error
 	logger := log.New(log.Ldate | log.Ltime | log.Lshortfile)
-	backend := &backend.Backend{
+
+	logger.Infof("Starting bend version: %s", version)
+	logger.Infof("Syncing DB tables? %v", *shouldSyncDBTables)
+	logger.Infof("Exiting after syncing? %v", *exitAfterSync)
+
+	var cfg bend.Config
+	if err = config.LoadConfig(&cfg); err != nil {
+		logger.Fatal("Failed to load config: ", err)
+	}
+	logger.SetLevel(cfg.LogLevel)
+
+	backend := &bend.Backend{
 		Logger:  logger,
 		Version: version,
 	}
-	backend.Logger.Infof("Starting backend version: %s", version)
-	backend.Logger.Infof("Syncing DB tables? %v", *shouldSyncDBTables)
-	backend.Logger.Infof("Exiting after syncing? %v", *exitAfterSync)
 
-	if err = config.LoadConfig(&backend.Config); err != nil {
-		backend.Logger.Fatal("Failed to load config: ", err)
-	}
-	logger.SetLevel(backend.Config.LogLevel)
-
-	if backend.DB, err = db.SetupDatabase(backend.Config.Database, *shouldSyncDBTables, backend.Config.DevMode); err != nil {
+	if backend.DB, err = db.SetupDatabase(backend.Config.Database); err != nil {
 		backend.Logger.Fatal("Failed to setup database: ", err)
 	}
 	defer backend.DB.Close()
@@ -61,7 +64,7 @@ func main() {
 		backend.Logger.Fatal("Failed to setup scheduler: ", err)
 	}
 	defer backend.Scheduler.Shutdown()
-	backend.SetupServer(routes2.Handler(backend))
+	backend.SetupServer(routes.Handler(backend))
 
 	backend.Logger.Info("Backend is running. Press CTRL-C to exit.")
 	s := make(chan os.Signal, 1)

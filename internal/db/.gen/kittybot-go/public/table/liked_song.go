@@ -11,55 +11,55 @@ import (
 	"github.com/go-jet/jet/v2/postgres"
 )
 
-var LikedSongs = newLikedSongsTable("public", "liked_songs", "")
+var LikedSong = newLikedSongTable("public", "liked_song", "")
 
-type likedSongsTable struct {
+type likedSongTable struct {
 	postgres.Table
 
 	//Columns
 	UserID    postgres.ColumnString
 	Query     postgres.ColumnString
 	Title     postgres.ColumnString
-	CreatedAt postgres.ColumnTimestampz
+	CreatedAt postgres.ColumnTimestamp
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
 }
 
-type LikedSongsTable struct {
-	likedSongsTable
+type LikedSongTable struct {
+	likedSongTable
 
-	EXCLUDED likedSongsTable
+	EXCLUDED likedSongTable
 }
 
-// AS creates new LikedSongsTable with assigned alias
-func (a LikedSongsTable) AS(alias string) *LikedSongsTable {
-	return newLikedSongsTable(a.SchemaName(), a.TableName(), alias)
+// AS creates new LikedSongTable with assigned alias
+func (a LikedSongTable) AS(alias string) *LikedSongTable {
+	return newLikedSongTable(a.SchemaName(), a.TableName(), alias)
 }
 
-// Schema creates new LikedSongsTable with assigned schema name
-func (a LikedSongsTable) FromSchema(schemaName string) *LikedSongsTable {
-	return newLikedSongsTable(schemaName, a.TableName(), a.Alias())
+// Schema creates new LikedSongTable with assigned schema name
+func (a LikedSongTable) FromSchema(schemaName string) *LikedSongTable {
+	return newLikedSongTable(schemaName, a.TableName(), a.Alias())
 }
 
-func newLikedSongsTable(schemaName, tableName, alias string) *LikedSongsTable {
-	return &LikedSongsTable{
-		likedSongsTable: newLikedSongsTableImpl(schemaName, tableName, alias),
-		EXCLUDED:        newLikedSongsTableImpl("", "excluded", ""),
+func newLikedSongTable(schemaName, tableName, alias string) *LikedSongTable {
+	return &LikedSongTable{
+		likedSongTable: newLikedSongTableImpl(schemaName, tableName, alias),
+		EXCLUDED:       newLikedSongTableImpl("", "excluded", ""),
 	}
 }
 
-func newLikedSongsTableImpl(schemaName, tableName, alias string) likedSongsTable {
+func newLikedSongTableImpl(schemaName, tableName, alias string) likedSongTable {
 	var (
 		UserIDColumn    = postgres.StringColumn("user_id")
 		QueryColumn     = postgres.StringColumn("query")
 		TitleColumn     = postgres.StringColumn("title")
-		CreatedAtColumn = postgres.TimestampzColumn("created_at")
+		CreatedAtColumn = postgres.TimestampColumn("created_at")
 		allColumns      = postgres.ColumnList{UserIDColumn, QueryColumn, TitleColumn, CreatedAtColumn}
 		mutableColumns  = postgres.ColumnList{QueryColumn, CreatedAtColumn}
 	)
 
-	return likedSongsTable{
+	return likedSongTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns

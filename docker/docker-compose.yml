@@ -11,7 +11,7 @@ services:
     networks:
       - metrics
   backend:
-    # image: docker.pkg.github.com/kittybot-org/kittybotgo/backend:latest
+    # image: docker.pkg.github.com/kittybot-org/kittybotgo/bend:latest
     build:
       context: ..
       dockerfile: ./cmd/backend/Dockerfile

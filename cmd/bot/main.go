@@ -31,33 +31,34 @@ func init() {
 }
 
 func main() {
-	var err error
 	logger := log.New(log.Ldate | log.Ltime | log.Lshortfile)
+	logger.Info("Starting discord bot version: ", version)
+
+	var cfg dbot.Config
+	if err := config.LoadConfig(&cfg); err != nil {
+		logger.Fatal("Failed to load config: ", err)
+	}
+	logger.SetLevel(cfg.LogLevel)
+
+	logger.Info("Syncing commands? ", *shouldSyncCommands)
+	logger.Info("Syncing DB tables? ", *shouldSyncDBTables)
+	logger.Info("Exiting after syncing? ", *exitAfterSync)
+	defer logger.Info("Shutting down discord bot...")
 
 	bot := &dbot.Bot{
 		Logger:  logger,
 		Version: version,
 	}
-	bot.Logger.Infof("Starting dbot version: %s", version)
-	bot.Logger.Infof("Syncing commands? %v", *shouldSyncCommands)
-	bot.Logger.Infof("Syncing DB tables? %v", *shouldSyncDBTables)
-	bot.Logger.Infof("Exiting after syncing? %v", *exitAfterSync)
-	defer bot.Logger.Info("Shutting down dbot...")
 
-	if err = config.LoadConfig(&bot.Config); err != nil {
-		bot.Logger.Fatal("Failed to load config: ", err)
-	}
-	logger.SetLevel(bot.Config.LogLevel)
-
-	if err = i18n.Setup(bot); err != nil {
+	if err := i18n.Setup(bot); err != nil {
 		bot.Logger.Fatal("Failed to setup i18n: ", err)
 	}
 
 	bot.LoadModules(modules.Modules)
 	bot.SetupPaginator()
 
-	if err = bot.SetupBot(); err != nil {
-		bot.Logger.Fatal("Failed to setup dbot: ", err)
+	if err := bot.SetupBot(); err != nil {
+		bot.Logger.Fatal("Failed to setup discord bot: ", err)
 	}
 	defer bot.Client.Close(context.TODO())
 
@@ -65,7 +66,8 @@ func main() {
 		bot.SyncCommands()
 	}
 
-	if bot.DB, err = db.SetupDatabase(bot.Config.Database, *shouldSyncDBTables, bot.Config.DevMode); err != nil {
+	var err error
+	if bot.DB, err = db.SetupDatabase(bot.Config.Database); err != nil {
 		bot.Logger.Fatal("Failed to setup database: ", err)
 	}
 	defer bot.DB.Close()
@@ -79,10 +81,9 @@ func main() {
 
 	bot.SetupLavalink()
 	defer bot.Lavalink.Close()
-	defer bot.SavePlayers()
 
 	if err = bot.StartBot(); err != nil {
-		bot.Logger.Fatal("Failed to start dbot: ", err)
+		bot.Logger.Fatal("Failed to start discord bot: ", err)
 	}
 
 	bot.Logger.Info("Bot is running. Press CTRL-C to exit.")

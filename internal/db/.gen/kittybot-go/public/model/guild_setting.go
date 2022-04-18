@@ -7,13 +7,6 @@
 
 package model
 
-import (
-	"time"
-)
-
-type PlayHistories struct {
-	UserID     string `sql:"primary_key"`
-	Query      string
-	Title      string `sql:"primary_key"`
-	LastUsedAt time.Time
+type GuildSetting struct {
+	ID string `sql:"primary_key"`
 }

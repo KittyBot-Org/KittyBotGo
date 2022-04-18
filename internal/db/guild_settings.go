@@ -8,8 +8,8 @@ import (
 )
 
 type GuildSettingsDB interface {
-	Get(guildID snowflake.Snowflake) (GuildSettings, error)
-	Set(model GuildSettings) error
+	Get(guildID snowflake.Snowflake) (GuildSetting, error)
+	Set(model GuildSetting) error
 	Delete(guildID snowflake.Snowflake) error
 }
 
@@ -17,11 +17,11 @@ type guildSettingsDBImpl struct {
 	db *sql.DB
 }
 
-func (s *guildSettingsDBImpl) Get(guildID snowflake.Snowflake) (GuildSettings, error) {
-	return GuildSettings{}, nil
+func (s *guildSettingsDBImpl) Get(guildID snowflake.Snowflake) (GuildSetting, error) {
+	return GuildSetting{}, nil
 }
 
-func (s *guildSettingsDBImpl) Set(model GuildSettings) error {
+func (s *guildSettingsDBImpl) Set(model GuildSetting) error {
 	return nil
 }
 

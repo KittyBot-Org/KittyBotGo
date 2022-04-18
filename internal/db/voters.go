@@ -9,9 +9,9 @@ import (
 )
 
 type VotersDB interface {
-	Get(userID snowflake.Snowflake) (Voters, error)
-	GetAll(expiresAt time.Time) ([]Voters, error)
-	Set(model Voters) error
+	Get(userID snowflake.Snowflake) (Voter, error)
+	GetAll(expiresAt time.Time) ([]Voter, error)
+	Set(model Voter) error
 	Delete(userID snowflake.Snowflake) error
 }
 
@@ -19,15 +19,15 @@ type votersDBImpl struct {
 	db *sql.DB
 }
 
-func (v *votersDBImpl) Get(userID snowflake.Snowflake) (Voters, error) {
-	return Voters{}, nil
+func (v *votersDBImpl) Get(userID snowflake.Snowflake) (Voter, error) {
+	return Voter{}, nil
 }
 
-func (v *votersDBImpl) GetAll(expiresAt time.Time) ([]Voters, error) {
+func (v *votersDBImpl) GetAll(expiresAt time.Time) ([]Voter, error) {
 	return nil, nil
 }
 
-func (v *votersDBImpl) Set(model Voters) error {
+func (v *votersDBImpl) Set(model Voter) error {
 	return nil
 }
 

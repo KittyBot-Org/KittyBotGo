@@ -8,7 +8,7 @@ import (
 )
 
 type PlayHistoriesDB interface {
-	Get(userID snowflake.Snowflake) ([]PlayHistories, error)
+	Get(userID snowflake.Snowflake) ([]PlayHistory, error)
 	Add(userID snowflake.Snowflake, query string, title string) error
 }
 
@@ -16,7 +16,7 @@ type playHistoriesDBImpl struct {
 	db *sql.DB
 }
 
-func (h *playHistoriesDBImpl) Get(userID snowflake.Snowflake) ([]PlayHistories, error) {
+func (h *playHistoriesDBImpl) Get(userID snowflake.Snowflake) ([]PlayHistory, error) {
 	return nil, nil
 }
 

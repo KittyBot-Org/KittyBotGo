@@ -7,6 +7,11 @@
 
 package model
 
-type GuildSettings struct {
-	ID string `sql:"primary_key"`
+import (
+	"time"
+)
+
+type Voter struct {
+	UserID    string `sql:"primary_key"`
+	ExpiresAt time.Time
 }

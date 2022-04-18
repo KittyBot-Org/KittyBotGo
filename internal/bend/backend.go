@@ -1,4 +1,4 @@
-package backend
+package bend
 
 import (
 	"github.com/KittyBot-Org/KittyBotGo/internal/db"

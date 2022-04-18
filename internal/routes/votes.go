@@ -2,7 +2,7 @@ package routes
 
 import (
 	"encoding/json"
-	"github.com/KittyBot-Org/KittyBotGo/internal/backend"
+	"github.com/KittyBot-Org/KittyBotGo/internal/bend"
 	"net/http"
 
 	"github.com/disgoorg/snowflake"
@@ -23,14 +23,14 @@ type voteAddPayload2 struct {
 	User snowflake.Snowflake `json:"user"`
 }
 
-func VotesHandler(b *backend.Backend) http.HandlerFunc {
+func VotesHandler(b *bend.Backend) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		params := mux.Vars(r)
 
 		var (
 			userID      snowflake.Snowflake
 			botListName = params["bot_list"]
-			botList     backend.BotList
+			botList     bend.BotList
 			multiplier  = 1
 			err         error
 		)
@@ -42,32 +42,32 @@ func VotesHandler(b *backend.Backend) http.HandlerFunc {
 		}
 
 		switch botListName {
-		case backend.TopGG.Name:
-			botList = backend.TopGG
+		case bend.TopGG.Name:
+			botList = bend.TopGG
 			var v voteAddPayload
 			err = json.NewDecoder(r.Body).Decode(&v)
 			userID = v.User.ID
 
-		case backend.BotListSpace.Name:
-			botList = backend.BotListSpace
+		case bend.BotListSpace.Name:
+			botList = bend.BotListSpace
 			var v voteAddPayload
 			err = json.NewDecoder(r.Body).Decode(&v)
 			userID = v.User.ID
 
-		case backend.BotsForDiscordCom.Name:
-			botList = backend.BotsForDiscordCom
+		case bend.BotsForDiscordCom.Name:
+			botList = bend.BotsForDiscordCom
 			var v voteAddPayload2
 			err = json.NewDecoder(r.Body).Decode(&v)
 			userID = v.User
 
-		case backend.DiscordBotListCom.Name:
-			botList = backend.DiscordBotListCom
+		case bend.DiscordBotListCom.Name:
+			botList = bend.DiscordBotListCom
 			var v voteAddPayload
 			err = json.NewDecoder(r.Body).Decode(&v)
 			userID = v.ID
 
-		case backend.DiscordservicesNet.Name:
-			botList = backend.DiscordservicesNet
+		case bend.DiscordservicesNet.Name:
+			botList = bend.DiscordservicesNet
 			var v voteAddPayload
 			err = json.NewDecoder(r.Body).Decode(&v)
 			userID = v.User.ID

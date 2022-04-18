@@ -1,4 +1,4 @@
-package backend
+package bend
 
 import (
 	"net/http"
@@ -11,7 +11,7 @@ func (b *Backend) SetupServer(handler http.Handler) {
 	}
 
 	go func() {
-		b.Logger.Info("Starting backend server on port: " + b.Config.Address)
+		b.Logger.Info("Starting bend server on port: " + b.Config.Address)
 		if err := b.HTTPServer.ListenAndServe(); err != nil {
 			b.Logger.Fatal(err)
 		}

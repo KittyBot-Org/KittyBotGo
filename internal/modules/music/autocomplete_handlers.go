@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/KittyBot-Org/KittyBotGo/internal/db/.gen/kittybot-go/public/model"
 	"github.com/KittyBot-Org/KittyBotGo/internal/dbot"
 
 	"github.com/disgoorg/disgo/discord"
@@ -15,13 +14,12 @@ import (
 
 func playAutocompleteHandler(b *dbot.Bot, _ *message.Printer, e *events.AutocompleteInteractionEvent) error {
 	query := e.Data.String("query")
-	var playHistory []model.PlayHistories
 	playHistory, err := b.DB.PlayHistory().Get(e.User().ID)
 	if err != nil {
 		b.Logger.Error("Error adding music history entry: ", err)
 		return err
 	}
-	likedSongs, err := b.DB.LikedSongs().Get(e.User().ID)
+	likedSongs, err := b.DB.LikedSongs().GetAll(e.User().ID)
 	if err != nil {
 		b.Logger.Error("Failed to get music history entries: ", err)
 		return err
@@ -118,7 +116,7 @@ func removeSongAutocompleteHandler(b *dbot.Bot, _ *message.Printer, e *events.Au
 
 func likedSongAutocompleteHandler(b *dbot.Bot, _ *message.Printer, e *events.AutocompleteInteractionEvent) error {
 	song := e.Data.String("song")
-	likedSongs, err := b.DB.LikedSongs().Get(e.User().ID)
+	likedSongs, err := b.DB.LikedSongs().GetAll(e.User().ID)
 	if err != nil {
 		return err
 	}

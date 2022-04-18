@@ -1,4 +1,4 @@
-package backend
+package bend
 
 import (
 	"time"

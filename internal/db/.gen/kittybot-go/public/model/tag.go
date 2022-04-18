@@ -11,12 +11,11 @@ import (
 	"time"
 )
 
-type Tags struct {
-	ID        int64 `sql:"primary_key"`
-	GuildID   string
+type Tag struct {
+	GuildID   string `sql:"primary_key"`
 	OwnerID   string
-	Name      string
+	Name      string `sql:"primary_key"`
 	Content   string
-	Uses      *int64
+	Uses      int64
 	CreatedAt time.Time
 }

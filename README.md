@@ -18,5 +18,9 @@ Optional CLI Flags:
 - `--exit-after-sync=true`: Exit after db & commands sync.
 
 ```bash
-$ jet -dsn=postgresql://user:pass@localhost:5432/jetdb?sslmode=disable -schema=dvds -path=./internal/db/.gen
+$ go install github.com/go-jet/jet/v2/cmd/jet@latest
+```
+
+```bash
+$ jet -dsn=postgresql://user:pass@localhost:5432/jetdb?sslmode=disable -schema=public -path=./internal/db/.gen
 ```

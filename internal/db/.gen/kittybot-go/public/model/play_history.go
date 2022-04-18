@@ -11,7 +11,9 @@ import (
 	"time"
 )
 
-type Voters struct {
-	ID        string `sql:"primary_key"`
-	ExpiresAt time.Time
+type PlayHistory struct {
+	UserID     string `sql:"primary_key"`
+	Query      string
+	Title      string `sql:"primary_key"`
+	LastUsedAt time.Time
 }
