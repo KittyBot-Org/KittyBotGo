@@ -56,7 +56,9 @@ jobs:
           docker push --all-tags $IMAGE_ID
 
   deploy:
-    needs: build
+    needs:
+      - build-bot
+      - build-backend
     runs-on: ubuntu-latest
     steps:
       - name: Log into VPS
