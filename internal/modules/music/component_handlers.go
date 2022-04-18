@@ -1,10 +1,10 @@
 package music
 
 import (
-	"database/sql"
 	"regexp"
 
 	"github.com/KittyBot-Org/KittyBotGo/internal/kbot"
+	"github.com/go-jet/jet/v2/qrm"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
@@ -104,12 +104,12 @@ func likeComponentHandler(b *kbot.Bot, p *message.Printer, e *events.ComponentIn
 	}
 
 	_, err := b.DB.LikedSongs().Get(e.User().ID, title)
-	if err != nil && err != sql.ErrNoRows {
+	if err != nil && err != qrm.ErrNoRows {
 		return err
 	}
 
 	var msg string
-	if err == sql.ErrNoRows {
+	if err == qrm.ErrNoRows {
 		if err = b.DB.LikedSongs().Add(e.User().ID, getTrackQuery(title, url), title); err != nil {
 			b.Logger.Error("Error adding music history entry: ", err)
 		}

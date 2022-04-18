@@ -1,13 +1,13 @@
 package tags
 
 import (
-	"database/sql"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/KittyBot-Org/KittyBotGo/internal/kbot"
 	"github.com/KittyBot-Org/KittyBotGo/internal/responses"
+	"github.com/go-jet/jet/v2/qrm"
 	"github.com/lib/pq"
 
 	"github.com/disgoorg/disgo/discord"
@@ -23,7 +23,7 @@ func tagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInt
 	var msg string
 	if tag, err := b.DB.Tags().Get(*e.GuildID(), name); err == nil {
 		msg = tag.Content
-	} else if err == sql.ErrNoRows {
+	} else if err == qrm.ErrNoRows {
 		msg = p.Sprintf("modules.tags.commands.tag.not.found", name)
 	} else {
 		msg = p.Sprintf("modules.tags.commands.tag.error", name)
@@ -61,7 +61,7 @@ func createTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationComm
 func deleteTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	name := strings.ToLower(e.SlashCommandInteractionData().String("name"))
 	tag, err := b.DB.Tags().Get(*e.GuildID(), name)
-	if err == sql.ErrNoRows {
+	if err == qrm.ErrNoRows {
 		return responses.Errorf(e, p, "modules.tags.commands.tags.not.found", name)
 	} else if err != nil {
 		return responses.Errorf(e, p, "modules.tags.commands.tags.error", name)
@@ -83,7 +83,7 @@ func editTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationComman
 	content := data.String("content")
 
 	tag, err := b.DB.Tags().Get(*e.GuildID(), name)
-	if err == sql.ErrNoRows {
+	if err == qrm.ErrNoRows {
 		return responses.Errorf(e, p, "modules.tags.commands.tags.edit.not.found", name)
 	} else if err != nil {
 		return responses.Errorf(e, p, "modules.tags.commands.tags.edit.error", name)
@@ -104,7 +104,7 @@ func infoTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationComman
 	name := strings.ToLower(e.SlashCommandInteractionData().String("name"))
 
 	tag, err := b.DB.Tags().Get(*e.GuildID(), name)
-	if err == sql.ErrNoRows {
+	if err == qrm.ErrNoRows {
 		return responses.Errorf(e, p, "modules.tags.commands.tags.info.not.found", name)
 	} else if err != nil {
 		return responses.Errorf(e, p, "modules.tags.commands.tags.info.error", name)
