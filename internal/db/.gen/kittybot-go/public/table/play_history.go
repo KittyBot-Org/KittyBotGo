@@ -20,7 +20,7 @@ type playHistoryTable struct {
 	UserID     postgres.ColumnString
 	Query      postgres.ColumnString
 	Title      postgres.ColumnString
-	LastUsedAt postgres.ColumnTimestampz
+	LastUsedAt postgres.ColumnTimestamp
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -54,7 +54,7 @@ func newPlayHistoryTableImpl(schemaName, tableName, alias string) playHistoryTab
 		UserIDColumn     = postgres.StringColumn("user_id")
 		QueryColumn      = postgres.StringColumn("query")
 		TitleColumn      = postgres.StringColumn("title")
-		LastUsedAtColumn = postgres.TimestampzColumn("last_used_at")
+		LastUsedAtColumn = postgres.TimestampColumn("last_used_at")
 		allColumns       = postgres.ColumnList{UserIDColumn, QueryColumn, TitleColumn, LastUsedAtColumn}
 		mutableColumns   = postgres.ColumnList{QueryColumn, LastUsedAtColumn}
 	)

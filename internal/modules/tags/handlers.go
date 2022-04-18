@@ -3,11 +3,12 @@ package tags
 import (
 	"database/sql"
 	"fmt"
-	"github.com/KittyBot-Org/KittyBotGo/internal/responses"
 	"strconv"
 	"strings"
 
 	"github.com/KittyBot-Org/KittyBotGo/internal/kbot"
+	"github.com/KittyBot-Org/KittyBotGo/internal/responses"
+	"github.com/lib/pq"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
@@ -47,11 +48,13 @@ func createTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationComm
 		return responses.Errorf(e, p, "modules.tags.commands.tags.create.content.too.long")
 	}
 
-	if err := b.DB.Tags().Create(*e.GuildID(), e.User().ID, name, content); err == nil {
+	if err := b.DB.Tags().Create(*e.GuildID(), e.User().ID, name, content); err != nil {
+		if pgErr, ok := err.(*pq.Error); ok && pgErr.Code == "23505" {
+			return responses.Errorf(e, p, "modules.tags.commands.tags.create.duplicate", name)
+		}
 		b.Logger.Error("Failed to create tag: ", err)
 		return responses.Errorf(e, p, "modules.tags.commands.tags.create.error", name)
 	}
-	// TODO: handle duplicate tag name
 	return responses.Errorf(e, p, "modules.tags.commands.tags.create.success", name)
 }
 

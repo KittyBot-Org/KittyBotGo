@@ -2,16 +2,17 @@ package main
 
 import (
 	"flag"
-	"github.com/KittyBot-Org/KittyBotGo/internal/backend"
-	"github.com/KittyBot-Org/KittyBotGo/internal/modules"
-	"github.com/KittyBot-Org/KittyBotGo/internal/routes"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/KittyBot-Org/KittyBotGo/internal/backend"
 	"github.com/KittyBot-Org/KittyBotGo/internal/config"
 	"github.com/KittyBot-Org/KittyBotGo/internal/db"
+	"github.com/KittyBot-Org/KittyBotGo/internal/modules"
+	"github.com/KittyBot-Org/KittyBotGo/internal/routes"
 	"github.com/disgoorg/log"
+	_ "github.com/lib/pq"
 )
 
 var (
@@ -42,6 +43,7 @@ func main() {
 
 	b := &backend.Backend{
 		Logger:  logger,
+		Config:  cfg,
 		Version: version,
 	}
 

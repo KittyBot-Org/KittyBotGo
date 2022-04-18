@@ -14,6 +14,7 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/internal/metrics"
 	"github.com/KittyBot-Org/KittyBotGo/internal/modules"
 	"github.com/disgoorg/log"
+	_ "github.com/lib/pq"
 )
 
 var (
@@ -47,6 +48,7 @@ func main() {
 
 	b := &kbot.Bot{
 		Logger:  logger,
+		Config:  cfg,
 		Version: version,
 	}
 

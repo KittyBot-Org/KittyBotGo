@@ -12,6 +12,7 @@ require (
 	github.com/disgoorg/utils/paginator v0.0.0-20220324002608-4f4098bd27c9
 	github.com/go-jet/jet/v2 v2.7.1
 	github.com/gorilla/mux v1.8.0
+	github.com/lib/pq v1.7.0
 	github.com/lithammer/fuzzysearch v1.1.3
 	github.com/procyon-projects/chrono v1.0.0
 	github.com/prometheus/client_golang v1.12.1

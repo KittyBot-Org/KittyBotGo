@@ -2,11 +2,12 @@ package db
 
 import (
 	"database/sql"
-	"github.com/KittyBot-Org/KittyBotGo/internal/db/.gen/kittybot-go/public/table"
 	"time"
 
 	. "github.com/KittyBot-Org/KittyBotGo/internal/db/.gen/kittybot-go/public/model"
+	"github.com/KittyBot-Org/KittyBotGo/internal/db/.gen/kittybot-go/public/table"
 	"github.com/disgoorg/snowflake"
+	. "github.com/go-jet/jet/v2/postgres"
 )
 
 type TagsDB interface {
@@ -23,11 +24,19 @@ type tagsDBImpl struct {
 }
 
 func (t *tagsDBImpl) Get(guildID snowflake.Snowflake, name string) (Tag, error) {
-	return Tag{}, nil
+	var tag Tag
+	err := table.Tag.SELECT(table.Tag.AllColumns).
+		WHERE(table.Tag.GuildID.EQ(String(guildID.String())).AND(table.Tag.Name.EQ(String(name)))).
+		Query(t.db, &tag)
+	return tag, err
 }
 
 func (t *tagsDBImpl) GetAll(guildID snowflake.Snowflake) ([]Tag, error) {
-	return nil, nil
+	var tags []Tag
+	err := table.Tag.SELECT(table.Tag.AllColumns).
+		WHERE(table.Tag.GuildID.EQ(String(guildID.String()))).
+		Query(t.db, &tags)
+	return tags, err
 }
 
 func (t *tagsDBImpl) Create(guildID snowflake.Snowflake, ownerID snowflake.Snowflake, name string, content string) error {
@@ -36,13 +45,24 @@ func (t *tagsDBImpl) Create(guildID snowflake.Snowflake, ownerID snowflake.Snowf
 }
 
 func (t *tagsDBImpl) Edit(guildID snowflake.Snowflake, name string, content string) error {
-	return nil
+	_, err := table.Tag.UPDATE(table.Tag.Content).
+		SET(content).
+		WHERE(table.Tag.GuildID.EQ(String(guildID.String())).AND(table.Tag.Name.EQ(String(name)))).
+		Exec(t.db)
+	return err
 }
 
 func (t *tagsDBImpl) IncrementUses(guildID snowflake.Snowflake, name string) error {
-	return nil
+	_, err := table.Tag.UPDATE(table.Tag.Uses).
+		SET(table.Tag.Uses.ADD(Int(1))).
+		WHERE(table.Tag.GuildID.EQ(String(guildID.String())).AND(table.Tag.Name.EQ(String(name)))).
+		Exec(t.db)
+	return err
 }
 
 func (t *tagsDBImpl) Delete(guildID snowflake.Snowflake, name string) error {
-	return nil
+	_, err := table.Tag.DELETE().
+		WHERE(table.Tag.GuildID.EQ(String(guildID.String())).AND(table.Tag.Name.EQ(String(name)))).
+		Exec(t.db)
+	return err
 }
