@@ -84,8 +84,8 @@ github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
-github.com/disgoorg/disgo v0.8.9 h1:1jo/Rj8GPyMR77XM05mXxNkTTV87RgId0d2lCecigz8=
-github.com/disgoorg/disgo v0.8.9/go.mod h1:F5Qj4yeX3auG0JiEY3pP5nRSUjBsbuhITTAslNsIOvA=
+github.com/disgoorg/disgo v0.8.11-0.20220422100557-e40b9cce4663 h1:qGDpblb2/C2mW8WVM8TgCo/bvcmwRj+xqLCqxI130Sk=
+github.com/disgoorg/disgo v0.8.11-0.20220422100557-e40b9cce4663/go.mod h1:F5Qj4yeX3auG0JiEY3pP5nRSUjBsbuhITTAslNsIOvA=
 github.com/disgoorg/disgolink/disgolink v1.5.3 h1:ss1uZbmjPI2gpjLkyZlZwbtm/0LKcIrRPMUCHEhLqdw=
 github.com/disgoorg/disgolink/disgolink v1.5.3/go.mod h1:/MPfVhecLzrf0426fH7zdYMb8KCtHPMyfPPGKwKMucA=
 github.com/disgoorg/disgolink/lavalink v1.5.3 h1:lBridoXvsLxgQK7rTCJsInN9NHk9QYPnaLSB8uw0fUA=

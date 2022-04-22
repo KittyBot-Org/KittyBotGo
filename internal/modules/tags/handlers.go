@@ -110,17 +110,13 @@ func infoTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationComman
 		return responses.Errorf(e, p, "modules.tags.commands.tags.info.error", name)
 	}
 
-	embed := discord.NewEmbedBuilder().
+	return responses.SuccessEmbed(e, discord.NewEmbedBuilder().
 		SetTitle(p.Sprintf("modules.tags.commands.tags.info.title", tag.Name)).
 		SetDescription(tag.Content).
 		AddField(p.Sprintf("modules.tags.commands.tags.info.owner"), "<@"+tag.OwnerID+">", true).
 		AddField(p.Sprintf("modules.tags.commands.tags.info.uses"), strconv.FormatInt(tag.Uses, 10), true).
 		AddField(p.Sprintf("modules.tags.commands.tags.info.created.at"), fmt.Sprintf("%s (%s)", discord.NewTimestamp(discord.TimestampStyleNone, tag.CreatedAt), discord.NewTimestamp(discord.TimestampStyleRelative, tag.CreatedAt)), false).
-		SetColor(kbot.KittyBotColor).
-		Build()
-	return e.CreateMessage(discord.MessageCreate{
-		Embeds: []discord.Embed{embed},
-	})
+		Build())
 }
 
 func listTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {

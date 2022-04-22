@@ -13,8 +13,6 @@ import (
 	"github.com/disgoorg/utils/paginator"
 )
 
-const KittyBotColor = 0x4c50c1
-
 type Bot struct {
 	Logger       log.Logger
 	Client       bot.Client
