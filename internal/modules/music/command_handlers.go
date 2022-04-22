@@ -9,7 +9,7 @@ import (
 
 	"github.com/KittyBot-Org/KittyBotGo/internal/kbot"
 	"github.com/KittyBot-Org/KittyBotGo/internal/responses"
-	source_extensions "github.com/disgoorg/source-extensions-plugin"
+	"github.com/disgoorg/source-extensions-plugin"
 
 	"github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgo/discord"
