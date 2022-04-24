@@ -13,7 +13,7 @@ import (
 	"golang.org/x/text/message"
 )
 
-var trackRegex = regexp.MustCompile(`\[\x60(?P<title>.+)\x60]\(<(?P<url>.+)?>\)`)
+var trackRegex = regexp.MustCompile(`\[\x60(?P<title>.+)\x60]\((?P<url>.+)?\)`)
 
 func checkPlayer(b *kbot.Bot, p *message.Printer, e *events.ComponentInteractionEvent) (*kbot.MusicPlayer, error) {
 	player := b.MusicPlayers.Get(*e.GuildID())
