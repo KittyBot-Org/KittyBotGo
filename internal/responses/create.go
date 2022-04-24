@@ -60,6 +60,7 @@ func CreateErrorf(p *message.Printer, languageString string, a ...any) discord.M
 				Description: p.Sprintf(languageString, a...),
 			},
 		},
+		Flags: discord.MessageFlagEphemeral,
 	}
 }
 
@@ -72,5 +73,6 @@ func CreateErrorComponentsf(p *message.Printer, languageString string, a []any, 
 			},
 		},
 		Components: components,
+		Flags:      discord.MessageFlagEphemeral,
 	}
 }

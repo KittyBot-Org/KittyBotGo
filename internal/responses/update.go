@@ -29,6 +29,7 @@ func UpdateSuccessComponentsf(p *message.Printer, languageString string, a []any
 }
 
 func UpdateErrorf(p *message.Printer, languageString string, a ...any) discord.MessageUpdate {
+	flags := discord.MessageFlagEphemeral
 	return discord.MessageUpdate{
 		Embeds: &[]discord.Embed{
 			{
@@ -36,10 +37,12 @@ func UpdateErrorf(p *message.Printer, languageString string, a ...any) discord.M
 				Description: p.Sprintf(languageString, a...),
 			},
 		},
+		Flags: &flags,
 	}
 }
 
 func UpdateErrorComponentsf(p *message.Printer, languageString string, a []any, components ...discord.ContainerComponent) discord.MessageUpdate {
+	flags := discord.MessageFlagEphemeral
 	return discord.MessageUpdate{
 		Embeds: &[]discord.Embed{
 			{
@@ -48,5 +51,6 @@ func UpdateErrorComponentsf(p *message.Printer, languageString string, a []any, 
 			},
 		},
 		Components: &components,
+		Flags:      &flags,
 	}
 }
