@@ -13,7 +13,6 @@ func (b *Bot) SetupLavalink() {
 	b.MusicPlayers = NewMusicPlayerMap(b)
 	b.Lavalink = disgolink.New(b.Client, lavalink.WithPlugins(source_extensions.NewSpotifyPlugin(), source_extensions.NewAppleMusicPlugin()))
 	b.RegisterNodes()
-	b.Client.EventManager().AddEventListeners(b.Lavalink)
 }
 
 func (b *Bot) RegisterNodes() {
