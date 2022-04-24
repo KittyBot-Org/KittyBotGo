@@ -156,7 +156,7 @@ func playAndQueue(b *kbot.Bot, p *message.Printer, i discord.BaseInteraction, tr
 			}
 			return
 		}
-		if _, err := b.Client.Rest().UpdateInteractionResponse(i.ApplicationID(), i.Token(), responses.UpdateErrorComponentsf(p, "modules.music.commands.play.now.playing", []any{track.Info().Title, *track.Info().URI})); err != nil {
+		if _, err := b.Client.Rest().UpdateInteractionResponse(i.ApplicationID(), i.Token(), responses.UpdateSuccessComponentsf(p, "modules.music.commands.play.now.playing", []any{track.Info().Title, *track.Info().URI}, getMusicControllerComponents(track))); err != nil {
 			b.Logger.Error("Error while updating interaction message: ", err)
 		}
 	} else {
