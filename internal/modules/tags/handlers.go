@@ -42,39 +42,39 @@ func createTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationComm
 	content := data.String("content")
 
 	if len(name) >= 64 {
-		return responses.Errorf(e, p, "modules.tags.commands.tags.create.name.too.long")
+		return e.CreateMessage(responses.CreateErrorf(p, "modules.tags.commands.tags.create.name.too.long"))
 	}
 	if len(content) >= 2048 {
-		return responses.Errorf(e, p, "modules.tags.commands.tags.create.content.too.long")
+		return e.CreateMessage(responses.CreateErrorf(p, "modules.tags.commands.tags.create.content.too.long"))
 	}
 
 	if err := b.DB.Tags().Create(*e.GuildID(), e.User().ID, name, content); err != nil {
 		if pgErr, ok := err.(*pq.Error); ok && pgErr.Code == "23505" {
-			return responses.Errorf(e, p, "modules.tags.commands.tags.create.duplicate", name)
+			return e.CreateMessage(responses.CreateErrorf(p, "modules.tags.commands.tags.create.duplicate", name))
 		}
 		b.Logger.Error("Failed to create tag: ", err)
-		return responses.Errorf(e, p, "modules.tags.commands.tags.create.error", name)
+		return e.CreateMessage(responses.CreateErrorf(p, "modules.tags.commands.tags.create.error", name))
 	}
-	return responses.Errorf(e, p, "modules.tags.commands.tags.create.success", name)
+	return e.CreateMessage(responses.CreateErrorf(p, "modules.tags.commands.tags.create.success", name))
 }
 
 func deleteTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	name := strings.ToLower(e.SlashCommandInteractionData().String("name"))
 	tag, err := b.DB.Tags().Get(*e.GuildID(), name)
 	if err == qrm.ErrNoRows {
-		return responses.Errorf(e, p, "modules.tags.commands.tags.not.found", name)
+		return e.CreateMessage(responses.CreateErrorf(p, "modules.tags.commands.tags.not.found", name))
 	} else if err != nil {
-		return responses.Errorf(e, p, "modules.tags.commands.tags.error", name)
+		return e.CreateMessage(responses.CreateErrorf(p, "modules.tags.commands.tags.error", name))
 	}
 
 	if tag.OwnerID != e.User().ID.String() || !e.Member().Permissions.Has(discord.PermissionManageServer) {
-		return responses.Errorf(e, p, "modules.tags.commands.tags.delete.no.permissions", name)
+		return e.CreateMessage(responses.CreateErrorf(p, "modules.tags.commands.tags.delete.no.permissions", name))
 	}
 	if err = b.DB.Tags().Delete(*e.GuildID(), name); err != nil {
 		b.Logger.Error("Failed to delete tag: ", err)
-		return responses.Errorf(e, p, "modules.tags.commands.tags.delete.error", name)
+		return e.CreateMessage(responses.CreateErrorf(p, "modules.tags.commands.tags.delete.error", name))
 	}
-	return responses.Successf(e, p, "modules.tags.commands.tags.delete.success", name)
+	return e.CreateMessage(responses.CreateSuccessf(p, "modules.tags.commands.tags.delete.success", name))
 }
 
 func editTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
@@ -84,20 +84,20 @@ func editTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationComman
 
 	tag, err := b.DB.Tags().Get(*e.GuildID(), name)
 	if err == qrm.ErrNoRows {
-		return responses.Errorf(e, p, "modules.tags.commands.tags.edit.not.found", name)
+		return e.CreateMessage(responses.CreateErrorf(p, "modules.tags.commands.tags.edit.not.found", name))
 	} else if err != nil {
-		return responses.Errorf(e, p, "modules.tags.commands.tags.edit.error", name)
+		return e.CreateMessage(responses.CreateErrorf(p, "modules.tags.commands.tags.edit.error", name))
 	}
 
 	if tag.OwnerID != e.User().ID.String() || !e.Member().Permissions.Has(discord.PermissionManageServer) {
-		return responses.Errorf(e, p, "modules.tags.commands.tags.edit.no.permissions", name)
+		return e.CreateMessage(responses.CreateErrorf(p, "modules.tags.commands.tags.edit.no.permissions", name))
 	}
 
 	if err = b.DB.Tags().Edit(*e.GuildID(), name, content); err != nil {
 		b.Logger.Error("Failed to delete tag: ", err)
-		return responses.Errorf(e, p, "modules.tags.commands.tags.delete.error", name)
+		return e.CreateMessage(responses.CreateErrorf(p, "modules.tags.commands.tags.delete.error", name))
 	}
-	return responses.Successf(e, p, "modules.tags.commands.tags.edit.success", name)
+	return e.CreateMessage(responses.CreateSuccessf(p, "modules.tags.commands.tags.edit.success", name))
 }
 
 func infoTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
@@ -105,28 +105,28 @@ func infoTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationComman
 
 	tag, err := b.DB.Tags().Get(*e.GuildID(), name)
 	if err == qrm.ErrNoRows {
-		return responses.Errorf(e, p, "modules.tags.commands.tags.info.not.found", name)
+		return e.CreateMessage(responses.CreateErrorf(p, "modules.tags.commands.tags.info.not.found", name))
 	} else if err != nil {
-		return responses.Errorf(e, p, "modules.tags.commands.tags.info.error", name)
+		return e.CreateMessage(responses.CreateErrorf(p, "modules.tags.commands.tags.info.error", name))
 	}
 
-	return responses.SuccessEmbed(e, discord.NewEmbedBuilder().
+	return e.CreateMessage(responses.CreateSuccessEmbed(discord.NewEmbedBuilder().
 		SetTitle(p.Sprintf("modules.tags.commands.tags.info.title", tag.Name)).
 		SetDescription(tag.Content).
 		AddField(p.Sprintf("modules.tags.commands.tags.info.owner"), "<@"+tag.OwnerID+">", true).
 		AddField(p.Sprintf("modules.tags.commands.tags.info.uses"), strconv.FormatInt(tag.Uses, 10), true).
 		AddField(p.Sprintf("modules.tags.commands.tags.info.created.at"), fmt.Sprintf("%s (%s)", discord.NewTimestamp(discord.TimestampStyleNone, tag.CreatedAt), discord.NewTimestamp(discord.TimestampStyleRelative, tag.CreatedAt)), false).
-		Build())
+		Build()))
 }
 
 func listTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	tags, err := b.DB.Tags().GetAll(*e.GuildID())
 	if err != nil {
-		return responses.Errorf(e, p, "modules.tags.commands.tags.list.error")
+		return e.CreateMessage(responses.CreateErrorf(p, "modules.tags.commands.tags.list.error"))
 	}
 
 	if len(tags) == 0 {
-		return responses.Errorf(e, p, "modules.tags.commands.tags.list.no.tags")
+		return e.CreateMessage(responses.CreateErrorf(p, "modules.tags.commands.tags.list.no.tags"))
 	}
 
 	var pages []string

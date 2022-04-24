@@ -31,14 +31,14 @@ func (b *Bot) SyncCommands() {
 	if b.Config.DevMode {
 		for _, guildID := range b.Config.DevGuildIDs {
 			b.Logger.Infof("Syncing Commands for guild %s...", guildID)
-			if _, err := b.Client.Rest().Applications().SetGuildCommands(b.Client.ApplicationID(), guildID, commands); err != nil {
+			if _, err := b.Client.Rest().SetGuildCommands(b.Client.ApplicationID(), guildID, commands); err != nil {
 				b.Logger.Errorf("Failed to sync commands for guild %s: %s", guildID, err)
 			}
 		}
 		return
 	}
 	b.Logger.Infof("Syncing Commands global...")
-	if _, err := b.Client.Rest().Applications().SetGlobalCommands(b.Client.ApplicationID(), commands); err != nil {
+	if _, err := b.Client.Rest().SetGlobalCommands(b.Client.ApplicationID(), commands); err != nil {
 		b.Logger.Errorf("Failed to sync commands global: %s", err)
 	}
 }

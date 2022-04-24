@@ -2,41 +2,51 @@ package responses
 
 import (
 	"github.com/disgoorg/disgo/discord"
-	"github.com/disgoorg/disgo/events"
 	"golang.org/x/text/message"
 )
 
-func UpdateError(e *events.ApplicationCommandInteractionEvent, content string) error {
-	flags := discord.MessageFlagEphemeral
-	_, err := e.Client().Rest().Interactions().UpdateInteractionResponse(e.ApplicationID(), e.Token(), discord.MessageUpdate{Embeds: &[]discord.Embed{
-		{
-			Description: content,
-			Color:       ErrorColor,
+func UpdateSuccessf(p *message.Printer, languageString string, a ...any) discord.MessageUpdate {
+	return discord.MessageUpdate{
+		Embeds: &[]discord.Embed{
+			{
+				Color:       SuccessColor,
+				Description: p.Sprintf(languageString, a...),
+			},
 		},
-	}, Flags: &flags})
-	return err
+	}
 }
 
-func UpdateErrorf(e *events.ApplicationCommandInteractionEvent, p *message.Printer, languageString string, a ...any) error {
-	return UpdateError(e, p.Sprintf(languageString, a))
-}
-
-func UpdateSuccess(e *events.ApplicationCommandInteractionEvent, content string) error {
-	_, err := e.Client().Rest().Interactions().UpdateInteractionResponse(e.ApplicationID(), e.Token(), discord.MessageUpdate{Embeds: &[]discord.Embed{
-		{
-			Description: content,
-			Color:       SuccessColor,
+func UpdateSuccessComponentsf(p *message.Printer, languageString string, a []any, components ...discord.ContainerComponent) discord.MessageUpdate {
+	return discord.MessageUpdate{
+		Embeds: &[]discord.Embed{
+			{
+				Color:       SuccessColor,
+				Description: p.Sprintf(languageString, a...),
+			},
 		},
-	}})
-	return err
+		Components: &components,
+	}
 }
 
-func UpdateSuccessf(e *events.ApplicationCommandInteractionEvent, p *message.Printer, languageString string, a ...any) error {
-	return UpdateSuccess(e, p.Sprintf(languageString, a))
+func UpdateErrorf(p *message.Printer, languageString string, a ...any) discord.MessageUpdate {
+	return discord.MessageUpdate{
+		Embeds: &[]discord.Embed{
+			{
+				Color:       ErrorColor,
+				Description: p.Sprintf(languageString, a...),
+			},
+		},
+	}
 }
 
-func UpdateSuccessEmbed(e *events.ApplicationCommandInteractionEvent, embed discord.Embed) error {
-	embed.Color = SuccessColor
-	_, err := e.Client().Rest().Interactions().UpdateInteractionResponse(e.ApplicationID(), e.Token(), discord.MessageUpdate{Embeds: &[]discord.Embed{embed}})
-	return err
+func UpdateErrorComponentsf(p *message.Printer, languageString string, a []any, components ...discord.ContainerComponent) discord.MessageUpdate {
+	return discord.MessageUpdate{
+		Embeds: &[]discord.Embed{
+			{
+				Color:       ErrorColor,
+				Description: p.Sprintf(languageString, a...),
+			},
+		},
+		Components: &components,
+	}
 }
