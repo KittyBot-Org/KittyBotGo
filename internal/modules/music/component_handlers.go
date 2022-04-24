@@ -36,7 +36,7 @@ func previousComponentHandler(b *kbot.Bot, p *message.Printer, e *events.Compone
 	if err = player.Play(nextTrack); err != nil {
 		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.components.previous.error"))
 	}
-	return e.UpdateMessage(responses.UpdateSuccessComponentsf(p, "modules.music.commands.previous.success", []any{nextTrack.Info().Title, *nextTrack.Info().URI, nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
+	return e.UpdateMessage(responses.UpdateSuccessComponentsf(p, "modules.music.commands.previous.success", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
 }
 
 func playPauseComponentHandler(b *kbot.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
@@ -55,11 +55,10 @@ func playPauseComponentHandler(b *kbot.Bot, p *message.Printer, e *events.Compon
 		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.components.play.pause.play.error"))
 	}
 	track := player.PlayingTrack()
-	info := track.Info()
 	if paused {
-		return e.UpdateMessage(responses.UpdateSuccessComponentsf(p, "modules.music.components.play.pause.pause.success", []any{info.Title, *info.URI, info.Length, player.Position()}, getMusicControllerComponents(track)))
+		return e.UpdateMessage(responses.UpdateSuccessComponentsf(p, "modules.music.components.play.pause.pause.success", []any{formatTrack(track), track.Info().Length, player.Position()}, getMusicControllerComponents(track)))
 	}
-	return e.UpdateMessage(responses.UpdateSuccessComponentsf(p, "modules.music.components.play.pause.play.success", []any{info.Title, *info.URI, info.Length}, getMusicControllerComponents(track)))
+	return e.UpdateMessage(responses.UpdateSuccessComponentsf(p, "modules.music.components.play.pause.play.success", []any{formatTrack(track), track.Info().Length}, getMusicControllerComponents(track)))
 }
 
 func nextComponentHandler(b *kbot.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
@@ -75,7 +74,7 @@ func nextComponentHandler(b *kbot.Bot, p *message.Printer, e *events.ComponentIn
 	if err = player.Play(nextTrack); err != nil {
 		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.components.next.error"))
 	}
-	return e.UpdateMessage(responses.UpdateSuccessComponentsf(p, "modules.music.commands.next.success", []any{nextTrack.Info().Title, *nextTrack.Info().URI, nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
+	return e.UpdateMessage(responses.UpdateSuccessComponentsf(p, "modules.music.commands.next.success", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
 }
 
 func likeComponentHandler(b *kbot.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {

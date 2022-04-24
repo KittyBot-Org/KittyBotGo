@@ -15,7 +15,7 @@
           "no.results": "Keine Ergebnisse für deine Suchanfrage gefunden.",
           "exception": "Es gab einen Fehler bei deiner Anfrage. Bitte versuche es erneut \nError: %s",
           "error": "Bei der Wiedergabe trat ein Fehler auf. Bitte versuche es erneut.",
-          "now.playing": "Jetzt läuft: [`%s`](<%s>)",
+          "now.playing": "Jetzt läuft: %s",
           "added.to.queue": "`%d` Lieder wurden der Warteschlange hinzugefügt.",
           "select.songs": "Lieder zum Abspielen auswählen.",
           "search.timed.out": "Suche hat zu lange gedauert. Versuche es erneut."
@@ -29,7 +29,7 @@
         "remove": {
           "invalid.index": "Lied Index ungültig.",
           "track.not.found": "Kein Lied mit Index `%d` gefunden.",
-          "removed": "Lied [`%s`](<%s>) am Index `%d` wurde aus der Warteschlange entfernt.",
+          "removed": "Lied %s am Index `%d` wurde aus der Warteschlange entfernt.",
           "no.user.tracks": "Kein Lied vom Nutzer <@%s> gefunden.",
           "removed.user.tracks": "`%d` Lieder von <@%s> wurden aus der Warteschlange entfernt."
         },
@@ -72,11 +72,11 @@
         },
         "next": {
           "error": "Nächstes Lied abspielen fehlgeschlagen. Bitte versuche es erneut.",
-          "success": "⏭ Lied übersprungen.\nJetzt läuft: [`%s`](<%s>) - %s"
+          "success": "⏭ Lied übersprungen.\nJetzt läuft: %s - %s"
         },
         "previous": {
           "error": "Vorheriges Lied abspielen fehlgeschlagen. Bitte versuche es erneut.",
-          "success": "⏮ Lied übersprungen.\nJetzt läuft: [`%s`](<%s>) - %s"
+          "success": "⏮ Lied übersprungen.\nJetzt läuft: %s - %s"
         },
         "shuffle": "🔀 Warteschlange gemischt",
         "liked.songs": {
@@ -104,11 +104,11 @@
           "not.playing": "Kein Lied wird gerade abgespielt.",
           "pause": {
             "error": "Musikplayer anhalten fehlgeschlagen. Bitte versuche es erneut.",
-            "success": "⏸ Musikplayer angehalten.\nPausiert: [`%s`](<%s>) - %s bei `%s`."
+            "success": "⏸ Musikplayer angehalten.\nPausiert: %s - %s bei `%s`."
           },
           "play": {
             "error": "Musikplayer pausieren fehlgeschlagen. Bitte versuche es erneut.",
-            "success": "▶ Musikplayer fortgesetzt.\nSpielen: [`%s`](<%s>) - %s"
+            "success": "▶ Musikplayer fortgesetzt.\nSpielen: %s - %s"
           }
         },
         "next": {
@@ -119,11 +119,11 @@
           "no.track": "Kein Lied konnte in der Nachricht gefunden werden. Bitte versuche es erneut.",
           "liked": {
             "error": "Lied hinzufügen fehlgeschlagen. Bitte versuche es erneut.",
-            "success": "👍 [`%s`](<%s>) zu Favoriten hinzugefügt."
+            "success": "👍 %s zu Favoriten hinzugefügt."
           },
           "unliked": {
             "error": "Lied entfernen fehlgeschlagen. Bitte versuche es erneut.",
-            "success": "👎 [`%s`](<%s>) von deinen Favoriten entfernt."
+            "success": "👎 %s von deinen Favoriten entfernt."
           }
         }
       }

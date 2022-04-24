@@ -156,7 +156,7 @@ func playAndQueue(b *kbot.Bot, p *message.Printer, i discord.BaseInteraction, tr
 			}
 			return
 		}
-		if _, err := b.Client.Rest().UpdateInteractionResponse(i.ApplicationID(), i.Token(), responses.UpdateSuccessComponentsf(p, "modules.music.commands.play.now.playing", []any{track.Info().Title, *track.Info().URI}, getMusicControllerComponents(track))); err != nil {
+		if _, err := b.Client.Rest().UpdateInteractionResponse(i.ApplicationID(), i.Token(), responses.UpdateSuccessComponentsf(p, "modules.music.commands.play.now.playing", []any{formatTrack(track)}, getMusicControllerComponents(track))); err != nil {
 			b.Logger.Error("Error while updating interaction message: ", err)
 		}
 	} else {
@@ -247,7 +247,7 @@ func queueHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandI
 		tracksCounter int
 	)
 	for i, track := range tracks {
-		trackStr := fmt.Sprintf("%d. [`%s`](<%s>) - %s [<@%s>]\n", i+1, track.Info().Title, *track.Info().URI, track.Info().Length, track.UserData().(kbot.AudioTrackData).Requester)
+		trackStr := fmt.Sprintf("%d. %s - %s [<@%s>]\n", i+1, formatTrack(track), track.Info().Length, track.UserData().(kbot.AudioTrackData).Requester)
 		if len(page)+len(trackStr) > 4096 || tracksCounter >= 10 {
 			pages = append(pages, page)
 			page = ""
@@ -280,7 +280,7 @@ func historyHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationComman
 	)
 	for i := len(tracks) - 1; i >= 0; i-- {
 		track := tracks[i]
-		trackStr := fmt.Sprintf("%d. [`%s`](<%s>) - %s [<@%s>]\n", len(tracks)-i, track.Info().Title, *track.Info().URI, track.Info().Length, track.UserData().(kbot.AudioTrackData).Requester)
+		trackStr := fmt.Sprintf("%d. %s - %s [<@%s>]\n", len(tracks)-i, formatTrack(track), track.Info().Length, track.UserData().(kbot.AudioTrackData).Requester)
 		if len(page)+len(trackStr) > 4096 || tracksCounter >= 10 {
 			pages = append(pages, page)
 			page = ""
@@ -318,7 +318,7 @@ func removeSongHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCom
 
 	player.Queue.Remove(index - 1)
 	return e.CreateMessage(discord.MessageCreate{
-		Content: p.Sprintf("modules.music.commands.remove.removed", removeTrack.Info().Title, *removeTrack.Info().URI, index),
+		Content: p.Sprintf("modules.music.commands.remove.removed", formatTrack(removeTrack), index),
 	})
 }
 
@@ -503,7 +503,7 @@ func nextHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandIn
 	if err := player.Play(nextTrack); err != nil {
 		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.commands.next.error"))
 	}
-	return e.CreateMessage(responses.CreateSuccessComponentsf(p, "modules.music.commands.next.success", []any{nextTrack.Info().Title, *nextTrack.Info().URI, nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
+	return e.CreateMessage(responses.CreateSuccessComponentsf(p, "modules.music.commands.next.success", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
 }
 
 func previousHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
@@ -517,7 +517,7 @@ func previousHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationComma
 	if err := player.Play(previousTrack); err != nil {
 		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.commands.previous.error"))
 	}
-	return e.CreateMessage(responses.CreateSuccessComponentsf(p, "modules.music.commands.previous.success", []any{previousTrack.Info().Title, *previousTrack.Info().URI, previousTrack.Info().Length}, getMusicControllerComponents(previousTrack)))
+	return e.CreateMessage(responses.CreateSuccessComponentsf(p, "modules.music.commands.previous.success", []any{formatTrack(previousTrack), previousTrack.Info().Length}, getMusicControllerComponents(previousTrack)))
 }
 
 func shuffleHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
@@ -606,4 +606,8 @@ func likedSongsClearHandler(b *kbot.Bot, p *message.Printer, e *events.Applicati
 
 func likedSongsPlayHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	return nil
+}
+
+func formatTrack(track lavalink.AudioTrack) string {
+	return fmt.Sprintf("[`%s`](%s)", track.Info().Title, *track.Info().URI)
 }
