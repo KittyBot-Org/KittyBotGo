@@ -30,8 +30,8 @@
           "invalid.index": "Lied Index ungültig.",
           "track.not.found": "Kein Lied mit Index `%d` gefunden.",
           "removed": "Lied %s am Index `%d` wurde aus der Warteschlange entfernt.",
-          "no.user.tracks": "Kein Lied vom Nutzer <@%s> gefunden.",
-          "removed.user.tracks": "`%d` Lieder von <@%s> wurden aus der Warteschlange entfernt."
+          "no.user.tracks": "Kein Lied vom Nutzer %s gefunden.",
+          "removed.user.tracks": "`%d` Lieder von %s wurden aus der Warteschlange entfernt."
         },
         "clear": {
           "cleared": "Warteschlange wurde geleert."

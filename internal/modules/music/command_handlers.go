@@ -335,9 +335,9 @@ func removeUserSongsHandler(b *kbot.Bot, p *message.Printer, e *events.Applicati
 	}
 	var msg string
 	if removedTracks == 0 {
-		msg = p.Sprintf("modules.music.commands.remove.no.user.tracks", userID)
+		msg = p.Sprintf("modules.music.commands.remove.no.user.tracks", discord.UserMention(userID))
 	} else {
-		msg = p.Sprintf("modules.music.commands.remove.removed.user.tracks", removedTracks, userID)
+		msg = p.Sprintf("modules.music.commands.remove.removed.user.tracks", removedTracks, discord.UserMention(userID))
 	}
 
 	return e.CreateMessage(discord.NewMessageCreateBuilder().
