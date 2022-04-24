@@ -78,7 +78,10 @@ func nextComponentHandler(b *kbot.Bot, p *message.Printer, e *events.ComponentIn
 }
 
 func likeComponentHandler(b *kbot.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
-	allMatches := trackRegex.FindAllStringSubmatch(e.Message.Content, -1)
+	if len(e.Message.Embeds) == 0 {
+		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.components.like.no.embed"))
+	}
+	allMatches := trackRegex.FindAllStringSubmatch(e.Message.Embeds[0].Description, -1)
 	if allMatches == nil {
 		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.components.like.no.track"))
 	}
