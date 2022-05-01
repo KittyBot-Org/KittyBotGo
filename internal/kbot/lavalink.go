@@ -6,12 +6,12 @@ import (
 
 	"github.com/disgoorg/disgolink/disgolink"
 	"github.com/disgoorg/disgolink/lavalink"
-	"github.com/disgoorg/source-extensions-plugin"
+	"github.com/disgoorg/source-plugins"
 )
 
 func (b *Bot) SetupLavalink() {
 	b.MusicPlayers = NewMusicPlayerMap(b)
-	b.Lavalink = disgolink.New(b.Client, lavalink.WithPlugins(source_extensions.NewSpotifyPlugin(), source_extensions.NewAppleMusicPlugin()))
+	b.Lavalink = disgolink.New(b.Client, lavalink.WithPlugins(source_plugins.NewSpotifyPlugin(), source_plugins.NewAppleMusicPlugin()))
 	b.RegisterNodes()
 }
 

@@ -9,7 +9,7 @@ import (
 
 	"github.com/KittyBot-Org/KittyBotGo/internal/kbot"
 	"github.com/KittyBot-Org/KittyBotGo/internal/responses"
-	"github.com/disgoorg/source-extensions-plugin"
+	source_plugins "github.com/disgoorg/source-plugins"
 
 	"github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgo/discord"
@@ -540,12 +540,18 @@ func getArtworkURL(track lavalink.AudioTrack) string {
 	switch track.Info().SourceName {
 	case "youtube":
 		return "https://i.ytimg.com/vi/" + track.Info().Identifier + "/maxresdefault.jpg"
+
 	case "twitch":
 		return "https://static-cdn.jtvnw.net/previews-ttv/live_user_" + track.Info().Identifier + "-440x248.jpg"
 
-	case "spotify", "applemusic":
-		if isrcTrack, ok := track.(*source_extensions.ISRCAudioTrack); ok && isrcTrack.ArtworkURL != nil {
-			return *isrcTrack.ArtworkURL
+	case "spotify":
+		if spotifyTrack, ok := track.(*source_plugins.SpotifyAudioTrack); ok && spotifyTrack.ArtworkURL != nil {
+			return *spotifyTrack.ArtworkURL
+		}
+
+	case "applemusic":
+		if appleMusicTrack, ok := track.(*source_plugins.AppleMusicAudioTrack); ok && appleMusicTrack.ArtworkURL != nil {
+			return *appleMusicTrack.ArtworkURL
 		}
 	}
 	return ""
