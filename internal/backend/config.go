@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/KittyBot-Org/KittyBotGo/internal/config"
-	"github.com/disgoorg/snowflake"
+	"github.com/disgoorg/snowflake/v2"
 )
 
 type Config struct {
@@ -19,8 +19,8 @@ type Config struct {
 }
 
 type BotListsConfig struct {
-	VoterRoleID snowflake.Snowflake `json:"voter_role_id"`
-	Tokens      map[string]string   `json:"tokens"`
+	VoterRoleID snowflake.ID      `json:"voter_role_id"`
+	Tokens      map[string]string `json:"tokens"`
 }
 
 type BotList struct {

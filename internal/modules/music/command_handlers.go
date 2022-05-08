@@ -15,7 +15,7 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgolink/lavalink"
-	"github.com/disgoorg/snowflake"
+	"github.com/disgoorg/snowflake/v2"
 	"github.com/disgoorg/utils/paginator"
 	"golang.org/x/text/message"
 )
@@ -46,7 +46,7 @@ var (
 func playHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
 	data := e.SlashCommandInteractionData()
 
-	var voiceChannelID snowflake.Snowflake
+	var voiceChannelID snowflake.ID
 	if voiceState, ok := b.Client.Caches().VoiceStates().Get(*e.GuildID(), e.User().ID); !ok || voiceState.ChannelID == nil {
 		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.not.in.voice"))
 	} else {
@@ -120,7 +120,7 @@ func playAndQueue(b *kbot.Bot, p *message.Printer, i discord.BaseInteraction, tr
 		player = b.MusicPlayers.New(*i.GuildID(), kbot.PlayerTypeMusic, kbot.LoopingTypeOff)
 		b.MusicPlayers.Add(player)
 	}
-	var voiceChannelID snowflake.Snowflake
+	var voiceChannelID snowflake.ID
 	if voiceState, ok := b.Client.Caches().VoiceStates().Get(*i.GuildID(), i.User().ID); !ok || voiceState.ChannelID == nil {
 		if _, err := b.Client.Rest().UpdateInteractionResponse(i.ApplicationID(), i.Token(), responses.UpdateErrorComponentsf(p, "modules.music.not.in.voice", nil)); err != nil {
 			b.Logger.Error("Failed to update error message: ", err)
@@ -196,7 +196,7 @@ func giveSearchSelection(b *kbot.Bot, p *message.Printer, e *events.ApplicationC
 
 	if _, err := e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(),
 		responses.UpdateSuccessComponentsf(p, "modules.music.autocomplete.select.songs", nil, discord.NewActionRow(
-			discord.NewSelectMenu(discord.CustomID("play:search:"+e.ID()), p.Sprintf("modules.music.commands.play.select.songs"), options...).WithMaxValues(len(options)),
+			discord.NewSelectMenu(discord.CustomID("play:search:"+e.ID().String()), p.Sprintf("modules.music.commands.play.select.songs"), options...).WithMaxValues(len(options)),
 		)),
 	); err != nil {
 		b.Logger.Error("Error while updating interaction message: ", err)
@@ -204,7 +204,7 @@ func giveSearchSelection(b *kbot.Bot, p *message.Printer, e *events.ApplicationC
 
 	go func() {
 		collectorChan, cancel := bot.NewEventCollector(e.Client(), func(e *events.ComponentInteractionEvent) bool {
-			return e.Data.CustomID() == discord.CustomID("play:search:"+e.ID())
+			return e.Data.CustomID() == discord.CustomID("play:search:"+e.ID().String())
 		})
 		defer cancel()
 		for {

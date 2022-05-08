@@ -3,20 +3,20 @@ package kbot
 import (
 	"sync"
 
-	"github.com/disgoorg/snowflake"
+	"github.com/disgoorg/snowflake/v2"
 )
 
 func NewMusicPlayerMap(bot *Bot) *MusicPlayerMap {
 	return &MusicPlayerMap{
 		bot:     bot,
-		players: make(map[snowflake.Snowflake]*MusicPlayer),
+		players: make(map[snowflake.ID]*MusicPlayer),
 	}
 }
 
 type MusicPlayerMap struct {
 	bot     *Bot
 	mu      sync.Mutex
-	players map[snowflake.Snowflake]*MusicPlayer
+	players map[snowflake.ID]*MusicPlayer
 }
 
 func (b *MusicPlayerMap) Len() int {
@@ -38,13 +38,13 @@ func (b *MusicPlayerMap) All() []*MusicPlayer {
 	return players
 }
 
-func (b *MusicPlayerMap) Get(guildID snowflake.Snowflake) *MusicPlayer {
+func (b *MusicPlayerMap) Get(guildID snowflake.ID) *MusicPlayer {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	return b.players[guildID]
 }
 
-func (b *MusicPlayerMap) Has(guildID snowflake.Snowflake) bool {
+func (b *MusicPlayerMap) Has(guildID snowflake.ID) bool {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	_, ok := b.players[guildID]
@@ -57,20 +57,20 @@ func (b *MusicPlayerMap) Add(player *MusicPlayer) {
 	b.players[player.GuildID()] = player
 }
 
-func (b *MusicPlayerMap) Delete(guildID snowflake.Snowflake) {
+func (b *MusicPlayerMap) Delete(guildID snowflake.ID) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	delete(b.players, guildID)
 }
 
-func (b *MusicPlayerMap) New(guildID snowflake.Snowflake, playerType PlayerType, loopingType LoopingType) *MusicPlayer {
+func (b *MusicPlayerMap) New(guildID snowflake.ID, playerType PlayerType, loopingType LoopingType) *MusicPlayer {
 	player := &MusicPlayer{
 		Player:    b.bot.Lavalink.Player(guildID),
 		Bot:       b.bot,
 		Type:      playerType,
 		Queue:     NewMusicQueue(loopingType),
 		History:   NewHistory(),
-		SkipVotes: make(map[snowflake.Snowflake]struct{}),
+		SkipVotes: make(map[snowflake.ID]struct{}),
 	}
 	player.AddListener(player)
 	return player

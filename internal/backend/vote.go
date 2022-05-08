@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/disgoorg/snowflake"
+	"github.com/disgoorg/snowflake/v2"
 )
 
-func (b *Backend) AddVote(userID snowflake.Snowflake, botList BotList, multiplier int) error {
+func (b *Backend) AddVote(userID snowflake.ID, botList BotList, multiplier int) error {
 	voteDuration := botList.VoteCooldown * 2 * time.Duration(multiplier)
 	if err := b.DB.Voters().Add(userID, voteDuration); err != nil {
 		return err
@@ -22,7 +22,7 @@ func (b *Backend) VoteTask(ctx context.Context) {
 		return
 	}
 	for _, voter := range voters {
-		if err = b.Rest.RemoveMemberRole(b.Config.SupportGuildID, snowflake.Snowflake(voter.UserID), b.Config.BotLists.VoterRoleID); err != nil {
+		if err = b.Rest.RemoveMemberRole(b.Config.SupportGuildID, snowflake.ID(voter.UserID), b.Config.BotLists.VoterRoleID); err != nil {
 			b.Logger.Error("failed to remove voter role: ", err)
 		}
 	}

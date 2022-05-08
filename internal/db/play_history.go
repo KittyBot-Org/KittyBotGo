@@ -6,20 +6,20 @@ import (
 
 	. "github.com/KittyBot-Org/KittyBotGo/internal/db/.gen/kittybot-go/public/model"
 	"github.com/KittyBot-Org/KittyBotGo/internal/db/.gen/kittybot-go/public/table"
-	"github.com/disgoorg/snowflake"
+	"github.com/disgoorg/snowflake/v2"
 	. "github.com/go-jet/jet/v2/postgres"
 )
 
 type PlayHistoriesDB interface {
-	Get(userID snowflake.Snowflake) ([]PlayHistory, error)
-	Add(userID snowflake.Snowflake, query string, title string) error
+	Get(userID snowflake.ID) ([]PlayHistory, error)
+	Add(userID snowflake.ID, query string, title string) error
 }
 
 type playHistoriesDBImpl struct {
 	db *sql.DB
 }
 
-func (h *playHistoriesDBImpl) Get(userID snowflake.Snowflake) ([]PlayHistory, error) {
+func (h *playHistoriesDBImpl) Get(userID snowflake.ID) ([]PlayHistory, error) {
 	var playHistories []PlayHistory
 	err := table.PlayHistory.SELECT(table.PlayHistory.AllColumns).
 		WHERE(table.PlayHistory.UserID.EQ(String(userID.String()))).
@@ -28,7 +28,7 @@ func (h *playHistoriesDBImpl) Get(userID snowflake.Snowflake) ([]PlayHistory, er
 	return playHistories, err
 }
 
-func (h *playHistoriesDBImpl) Add(userID snowflake.Snowflake, query string, title string) error {
+func (h *playHistoriesDBImpl) Add(userID snowflake.ID, query string, title string) error {
 	_, err := table.PlayHistory.INSERT(table.PlayHistory.AllColumns).
 		VALUES(String(userID.String()), String(query), String(title), time.Now()).
 		ON_CONFLICT(table.PlayHistory.UserID, table.PlayHistory.Title).

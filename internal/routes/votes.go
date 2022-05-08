@@ -2,25 +2,26 @@ package routes
 
 import (
 	"encoding/json"
-	"github.com/KittyBot-Org/KittyBotGo/internal/backend"
 	"net/http"
 
-	"github.com/disgoorg/snowflake"
+	"github.com/KittyBot-Org/KittyBotGo/internal/backend"
+
+	"github.com/disgoorg/snowflake/v2"
 	"github.com/gorilla/mux"
 )
 
 type voteAddPayload struct {
-	User      user                `json:"user"`
-	ID        snowflake.Snowflake `json:"id"`
-	IsWeekend bool                `json:"isWeekend"`
+	User      user         `json:"user"`
+	ID        snowflake.ID `json:"id"`
+	IsWeekend bool         `json:"isWeekend"`
 }
 
 type user struct {
-	ID snowflake.Snowflake `json:"id"`
+	ID snowflake.ID `json:"id"`
 }
 
 type voteAddPayload2 struct {
-	User snowflake.Snowflake `json:"user"`
+	User snowflake.ID `json:"user"`
 }
 
 func VotesHandler(b *backend.Backend) http.HandlerFunc {
@@ -28,7 +29,7 @@ func VotesHandler(b *backend.Backend) http.HandlerFunc {
 		params := mux.Vars(r)
 
 		var (
-			userID      snowflake.Snowflake
+			userID      snowflake.ID
 			botListName = params["bot_list"]
 			botList     backend.BotList
 			multiplier  = 1

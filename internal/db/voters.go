@@ -6,14 +6,14 @@ import (
 
 	. "github.com/KittyBot-Org/KittyBotGo/internal/db/.gen/kittybot-go/public/model"
 	"github.com/KittyBot-Org/KittyBotGo/internal/db/.gen/kittybot-go/public/table"
-	"github.com/disgoorg/snowflake"
+	"github.com/disgoorg/snowflake/v2"
 	. "github.com/go-jet/jet/v2/postgres"
 )
 
 type VotersDB interface {
 	GetAll(expiresAt time.Time) ([]Voter, error)
-	Add(userID snowflake.Snowflake, duration time.Duration) error
-	Delete(userID snowflake.Snowflake) error
+	Add(userID snowflake.ID, duration time.Duration) error
+	Delete(userID snowflake.ID) error
 }
 
 type votersDBImpl struct {
@@ -28,7 +28,7 @@ func (v *votersDBImpl) GetAll(expiresAt time.Time) ([]Voter, error) {
 	return voters, err
 }
 
-func (v *votersDBImpl) Add(userID snowflake.Snowflake, duration time.Duration) error {
+func (v *votersDBImpl) Add(userID snowflake.ID, duration time.Duration) error {
 	_, err := table.Voter.INSERT(table.Voter.AllColumns).
 		VALUES(userID, time.Now().Add(duration)).
 		ON_CONFLICT(table.Voter.UserID).
@@ -37,7 +37,7 @@ func (v *votersDBImpl) Add(userID snowflake.Snowflake, duration time.Duration) e
 	return err
 }
 
-func (v *votersDBImpl) Delete(userID snowflake.Snowflake) error {
+func (v *votersDBImpl) Delete(userID snowflake.ID) error {
 	_, err := table.Voter.DELETE().
 		WHERE(table.Voter.UserID.EQ(String(userID.String()))).
 		Exec(v.db)

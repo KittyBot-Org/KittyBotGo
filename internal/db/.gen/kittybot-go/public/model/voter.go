@@ -12,6 +12,6 @@ import (
 )
 
 type Voter struct {
-	UserID    string `sql:"primary_key"`
+	UserID    uint64 `sql:"primary_key"`
 	ExpiresAt time.Time
 }

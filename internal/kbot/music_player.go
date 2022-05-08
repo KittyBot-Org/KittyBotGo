@@ -5,13 +5,13 @@ import (
 	"time"
 
 	"github.com/disgoorg/disgolink/lavalink"
-	"github.com/disgoorg/snowflake"
+	"github.com/disgoorg/snowflake/v2"
 )
 
 var _ lavalink.PlayerEventListener = (*MusicPlayer)(nil)
 
 type AudioTrackData struct {
-	Requester snowflake.Snowflake `json:"requester"`
+	Requester snowflake.ID `json:"requester"`
 }
 
 type MusicPlayer struct {
@@ -20,7 +20,7 @@ type MusicPlayer struct {
 	Type              PlayerType
 	Queue             *MusicQueue
 	History           *MusicHistory
-	SkipVotes         map[snowflake.Snowflake]struct{}
+	SkipVotes         map[snowflake.ID]struct{}
 	DisconnectContext context.Context
 	DisconnectCancel  context.CancelFunc
 }

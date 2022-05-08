@@ -7,7 +7,7 @@ import (
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/json"
 	"github.com/disgoorg/disgolink/lavalink"
-	"github.com/disgoorg/snowflake"
+	"github.com/disgoorg/snowflake/v2"
 )
 
 var (
@@ -394,7 +394,7 @@ func (module) OnEvent(b *kbot.Bot, event bot.Event) {
 		if e.VoiceState.ChannelID == nil && e.OldVoiceState.ChannelID != nil {
 			botVoiceState, ok := b.Client.Caches().VoiceStates().Get(e.VoiceState.GuildID, e.Client().ID())
 			if ok && botVoiceState.ChannelID != nil && *botVoiceState.ChannelID == *e.OldVoiceState.ChannelID {
-				voiceStates := e.Client().Caches().VoiceStates().FindAll(func(groupID snowflake.Snowflake, voiceState discord.VoiceState) bool {
+				voiceStates := e.Client().Caches().VoiceStates().FindAll(func(groupID snowflake.ID, voiceState discord.VoiceState) bool {
 					return voiceState.ChannelID != nil && *voiceState.ChannelID == *botVoiceState.ChannelID
 				})
 				if len(voiceStates) == 0 {
