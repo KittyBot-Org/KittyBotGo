@@ -28,13 +28,13 @@ func (m module) Commands() []kbot.Command {
 				Description: "Plays music for you.",
 				Options: []discord.ApplicationCommandOption{
 					discord.ApplicationCommandOptionString{
-						Name:         "query",
+						OptionName:   "query",
 						Description:  "song name or url",
 						Required:     true,
 						Autocomplete: true,
 					},
 					discord.ApplicationCommandOptionString{
-						Name:        "search-provider",
+						OptionName:  "search-provider",
 						Description: "where to search for the query",
 						Choices: []discord.ApplicationCommandOptionChoiceString{
 							{
@@ -60,7 +60,6 @@ func (m module) Commands() []kbot.Command {
 						},
 					},
 				},
-				DefaultPermission: true,
 			},
 			Checks: kbot.IsMemberConnectedToVoiceChannel,
 			CommandHandler: map[string]kbot.CommandHandler{
@@ -72,9 +71,8 @@ func (m module) Commands() []kbot.Command {
 		},
 		{
 			Create: discord.SlashCommandCreate{
-				CommandName:       "queue",
-				Description:       "Shows the current queue.",
-				DefaultPermission: true,
+				CommandName: "queue",
+				Description: "Shows the current queue.",
 			},
 			Checks: kbot.HasMusicPlayer.And(kbot.HasQueueItems),
 			CommandHandler: map[string]kbot.CommandHandler{
@@ -83,9 +81,8 @@ func (m module) Commands() []kbot.Command {
 		},
 		{
 			Create: discord.SlashCommandCreate{
-				CommandName:       "history",
-				Description:       "Shows the current history.",
-				DefaultPermission: true,
+				CommandName: "history",
+				Description: "Shows the current history.",
 			},
 			Checks: kbot.HasMusicPlayer.And(kbot.HasHistoryItems),
 			CommandHandler: map[string]kbot.CommandHandler{
@@ -98,11 +95,11 @@ func (m module) Commands() []kbot.Command {
 				Description: "Removes songs from the queue.",
 				Options: []discord.ApplicationCommandOption{
 					discord.ApplicationCommandOptionSubCommand{
-						Name:        "song",
+						CommandName: "song",
 						Description: "Removes a songs from the queue.",
 						Options: []discord.ApplicationCommandOption{
 							discord.ApplicationCommandOptionString{
-								Name:         "song",
+								OptionName:   "song",
 								Description:  "the song to remove",
 								Required:     true,
 								Autocomplete: true,
@@ -110,18 +107,17 @@ func (m module) Commands() []kbot.Command {
 						},
 					},
 					discord.ApplicationCommandOptionSubCommand{
-						Name:        "user-songs",
+						CommandName: "user-songs",
 						Description: "Removes all songs from a user from the queue.",
 						Options: []discord.ApplicationCommandOption{
 							discord.ApplicationCommandOptionUser{
-								Name:        "user",
+								OptionName:  "user",
 								Description: "from which user to remove the songs",
 								Required:    true,
 							},
 						},
 					},
 				},
-				DefaultPermission: true,
 			},
 			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel).And(kbot.HasQueueItems),
 			CommandHandler: map[string]kbot.CommandHandler{
@@ -134,9 +130,8 @@ func (m module) Commands() []kbot.Command {
 		},
 		{
 			Create: discord.SlashCommandCreate{
-				CommandName:       "clear-queue",
-				Description:       "Removes all songs from your queue.",
-				DefaultPermission: true,
+				CommandName: "clear-queue",
+				Description: "Removes all songs from your queue.",
 			},
 			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel).And(kbot.HasQueueItems),
 			CommandHandler: map[string]kbot.CommandHandler{
@@ -145,9 +140,8 @@ func (m module) Commands() []kbot.Command {
 		},
 		{
 			Create: discord.SlashCommandCreate{
-				CommandName:       "stop",
-				Description:       "Stops the playing music.",
-				DefaultPermission: true,
+				CommandName: "stop",
+				Description: "Stops the playing music.",
 			},
 			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel),
 			CommandHandler: map[string]kbot.CommandHandler{
@@ -160,7 +154,7 @@ func (m module) Commands() []kbot.Command {
 				Description: "Loops your queue.",
 				Options: []discord.ApplicationCommandOption{
 					discord.ApplicationCommandOptionInt{
-						Name:        "looping-type",
+						OptionName:  "looping-type",
 						Description: "how to loop your queue",
 						Required:    true,
 						Choices: []discord.ApplicationCommandOptionChoiceInt{
@@ -179,7 +173,6 @@ func (m module) Commands() []kbot.Command {
 						},
 					},
 				},
-				DefaultPermission: true,
 			},
 			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel),
 			CommandHandler: map[string]kbot.CommandHandler{
@@ -188,9 +181,8 @@ func (m module) Commands() []kbot.Command {
 		},
 		{
 			Create: discord.SlashCommandCreate{
-				CommandName:       "now-playing",
-				Description:       "Tells you about the currently playing song.",
-				DefaultPermission: true,
+				CommandName: "now-playing",
+				Description: "Tells you about the currently playing song.",
 			},
 			Checks: kbot.HasMusicPlayer.And(kbot.IsPlaying),
 			CommandHandler: map[string]kbot.CommandHandler{
@@ -205,9 +197,8 @@ func (m module) Commands() []kbot.Command {
 		},
 		{
 			Create: discord.SlashCommandCreate{
-				CommandName:       "pause",
-				Description:       "Pauses or resumes the music.",
-				DefaultPermission: true,
+				CommandName: "pause",
+				Description: "Pauses or resumes the music.",
 			},
 			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel),
 			CommandHandler: map[string]kbot.CommandHandler{
@@ -220,14 +211,13 @@ func (m module) Commands() []kbot.Command {
 				Description: "Changes the volume of the music player.",
 				Options: []discord.ApplicationCommandOption{
 					discord.ApplicationCommandOptionInt{
-						Name:        "volume",
+						OptionName:  "volume",
 						Description: "the desired volume",
 						Required:    true,
 						MinValue:    json.NewPtr(0),
 						MaxValue:    json.NewPtr(100),
 					},
 				},
-				DefaultPermission: true,
 			},
 			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel),
 			CommandHandler: map[string]kbot.CommandHandler{
@@ -240,12 +230,11 @@ func (m module) Commands() []kbot.Command {
 				Description: "Enables or disables bass boost of the music player.",
 				Options: []discord.ApplicationCommandOption{
 					discord.ApplicationCommandOptionBool{
-						Name:        "enable",
+						OptionName:  "enable",
 						Description: "if the bass boost should be enabled or disabled",
 						Required:    true,
 					},
 				},
-				DefaultPermission: true,
 			},
 			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel),
 			CommandHandler: map[string]kbot.CommandHandler{
@@ -258,13 +247,13 @@ func (m module) Commands() []kbot.Command {
 				Description: "Seeks the music to a point in the queue.",
 				Options: []discord.ApplicationCommandOption{
 					discord.ApplicationCommandOptionInt{
-						Name:        "position",
+						OptionName:  "position",
 						Description: "the position to seek to in seconds(default)/minutes/hours",
 						Required:    true,
 						MinValue:    json.NewPtr(0),
 					},
 					discord.ApplicationCommandOptionInt{
-						Name:        "time-unit",
+						OptionName:  "time-unit",
 						Description: "in which time unit to seek",
 						Required:    false,
 						Choices: []discord.ApplicationCommandOptionChoiceInt{
@@ -283,7 +272,6 @@ func (m module) Commands() []kbot.Command {
 						},
 					},
 				},
-				DefaultPermission: true,
 			},
 			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel),
 			CommandHandler: map[string]kbot.CommandHandler{
@@ -292,9 +280,8 @@ func (m module) Commands() []kbot.Command {
 		},
 		{
 			Create: discord.SlashCommandCreate{
-				CommandName:       "next",
-				Description:       "Stops the song and starts the next one.",
-				DefaultPermission: true,
+				CommandName: "next",
+				Description: "Stops the song and starts the next one.",
 			},
 			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel).And(kbot.HasQueueItems),
 			CommandHandler: map[string]kbot.CommandHandler{
@@ -303,9 +290,8 @@ func (m module) Commands() []kbot.Command {
 		},
 		{
 			Create: discord.SlashCommandCreate{
-				CommandName:       "previous",
-				Description:       "Stops the song and starts the previous one.",
-				DefaultPermission: true,
+				CommandName: "previous",
+				Description: "Stops the song and starts the previous one.",
 			},
 			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel).And(kbot.HasHistoryItems),
 			CommandHandler: map[string]kbot.CommandHandler{
@@ -314,9 +300,8 @@ func (m module) Commands() []kbot.Command {
 		},
 		{
 			Create: discord.SlashCommandCreate{
-				CommandName:       "shuffle",
-				Description:       "Shuffles the queue of songs.",
-				DefaultPermission: true,
+				CommandName: "shuffle",
+				Description: "Shuffles the queue of songs.",
 			},
 			Checks: kbot.HasMusicPlayer.And(kbot.IsMemberConnectedToVoiceChannel).And(kbot.HasQueueItems),
 			CommandHandler: map[string]kbot.CommandHandler{
@@ -325,20 +310,19 @@ func (m module) Commands() []kbot.Command {
 		},
 		{
 			Create: discord.SlashCommandCreate{
-				CommandName:       "liked-songs",
-				Description:       "Lists/Removes/Plays a liked song.",
-				DefaultPermission: true,
+				CommandName: "liked-songs",
+				Description: "Lists/Removes/Plays a liked song.",
 				Options: []discord.ApplicationCommandOption{
 					discord.ApplicationCommandOptionSubCommand{
-						Name:        "list",
+						CommandName: "list",
 						Description: "Lists all your liked songs.",
 					},
 					discord.ApplicationCommandOptionSubCommand{
-						Name:        "remove",
+						CommandName: "remove",
 						Description: "Removes a liked song.",
 						Options: []discord.ApplicationCommandOption{
 							discord.ApplicationCommandOptionString{
-								Name:         "song",
+								OptionName:   "song",
 								Description:  "The song to remove",
 								Required:     true,
 								Autocomplete: true,
@@ -346,7 +330,7 @@ func (m module) Commands() []kbot.Command {
 						},
 					},
 					discord.ApplicationCommandOptionSubCommand{
-						Name:        "clear",
+						CommandName: "clear",
 						Description: "Clears all your liked song.",
 					},
 					/*discord.ApplicationCommandOptionSubCommand{
@@ -379,7 +363,7 @@ func (m module) Commands() []kbot.Command {
 
 func (module) OnEvent(b *kbot.Bot, event bot.Event) {
 	switch e := event.(type) {
-	case *events.GuildVoiceLeaveEvent:
+	case *events.GuildVoiceLeave:
 		player := b.MusicPlayers.Get(e.VoiceState.GuildID)
 		if player == nil {
 			return

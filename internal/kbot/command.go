@@ -7,9 +7,9 @@ import (
 )
 
 type (
-	CommandHandler      func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error
-	ComponentHandler    func(b *Bot, p *message.Printer, e *events.ComponentInteractionEvent) error
-	AutocompleteHandler func(b *Bot, p *message.Printer, e *events.AutocompleteInteractionEvent) error
+	CommandHandler      func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionCreate) error
+	ComponentHandler    func(b *Bot, p *message.Printer, e *events.ComponentInteractionCreate) error
+	AutocompleteHandler func(b *Bot, p *message.Printer, e *events.AutocompleteInteractionCreate) error
 )
 
 type Command struct {

@@ -5,16 +5,16 @@ import (
 	"golang.org/x/text/message"
 )
 
-type CommandCheck func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) bool
+type CommandCheck func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionCreate) bool
 
 func (c CommandCheck) Or(check CommandCheck) CommandCheck {
-	return func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) bool {
+	return func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionCreate) bool {
 		return c(b, p, e) || check(b, p, e)
 	}
 }
 
 func (c CommandCheck) And(check CommandCheck) CommandCheck {
-	return func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) bool {
+	return func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionCreate) bool {
 		return c(b, p, e) && check(b, p, e)
 	}
 }

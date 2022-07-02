@@ -13,14 +13,14 @@ type module struct{}
 
 func (m module) OnEvent(b *kbot.Bot, event bot.Event) {
 	switch e := event.(type) {
-	case *events.GuildsReadyEvent:
+	case *events.GuildsReady:
 		b.Logger.Info("Guilds ready, setting counter")
 		metrics.GuildCounter.Set(float64(len(e.Client().Caches().Guilds().All())))
 
-	case *events.GuildJoinEvent:
+	case *events.GuildJoin:
 		metrics.GuildCounter.Inc()
 
-	case *events.GuildLeaveEvent:
+	case *events.GuildLeave:
 		metrics.GuildCounter.Dec()
 	}
 }

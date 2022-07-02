@@ -6,7 +6,6 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/internal/db"
 	"github.com/disgoorg/disgo"
 	"github.com/disgoorg/disgo/bot"
-	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/gateway"
 	"github.com/disgoorg/disgolink/disgolink"
 	"github.com/disgoorg/log"
@@ -33,7 +32,7 @@ func (b *Bot) SetupPaginator() {
 func (b *Bot) SetupBot() (err error) {
 	b.Client, err = disgo.New(b.Config.Token,
 		bot.WithLogger(b.Logger),
-		bot.WithGatewayConfigOpts(gateway.WithGatewayIntents(discord.GatewayIntentGuilds, discord.GatewayIntentGuildVoiceStates)),
+		bot.WithGatewayConfigOpts(gateway.WithIntents(gateway.IntentGuilds, gateway.IntentGuildVoiceStates)),
 		bot.WithEventListeners(b.Commands, b.Paginator, b.Listeners),
 	)
 	return err

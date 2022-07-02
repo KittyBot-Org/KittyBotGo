@@ -1,10 +1,11 @@
 package backend
 
 import (
-	"github.com/KittyBot-Org/KittyBotGo/internal/db"
-	"github.com/KittyBot-Org/KittyBotGo/internal/kbot"
 	"net/http"
 	"time"
+
+	"github.com/KittyBot-Org/KittyBotGo/internal/db"
+	"github.com/KittyBot-Org/KittyBotGo/internal/kbot"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/rest"
@@ -27,7 +28,7 @@ type Backend struct {
 }
 
 func (b *Backend) SetupRestServices() {
-	rest.NewRest(rest.NewClient(b.Config.Token, rest.WithLogger(b.Logger)))
+	rest.New(rest.NewClient(b.Config.Token, rest.WithLogger(b.Logger)))
 }
 
 func (b *Backend) SetupPrometheusAPI() error {

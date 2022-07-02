@@ -14,13 +14,12 @@ var Module = kbot.DefaultCommandsModule{
 				Options: []discord.ApplicationCommandOption{
 
 					discord.ApplicationCommandOptionString{
-						Name:         "name",
+						OptionName:   "name",
 						Description:  "the name of the tag to display",
 						Required:     true,
 						Autocomplete: true,
 					},
 				},
-				DefaultPermission: true,
 			},
 			CommandHandler: map[string]kbot.CommandHandler{
 				"": tagHandler,
@@ -35,54 +34,54 @@ var Module = kbot.DefaultCommandsModule{
 				Description: "lets you create/delete/edit tags",
 				Options: []discord.ApplicationCommandOption{
 					discord.ApplicationCommandOptionSubCommand{
-						Name:        "create",
+						CommandName: "create",
 						Description: "lets you create a tag",
 						Options: []discord.ApplicationCommandOption{
 							discord.ApplicationCommandOptionString{
-								Name:        "name",
+								OptionName:  "name",
 								Description: "the name of the tag to create",
 								Required:    true,
 							},
 							discord.ApplicationCommandOptionString{
-								Name:        "content",
+								OptionName:  "content",
 								Description: "the content of the new tag",
 								Required:    true,
 							},
 						},
 					},
 					discord.ApplicationCommandOptionSubCommand{
-						Name:        "delete",
+						CommandName: "delete",
 						Description: "lets you delete a tag",
 						Options: []discord.ApplicationCommandOption{
 							discord.ApplicationCommandOptionString{
-								Name:        "name",
+								OptionName:  "name",
 								Description: "the name of the tag to delete",
 								Required:    true,
 							},
 						},
 					},
 					discord.ApplicationCommandOptionSubCommand{
-						Name:        "edit",
+						CommandName: "edit",
 						Description: "lets you edit a tag",
 						Options: []discord.ApplicationCommandOption{
 							discord.ApplicationCommandOptionString{
-								Name:        "name",
+								OptionName:  "name",
 								Description: "the name of the tag to edit",
 								Required:    true,
 							},
 							discord.ApplicationCommandOptionString{
-								Name:        "content",
+								OptionName:  "content",
 								Description: "the new content of the new tag",
 								Required:    true,
 							},
 						},
 					},
 					discord.ApplicationCommandOptionSubCommand{
-						Name:        "info",
+						CommandName: "info",
 						Description: "lets you view a tag's info",
 						Options: []discord.ApplicationCommandOption{
 							discord.ApplicationCommandOptionString{
-								Name:         "name",
+								OptionName:   "name",
 								Description:  "the name of the tag to view",
 								Required:     true,
 								Autocomplete: true,
@@ -90,11 +89,10 @@ var Module = kbot.DefaultCommandsModule{
 						},
 					},
 					discord.ApplicationCommandOptionSubCommand{
-						Name:        "list",
+						CommandName: "list",
 						Description: "lists all tags",
 					},
 				},
-				DefaultPermission: true,
 			},
 			CommandHandler: map[string]kbot.CommandHandler{
 				"create": createTagHandler,

@@ -23,7 +23,7 @@ type CommandMap struct {
 }
 
 func (m *CommandMap) OnEvent(event bot.Event) {
-	if e, ok := event.(*events.ApplicationCommandInteractionEvent); ok {
+	if e, ok := event.(*events.ApplicationCommandInteractionCreate); ok {
 		if cmd, ok := m.commands[e.Data.CommandName()]; ok {
 			switch d := e.Data.(type) {
 			case discord.SlashCommandInteractionData:
@@ -42,7 +42,7 @@ func (m *CommandMap) OnEvent(event bot.Event) {
 				m.bot.Logger.Errorf("No command handler for \"%s\"", e.Data.CommandName())
 			}
 		}
-	} else if e, ok := event.(*events.AutocompleteInteractionEvent); ok {
+	} else if e, ok := event.(*events.AutocompleteInteractionCreate); ok {
 		if cmd, ok := m.commands[e.Data.CommandName]; ok {
 			if cmd.AutoCompleteHandler != nil {
 				if handler, ok := cmd.AutoCompleteHandler[buildCommandPath(e.Data.SubCommandName, e.Data.SubCommandGroupName)]; ok {
@@ -54,7 +54,7 @@ func (m *CommandMap) OnEvent(event bot.Event) {
 			}
 			m.bot.Logger.Errorf("No autocomplete handler for command \"%s\"", e.Data.CommandName)
 		}
-	} else if e, ok := event.(*events.ComponentInteractionEvent); ok {
+	} else if e, ok := event.(*events.ComponentInteractionCreate); ok {
 		customID := e.Data.CustomID().String()
 		if !strings.HasPrefix(customID, "cmd:") {
 			return

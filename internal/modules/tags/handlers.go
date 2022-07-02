@@ -17,7 +17,7 @@ import (
 	"golang.org/x/text/message"
 )
 
-func tagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func tagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 	name := strings.ToLower(data.String("name"))
 	var msg string
@@ -36,7 +36,7 @@ func tagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInt
 	return e.CreateMessage(discord.MessageCreate{Content: msg})
 }
 
-func createTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func createTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 	name := strings.ToLower(data.String("name"))
 	content := data.String("content")
@@ -58,7 +58,7 @@ func createTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationComm
 	return e.CreateMessage(responses.CreateErrorf(p, "modules.tags.commands.tags.create.success", name))
 }
 
-func deleteTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func deleteTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionCreate) error {
 	name := strings.ToLower(e.SlashCommandInteractionData().String("name"))
 	tag, err := b.DB.Tags().Get(*e.GuildID(), name)
 	if err == qrm.ErrNoRows {
@@ -77,7 +77,7 @@ func deleteTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationComm
 	return e.CreateMessage(responses.CreateSuccessf(p, "modules.tags.commands.tags.delete.success", name))
 }
 
-func editTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func editTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionCreate) error {
 	data := e.SlashCommandInteractionData()
 	name := strings.ToLower(data.String("name"))
 	content := data.String("content")
@@ -100,7 +100,7 @@ func editTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationComman
 	return e.CreateMessage(responses.CreateSuccessf(p, "modules.tags.commands.tags.edit.success", name))
 }
 
-func infoTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func infoTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionCreate) error {
 	name := strings.ToLower(e.SlashCommandInteractionData().String("name"))
 
 	tag, err := b.DB.Tags().Get(*e.GuildID(), name)
@@ -119,7 +119,7 @@ func infoTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationComman
 		Build()))
 }
 
-func listTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionEvent) error {
+func listTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionCreate) error {
 	tags, err := b.DB.Tags().GetAll(*e.GuildID())
 	if err != nil {
 		return e.CreateMessage(responses.CreateErrorf(p, "modules.tags.commands.tags.list.error"))
@@ -152,7 +152,7 @@ func listTagHandler(b *kbot.Bot, p *message.Printer, e *events.ApplicationComman
 	})
 }
 
-func autoCompleteTagHandler(b *kbot.Bot, p *message.Printer, e *events.AutocompleteInteractionEvent) error {
+func autoCompleteTagHandler(b *kbot.Bot, p *message.Printer, e *events.AutocompleteInteractionCreate) error {
 	name := strings.ToLower(e.Data.String("name"))
 
 	tags, err := b.DB.Tags().GetAll(*e.GuildID())

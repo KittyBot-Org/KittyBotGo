@@ -15,7 +15,7 @@ import (
 
 var trackRegex = regexp.MustCompile(`\[\x60(?P<title>.+)\x60]\((?P<url>.+)?\)`)
 
-func checkPlayer(b *kbot.Bot, p *message.Printer, e *events.ComponentInteractionEvent) (*kbot.MusicPlayer, error) {
+func checkPlayer(b *kbot.Bot, p *message.Printer, e *events.ComponentInteractionCreate) (*kbot.MusicPlayer, error) {
 	player := b.MusicPlayers.Get(*e.GuildID())
 	if player == nil {
 		return nil, e.CreateMessage(responses.CreateErrorf(p, "modules.music.components.no.player"))
@@ -23,7 +23,7 @@ func checkPlayer(b *kbot.Bot, p *message.Printer, e *events.ComponentInteraction
 	return player, nil
 }
 
-func previousComponentHandler(b *kbot.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
+func previousComponentHandler(b *kbot.Bot, p *message.Printer, e *events.ComponentInteractionCreate) error {
 	player, err := checkPlayer(b, p, e)
 	if player == nil {
 		return err
@@ -39,7 +39,7 @@ func previousComponentHandler(b *kbot.Bot, p *message.Printer, e *events.Compone
 	return e.UpdateMessage(responses.UpdateSuccessComponentsf(p, "modules.music.commands.previous.success", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
 }
 
-func playPauseComponentHandler(b *kbot.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
+func playPauseComponentHandler(b *kbot.Bot, p *message.Printer, e *events.ComponentInteractionCreate) error {
 	player, err := checkPlayer(b, p, e)
 	if player == nil {
 		return err
@@ -61,7 +61,7 @@ func playPauseComponentHandler(b *kbot.Bot, p *message.Printer, e *events.Compon
 	return e.UpdateMessage(responses.UpdateSuccessComponentsf(p, "modules.music.components.play.pause.play.success", []any{formatTrack(track), track.Info().Length}, getMusicControllerComponents(track)))
 }
 
-func nextComponentHandler(b *kbot.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
+func nextComponentHandler(b *kbot.Bot, p *message.Printer, e *events.ComponentInteractionCreate) error {
 	player, err := checkPlayer(b, p, e)
 	if player == nil {
 		return err
@@ -77,7 +77,7 @@ func nextComponentHandler(b *kbot.Bot, p *message.Printer, e *events.ComponentIn
 	return e.UpdateMessage(responses.UpdateSuccessComponentsf(p, "modules.music.commands.next.success", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
 }
 
-func likeComponentHandler(b *kbot.Bot, p *message.Printer, e *events.ComponentInteractionEvent) error {
+func likeComponentHandler(b *kbot.Bot, p *message.Printer, e *events.ComponentInteractionCreate) error {
 	if len(e.Message.Embeds) == 0 {
 		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.components.like.no.embed"))
 	}
