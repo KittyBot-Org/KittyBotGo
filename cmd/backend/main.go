@@ -6,11 +6,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/KittyBot-Org/KittyBotGo/internal/backend"
-	"github.com/KittyBot-Org/KittyBotGo/internal/config"
-	"github.com/KittyBot-Org/KittyBotGo/internal/db"
-	"github.com/KittyBot-Org/KittyBotGo/internal/modules"
-	"github.com/KittyBot-Org/KittyBotGo/internal/routes"
+	backend2 "github.com/KittyBot-Org/KittyBotGo/backend"
+	"github.com/KittyBot-Org/KittyBotGo/backend/routes"
+	"github.com/KittyBot-Org/KittyBotGo/config"
+	"github.com/KittyBot-Org/KittyBotGo/db"
+	"github.com/KittyBot-Org/KittyBotGo/dbot/modules"
 	"github.com/disgoorg/log"
 	_ "github.com/lib/pq"
 )
@@ -35,13 +35,13 @@ func main() {
 	logger.Infof("Syncing DB tables? %v", *shouldSyncDBTables)
 	logger.Infof("Exiting after syncing? %v", *exitAfterSync)
 
-	var cfg backend.Config
+	var cfg backend2.Config
 	if err = config.LoadConfig(&cfg); err != nil {
 		logger.Fatal("Failed to load config: ", err)
 	}
 	logger.SetLevel(cfg.LogLevel)
 
-	b := &backend.Backend{
+	b := &backend2.Backend{
 		Logger:  logger,
 		Config:  cfg,
 		Version: version,

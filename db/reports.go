@@ -1,0 +1,63 @@
+package db
+
+import (
+	"database/sql"
+	"time"
+
+	. "github.com/KittyBot-Org/KittyBotGo/db/.gen/kittybot-go/public/model"
+	"github.com/KittyBot-Org/KittyBotGo/db/.gen/kittybot-go/public/table"
+	"github.com/disgoorg/snowflake/v2"
+	. "github.com/go-jet/jet/v2/postgres"
+)
+
+type ReportsDB interface {
+	Get(id int32) (Reports, error)
+	GetAll(userID snowflake.ID, guildID snowflake.ID) ([]Reports, error)
+	Create(userID snowflake.ID, guildID snowflake.ID, description string, createdAt time.Time, messageID snowflake.ID) (int32, error)
+	Confirm(id int32) error
+	Delete(id int32) error
+	DeleteAll(userID snowflake.ID, guildID snowflake.ID) error
+}
+
+type reportsDBImpl struct {
+	db *sql.DB
+}
+
+func (s *reportsDBImpl) Get(id int32) (Reports, error) {
+	var model Reports
+	err := table.Reports.SELECT(table.Reports.AllColumns).
+		WHERE(table.Reports.ID.EQ(Int32(id))).
+		Query(s.db, &model)
+	return model, err
+}
+func (s *reportsDBImpl) GetAll(userID snowflake.ID, guildID snowflake.ID) ([]Reports, error) {
+	var model []Reports
+	err := table.Reports.SELECT(table.Reports.AllColumns).
+		WHERE(table.Reports.UserID.EQ(String(userID.String())).AND(table.Reports.GuildID.EQ(String(guildID.String())))).
+		Query(s.db, &model)
+	return model, err
+}
+func (s *reportsDBImpl) Create(userID snowflake.ID, guildID snowflake.ID, description string, createdAt time.Time, messageID snowflake.ID) (int32, error) {
+	res, err := table.Reports.INSERT(table.Reports.UserID, table.Reports.GuildID, table.Reports.Description, table.Reports.CreatedAt, table.Reports.MessageID).
+		VALUES(userID, guildID, description, createdAt, messageID).
+		RETURNING(table.Reports.ID).
+		Exec(s.db)
+	if err != nil {
+		return 0, err
+	}
+
+	id, err := res.LastInsertId()
+	return int32(id), err
+}
+func (s *reportsDBImpl) Confirm(id int32) error {
+	_, err := table.Reports.UPDATE().SET(table.Reports.Confirmed, Bool(true)).WHERE(table.Reports.ID.EQ(Int32(id))).Exec(s.db)
+	return err
+}
+func (s *reportsDBImpl) Delete(id int32) error {
+	_, err := table.Reports.DELETE().WHERE(table.Reports.ID.EQ(Int32(id))).Exec(s.db)
+	return err
+}
+func (s *reportsDBImpl) DeleteAll(userID snowflake.ID, guildID snowflake.ID) error {
+	_, err := table.Reports.DELETE().WHERE(table.Reports.UserID.EQ(String(userID.String())).AND(table.Reports.GuildID.EQ(String(guildID.String())))).Exec(s.db)
+	return err
+}
