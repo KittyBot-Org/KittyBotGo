@@ -5,7 +5,7 @@ on:
     types: [published]
 
 env:
-  BOT_IMAGE_NAME: dbot
+  BOT_IMAGE_NAME: bot
   BACKEND_IMAGE_NAME: backend
 
 jobs:
@@ -57,7 +57,7 @@ jobs:
 
   deploy:
     needs:
-      - build-dbot
+      - build-bot
       - build-backend
     runs-on: ubuntu-latest
     steps:
