@@ -42,16 +42,6 @@ func (a LikedSongTable) FromSchema(schemaName string) *LikedSongTable {
 	return newLikedSongTable(schemaName, a.TableName(), a.Alias())
 }
 
-// WithPrefix creates new LikedSongTable with assigned table prefix
-func (a LikedSongTable) WithPrefix(prefix string) *LikedSongTable {
-	return newLikedSongTable(a.SchemaName(), prefix+a.TableName(), a.TableName())
-}
-
-// WithSuffix creates new LikedSongTable with assigned table suffix
-func (a LikedSongTable) WithSuffix(suffix string) *LikedSongTable {
-	return newLikedSongTable(a.SchemaName(), a.TableName()+suffix, a.TableName())
-}
-
 func newLikedSongTable(schemaName, tableName, alias string) *LikedSongTable {
 	return &LikedSongTable{
 		likedSongTable: newLikedSongTableImpl(schemaName, tableName, alias),

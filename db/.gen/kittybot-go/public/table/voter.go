@@ -40,16 +40,6 @@ func (a VoterTable) FromSchema(schemaName string) *VoterTable {
 	return newVoterTable(schemaName, a.TableName(), a.Alias())
 }
 
-// WithPrefix creates new VoterTable with assigned table prefix
-func (a VoterTable) WithPrefix(prefix string) *VoterTable {
-	return newVoterTable(a.SchemaName(), prefix+a.TableName(), a.TableName())
-}
-
-// WithSuffix creates new VoterTable with assigned table suffix
-func (a VoterTable) WithSuffix(suffix string) *VoterTable {
-	return newVoterTable(a.SchemaName(), a.TableName()+suffix, a.TableName())
-}
-
 func newVoterTable(schemaName, tableName, alias string) *VoterTable {
 	return &VoterTable{
 		voterTable: newVoterTableImpl(schemaName, tableName, alias),

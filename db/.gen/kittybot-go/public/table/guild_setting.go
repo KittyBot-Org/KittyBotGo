@@ -41,16 +41,6 @@ func (a GuildSettingTable) FromSchema(schemaName string) *GuildSettingTable {
 	return newGuildSettingTable(schemaName, a.TableName(), a.Alias())
 }
 
-// WithPrefix creates new GuildSettingTable with assigned table prefix
-func (a GuildSettingTable) WithPrefix(prefix string) *GuildSettingTable {
-	return newGuildSettingTable(a.SchemaName(), prefix+a.TableName(), a.TableName())
-}
-
-// WithSuffix creates new GuildSettingTable with assigned table suffix
-func (a GuildSettingTable) WithSuffix(suffix string) *GuildSettingTable {
-	return newGuildSettingTable(a.SchemaName(), a.TableName()+suffix, a.TableName())
-}
-
 func newGuildSettingTable(schemaName, tableName, alias string) *GuildSettingTable {
 	return &GuildSettingTable{
 		guildSettingTable: newGuildSettingTableImpl(schemaName, tableName, alias),

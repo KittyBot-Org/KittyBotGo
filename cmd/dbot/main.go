@@ -12,7 +12,6 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/dbot"
 	"github.com/KittyBot-Org/KittyBotGo/dbot/commands"
 	"github.com/KittyBot-Org/KittyBotGo/dbot/listeners"
-	"github.com/KittyBot-Org/KittyBotGo/dbot/metrics"
 	"github.com/KittyBot-Org/KittyBotGo/i18n"
 	"github.com/disgoorg/log"
 	_ "github.com/lib/pq"
@@ -71,6 +70,8 @@ func main() {
 		commands.Tag,
 		commands.Tags,
 		commands.Volume,
+		commands.Report,
+		commands.Settings,
 	)
 
 	if err := b.SetupBot(
@@ -97,7 +98,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	metrics.Setup(b)
+	//metrics.Setup(b.Logger, b.Config)
 
 	b.SetupLavalink()
 	defer b.Lavalink.Close()

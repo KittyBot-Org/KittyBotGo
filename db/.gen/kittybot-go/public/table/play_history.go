@@ -42,16 +42,6 @@ func (a PlayHistoryTable) FromSchema(schemaName string) *PlayHistoryTable {
 	return newPlayHistoryTable(schemaName, a.TableName(), a.Alias())
 }
 
-// WithPrefix creates new PlayHistoryTable with assigned table prefix
-func (a PlayHistoryTable) WithPrefix(prefix string) *PlayHistoryTable {
-	return newPlayHistoryTable(a.SchemaName(), prefix+a.TableName(), a.TableName())
-}
-
-// WithSuffix creates new PlayHistoryTable with assigned table suffix
-func (a PlayHistoryTable) WithSuffix(suffix string) *PlayHistoryTable {
-	return newPlayHistoryTable(a.SchemaName(), a.TableName()+suffix, a.TableName())
-}
-
 func newPlayHistoryTable(schemaName, tableName, alias string) *PlayHistoryTable {
 	return &PlayHistoryTable{
 		playHistoryTable: newPlayHistoryTableImpl(schemaName, tableName, alias),

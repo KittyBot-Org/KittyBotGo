@@ -24,6 +24,7 @@ type reportsTable struct {
 	CreatedAt   postgres.ColumnTimestamp
 	Confirmed   postgres.ColumnBool
 	MessageID   postgres.ColumnString
+	ChannelID   postgres.ColumnString
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -45,16 +46,6 @@ func (a ReportsTable) FromSchema(schemaName string) *ReportsTable {
 	return newReportsTable(schemaName, a.TableName(), a.Alias())
 }
 
-// WithPrefix creates new ReportsTable with assigned table prefix
-func (a ReportsTable) WithPrefix(prefix string) *ReportsTable {
-	return newReportsTable(a.SchemaName(), prefix+a.TableName(), a.TableName())
-}
-
-// WithSuffix creates new ReportsTable with assigned table suffix
-func (a ReportsTable) WithSuffix(suffix string) *ReportsTable {
-	return newReportsTable(a.SchemaName(), a.TableName()+suffix, a.TableName())
-}
-
 func newReportsTable(schemaName, tableName, alias string) *ReportsTable {
 	return &ReportsTable{
 		reportsTable: newReportsTableImpl(schemaName, tableName, alias),
@@ -71,8 +62,9 @@ func newReportsTableImpl(schemaName, tableName, alias string) reportsTable {
 		CreatedAtColumn   = postgres.TimestampColumn("created_at")
 		ConfirmedColumn   = postgres.BoolColumn("confirmed")
 		MessageIDColumn   = postgres.StringColumn("message_id")
-		allColumns        = postgres.ColumnList{IDColumn, UserIDColumn, GuildIDColumn, DescriptionColumn, CreatedAtColumn, ConfirmedColumn, MessageIDColumn}
-		mutableColumns    = postgres.ColumnList{UserIDColumn, GuildIDColumn, DescriptionColumn, CreatedAtColumn, ConfirmedColumn, MessageIDColumn}
+		ChannelIDColumn   = postgres.StringColumn("channel_id")
+		allColumns        = postgres.ColumnList{IDColumn, UserIDColumn, GuildIDColumn, DescriptionColumn, CreatedAtColumn, ConfirmedColumn, MessageIDColumn, ChannelIDColumn}
+		mutableColumns    = postgres.ColumnList{UserIDColumn, GuildIDColumn, DescriptionColumn, CreatedAtColumn, ConfirmedColumn, MessageIDColumn, ChannelIDColumn}
 	)
 
 	return reportsTable{
@@ -86,6 +78,7 @@ func newReportsTableImpl(schemaName, tableName, alias string) reportsTable {
 		CreatedAt:   CreatedAtColumn,
 		Confirmed:   ConfirmedColumn,
 		MessageID:   MessageIDColumn,
+		ChannelID:   ChannelIDColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

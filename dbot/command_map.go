@@ -25,22 +25,24 @@ type CommandMap struct {
 func (m *CommandMap) OnEvent(event bot.Event) {
 	if e, ok := event.(*events.ApplicationCommandInteractionCreate); ok {
 		if cmd, ok := m.commands[e.Data.CommandName()]; ok {
-			switch d := e.Data.(type) {
-			case discord.SlashCommandInteractionData:
-				if cmd.CommandHandler != nil {
-					printer := getMessagePrinter(e.BaseInteraction)
-					if cmd.Checks != nil && !cmd.Checks(m.bot, printer, e) {
-						return
-					}
-					if handler, ok := cmd.CommandHandler[buildCommandPath(d.SubCommandName, d.SubCommandGroupName)]; ok {
-						if err := handler(m.bot, printer, e); err != nil {
-							m.bot.Logger.Errorf("Failed to handle command \"%s\": %s", e.Data.CommandName(), err)
-						}
-						return
-					}
+			if cmd.CommandHandler != nil {
+				printer := getMessagePrinter(e.BaseInteraction)
+				if cmd.Checks != nil && !cmd.Checks(m.bot, printer, e) {
+					return
 				}
-				m.bot.Logger.Errorf("No command handler for \"%s\"", e.Data.CommandName())
+
+				var path string
+				if d, ok := e.Data.(discord.SlashCommandInteractionData); ok {
+					path = buildCommandPath(d.SubCommandName, d.SubCommandGroupName)
+				}
+				if handler, ok := cmd.CommandHandler[path]; ok {
+					if err := handler(m.bot, printer, e); err != nil {
+						m.bot.Logger.Errorf("Failed to handle command \"%s\": %s", e.Data.CommandName(), err)
+					}
+					return
+				}
 			}
+			m.bot.Logger.Errorf("No command handler for \"%s\"", e.Data.CommandName())
 		}
 	} else if e, ok := event.(*events.AutocompleteInteractionCreate); ok {
 		if cmd, ok := m.commands[e.Data.CommandName]; ok {
@@ -92,7 +94,7 @@ func buildCommandPath(subcommand *string, subcommandGroup *string) string {
 		path = *subcommand
 	}
 	if subcommandGroup != nil {
-		path += "/" + *subcommandGroup
+		path = *subcommandGroup + "/" + path
 	}
 	return path
 }

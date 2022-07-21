@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"github.com/KittyBot-Org/KittyBotGo/dbot"
+	"github.com/disgoorg/log"
 
 	"net/http"
 
@@ -47,12 +48,12 @@ var (
 	})
 )
 
-func Setup(b *dbot.Bot) {
+func Setup(logger log.Logger, config dbot.Config) {
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
 	go func() {
-		if err := http.ListenAndServe(b.Config.MetricsAddress, mux); err != nil {
-			b.Logger.Error("Failed to start metrics server: ", err)
+		if err := http.ListenAndServe(config.MetricsAddress, mux); err != nil {
+			logger.Error("Failed to start metrics server: ", err)
 		}
 	}()
 }

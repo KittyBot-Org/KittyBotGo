@@ -19,4 +19,5 @@ type Reports struct {
 	CreatedAt   time.Time
 	Confirmed   bool
 	MessageID   string
+	ChannelID   string
 }
