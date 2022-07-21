@@ -49,18 +49,11 @@ func (b *Backend) SetupScheduler() error {
 	return nil
 }
 
-func (b *Backend) LoadCommands(modules []dbot.Module) {
+func (b *Backend) LoadCommands(commands ...dbot.Command) {
 	b.Logger.Info("Loading commands...")
 
-	for _, module := range modules {
-		if mod, ok := module.(dbot.CommandsModule); ok {
-			commands := mod.Commands()
-			cmds := make([]discord.ApplicationCommandCreate, len(commands))
-			for i, cmd := range commands {
-				cmds[i] = cmd.Create
-			}
-			b.Commands = append(b.Commands, cmds...)
-		}
+	for _, command := range commands {
+		b.Commands = append(b.Commands, command.Create)
 	}
 
 	b.Logger.Infof("Loaded %d commands", len(b.Commands))

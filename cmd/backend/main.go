@@ -10,7 +10,7 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/backend/routes"
 	"github.com/KittyBot-Org/KittyBotGo/config"
 	"github.com/KittyBot-Org/KittyBotGo/db"
-	"github.com/KittyBot-Org/KittyBotGo/dbot/modules"
+	"github.com/KittyBot-Org/KittyBotGo/dbot/commands"
 	"github.com/disgoorg/log"
 	_ "github.com/lib/pq"
 )
@@ -57,7 +57,28 @@ func main() {
 		os.Exit(0)
 	}
 
-	b.LoadCommands(modules.Modules)
+	b.LoadCommands(
+		commands.BassBoost,
+		commands.ClearQueue,
+		commands.History,
+		commands.LikedSongs,
+		commands.Loop,
+		commands.Next,
+		commands.NowPlaying,
+		commands.Pause,
+		commands.Play,
+		commands.Previous,
+		commands.Queue,
+		commands.Remove,
+		commands.Seek,
+		commands.Shuffle,
+		commands.Stop,
+		commands.Tag,
+		commands.Tags,
+		commands.Volume,
+		commands.Report,
+		commands.Settings,
+	)
 	b.SetupRestServices()
 	if err = b.SetupPrometheusAPI(); err != nil {
 		b.Logger.Fatal("Failed to setup prometheus api: ", err)
