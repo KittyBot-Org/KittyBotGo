@@ -22,5 +22,5 @@ $ go install github.com/go-jet/jet/v2/cmd/jet@latest
 ```
 
 ```bash
-$ jet -dsn=postgresql://user:pass@localhost:5432/jetdb?sslmode=disable -schema=public -path=./internal/db/.gen
+$ jet -dsn=postgresql://user:pass@localhost:5432/jetdb?sslmode=disable -schema=public -path=./db/.gen
 ```
