@@ -49,19 +49,7 @@ var Settings = dbot.Command{
 }
 
 func settingsModerationDisableHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionCreate) error {
-	settings, err := b.DB.GuildSettings().Get(*e.GuildID())
-	if err != nil {
-		b.Logger.Errorf("Error getting guild settings: %s", err)
-		return e.CreateMessage(discord.MessageCreate{
-			Content: "Error getting settings, please reach out to a bot developer.",
-			Flags:   discord.MessageFlagEphemeral,
-		})
-	}
-
-	settings.ModerationLogWebhookID = ""
-	settings.ModerationLogWebhookToken = ""
-
-	if err = b.DB.GuildSettings().Set(settings); err != nil {
+	if err := b.DB.GuildSettings().UpdateModeration(*e.GuildID(), 0, ""); err != nil {
 		b.Logger.Errorf("Error updating guild settings: %s", err)
 		return e.CreateMessage(discord.MessageCreate{
 			Content: "Error setting settings, please reach out to a bot developer.",
@@ -100,7 +88,7 @@ func settingsModerationLogChannelHandler(b *dbot.Bot, p *message.Printer, e *eve
 		settings.ModerationLogWebhookID = incomingWebhook.ID().String()
 		settings.ModerationLogWebhookToken = incomingWebhook.Token
 
-		if err = b.DB.GuildSettings().Set(settings); err != nil {
+		if err = b.DB.GuildSettings().UpdateModeration(*e.GuildID(), incomingWebhook.ID(), incomingWebhook.Token); err != nil {
 			b.Logger.Errorf("Error updating guild settings: %s", err)
 			return e.CreateMessage(discord.MessageCreate{
 				Content: "Error updating guild settings, please reach out to a bot developer.",

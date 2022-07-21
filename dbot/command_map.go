@@ -66,7 +66,7 @@ func (m *CommandMap) OnEvent(event bot.Event) {
 		if cmd, ok := m.commands[cmdName]; ok {
 			if cmd.ComponentHandler != nil {
 				if handler, ok := cmd.ComponentHandler[action]; ok {
-					if err := handler(m.bot, args[2:], getMessagePrinter(e.BaseInteraction), e); err != nil {
+					if err := handler(m.bot, args[3:], getMessagePrinter(e.BaseInteraction), e); err != nil {
 						m.bot.Logger.Errorf("Failed to handle component interaction for \"%s\" \"%s\" : %s", cmdName, action, err)
 					}
 					return

@@ -40,20 +40,16 @@ func (s *reportsDBImpl) GetAll(userID snowflake.ID, guildID snowflake.ID) ([]Rep
 }
 
 func (s *reportsDBImpl) Create(userID snowflake.ID, guildID snowflake.ID, description string, createdAt time.Time, messageID snowflake.ID, channelID snowflake.ID) (int32, error) {
-	res, err := table.Reports.INSERT(table.Reports.UserID, table.Reports.GuildID, table.Reports.Description, table.Reports.CreatedAt, table.Reports.MessageID, table.Reports.ChannelID).
+	var model Reports
+	err := table.Reports.INSERT(table.Reports.UserID, table.Reports.GuildID, table.Reports.Description, table.Reports.CreatedAt, table.Reports.MessageID, table.Reports.ChannelID).
 		VALUES(userID, guildID, description, createdAt, messageID, channelID).
 		RETURNING(table.Reports.ID).
-		Exec(s.db)
-	if err != nil {
-		return 0, err
-	}
-
-	id, err := res.LastInsertId()
-	return int32(id), err
+		Query(s.db, &model)
+	return model.ID, err
 }
 
 func (s *reportsDBImpl) Confirm(id int32) error {
-	_, err := table.Reports.UPDATE().SET(table.Reports.Confirmed, Bool(true)).WHERE(table.Reports.ID.EQ(Int32(id))).Exec(s.db)
+	_, err := table.Reports.UPDATE(table.Reports.Confirmed).SET(Bool(true)).WHERE(table.Reports.ID.EQ(Int32(id))).Exec(s.db)
 	return err
 }
 

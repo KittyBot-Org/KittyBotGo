@@ -59,6 +59,7 @@ func reportHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommand
 
 	incidentID, err := b.DB.Reports().Create(msg.Author.ID, *e.GuildID(), msg.Content, time.Now(), msg.ID, msg.ChannelID)
 	if err != nil {
+		b.Logger.Errorf("Failed to create report: %s", err)
 		return e.CreateMessage(discord.MessageCreate{
 			Content: "Failed to create report, please reach out to a moderator.",
 			Flags:   discord.MessageFlagEphemeral,
@@ -91,12 +92,12 @@ func reportHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommand
 				discord.ButtonComponent{
 					Style:    discord.ButtonStyleSuccess,
 					Label:    "Confirm",
-					CustomID: discord.CustomID(fmt.Sprintf("report:confirm:%d", incidentID)),
+					CustomID: discord.CustomID(fmt.Sprintf("cmd:report:confirm:%d", incidentID)),
 				},
 				discord.ButtonComponent{
 					Style:    discord.ButtonStyleDanger,
 					Label:    "Delete",
-					CustomID: discord.CustomID(fmt.Sprintf("report:delete:%d", incidentID)),
+					CustomID: discord.CustomID(fmt.Sprintf("cmd:report:delete:%d", incidentID)),
 				},
 			},
 		},
@@ -130,7 +131,7 @@ func reportConfirmHandler(b *dbot.Bot, args []string, p *message.Printer, e *eve
 		Components: &[]discord.ContainerComponent{
 			discord.ActionRowComponent{
 				discord.SelectMenuComponent{
-					CustomID:    discord.CustomID(fmt.Sprintf("report:action:%d", reportID)),
+					CustomID:    discord.CustomID(fmt.Sprintf("cmd:report:action:%d", reportID)),
 					Placeholder: "Select an action",
 					MinValues:   json.NewPtr(1),
 					MaxValues:   1,
