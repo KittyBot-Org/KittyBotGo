@@ -299,6 +299,22 @@ func reportActionHandler(b *dbot.Bot, args []string, p *message.Printer, e *even
 			content = "Report deleted."
 		}
 
+		if err = e.DeferUpdateMessage(); err != nil {
+			b.Logger.Errorf("Failed to defer update message: %s", err)
+			return err
+		}
+
+		if err = e.Client().Rest().DeleteInteractionResponse(e.ApplicationID(), e.Token()); err != nil {
+			b.Logger.Errorf("Failed to delete interaction response: %s", err)
+			content = "Failed to delete interaction response, please reach out to a bot developer."
+		}
+
+		_, err = b.Client.Rest().CreateFollowupMessage(e.ApplicationID(), e.Token(), discord.MessageCreate{
+			Content: content,
+			Flags:   discord.MessageFlagEphemeral,
+		})
+		return err
+
 	case "show-reports":
 		reports, err := b.DB.Reports().GetAll(snowflake.MustParse(report.UserID), snowflake.MustParse(report.GuildID))
 		if err == sql.ErrNoRows {
