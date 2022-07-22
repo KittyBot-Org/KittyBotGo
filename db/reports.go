@@ -35,6 +35,7 @@ func (s *reportsDBImpl) GetAll(userID snowflake.ID, guildID snowflake.ID) ([]Rep
 	var model []Reports
 	err := table.Reports.SELECT(table.Reports.AllColumns).
 		WHERE(table.Reports.UserID.EQ(String(userID.String())).AND(table.Reports.GuildID.EQ(String(guildID.String())))).
+		ORDER_BY(table.Reports.CreatedAt.ASC()).
 		Query(s.db, &model)
 	return model, err
 }

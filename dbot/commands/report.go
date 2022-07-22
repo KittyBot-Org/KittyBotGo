@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/KittyBot-Org/KittyBotGo/db/.gen/kittybot-go/public/model"
 	"github.com/KittyBot-Org/KittyBotGo/dbot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
@@ -17,8 +18,7 @@ import (
 
 var Report = dbot.Command{
 	Create: discord.MessageCommandCreate{
-		CommandName:  "report",
-		DMPermission: false,
+		CommandName: "report",
 	},
 	CommandHandler: map[string]dbot.CommandHandler{
 		"": reportHandler,
@@ -48,6 +48,13 @@ func reportHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommand
 	}
 
 	settings, err := b.DB.GuildSettings().Get(*e.GuildID())
+	if err != nil {
+		b.Logger.Errorf("Failed to get guild settings: %s", err)
+		return e.CreateMessage(discord.MessageCreate{
+			Content: "Failed to get guild settings, please reach out to a bot developer.",
+			Flags:   discord.MessageFlagEphemeral,
+		})
+	}
 	if settings.ModerationLogWebhookID == "" {
 		return e.CreateMessage(discord.MessageCreate{
 			Content: "Moderation is not enabled on this server, please reach to a moderator.",
@@ -55,9 +62,7 @@ func reportHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommand
 		})
 	}
 
-	client := b.ReportLogWebhookMap.Get(snowflake.MustParse(settings.ModerationLogWebhookID), settings.ModerationLogWebhookToken)
-
-	incidentID, err := b.DB.Reports().Create(msg.Author.ID, *e.GuildID(), msg.Content, time.Now(), msg.ID, msg.ChannelID)
+	reportID, err := b.DB.Reports().Create(msg.Author.ID, *e.GuildID(), msg.Content, time.Now(), msg.ID, msg.ChannelID)
 	if err != nil {
 		b.Logger.Errorf("Failed to create report: %s", err)
 		return e.CreateMessage(discord.MessageCreate{
@@ -74,30 +79,40 @@ func reportHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommand
 		b.Logger.Errorf("Failed to send report confirmation message: %s", err)
 	}
 
-	_, err = client.CreateMessage(discord.WebhookMessageCreate{
-		Content: fmt.Sprintf("%s(%s) has reported a message from %s(%s)\nCreated a new incident with the id `%d`", e.User().Tag(), e.User().Mention(), msg.Author.Tag(), msg.Author.Mention(), incidentID),
-		Embeds: []discord.Embed{
-			{
-				Author: &discord.EmbedAuthor{
-					Name:    msg.Author.Username,
-					URL:     fmt.Sprintf("https://discord.com/channels/%s/%s/%s", *e.GuildID(), msg.ChannelID, msg.ID),
-					IconURL: msg.Author.EffectiveAvatarURL(),
-				},
-				Description: msg.Content,
-				Timestamp:   &msg.CreatedAt,
+	messageURL := fmt.Sprintf("https://discord.com/channels/%s/%s/%s", *e.GuildID(), msg.ChannelID, msg.ID)
+
+	return CreateReport(b, settings, reportID,
+		fmt.Sprintf("%s(%s)'s [message](%s) has been reported by %s(%s).\nCreated a new report with the id `%d`", msg.Author.Tag(), msg.Author.Mention(), messageURL, e.User().Tag(), e.User().Mention(), reportID),
+		discord.Embed{
+			Author: &discord.EmbedAuthor{
+				Name:    msg.Author.Username,
+				URL:     messageURL,
+				IconURL: msg.Author.EffectiveAvatarURL(),
 			},
+			Description: msg.Content,
+			Timestamp:   &msg.CreatedAt,
+		},
+	)
+}
+
+func CreateReport(b *dbot.Bot, settings model.GuildSetting, reportID int32, content string, embed discord.Embed) error {
+	client := b.ReportLogWebhookMap.Get(snowflake.MustParse(settings.ModerationLogWebhookID), settings.ModerationLogWebhookToken)
+	_, err := client.CreateMessage(discord.WebhookMessageCreate{
+		Content: content,
+		Embeds: []discord.Embed{
+			embed,
 		},
 		Components: []discord.ContainerComponent{
 			discord.ActionRowComponent{
 				discord.ButtonComponent{
 					Style:    discord.ButtonStyleSuccess,
 					Label:    "Confirm",
-					CustomID: discord.CustomID(fmt.Sprintf("cmd:report:confirm:%d", incidentID)),
+					CustomID: discord.CustomID(fmt.Sprintf("cmd:report:confirm:%d", reportID)),
 				},
 				discord.ButtonComponent{
 					Style:    discord.ButtonStyleDanger,
 					Label:    "Delete",
-					CustomID: discord.CustomID(fmt.Sprintf("cmd:report:delete:%d", incidentID)),
+					CustomID: discord.CustomID(fmt.Sprintf("cmd:report:delete:%d", reportID)),
 				},
 			},
 		},
@@ -119,12 +134,59 @@ func reportConfirmHandler(b *dbot.Bot, args []string, p *message.Printer, e *eve
 		return err
 	}
 
+	report, err := b.DB.Reports().Get(reportID)
+	if err != nil {
+		return err
+	}
+
 	if err = b.DB.Reports().Confirm(reportID); err != nil {
 		b.Logger.Errorf("Failed to confirm report: %s", err)
 		return e.CreateMessage(discord.MessageCreate{
 			Content: "Failed to confirm report, please reach out to a bot developer.",
 			Flags:   discord.MessageFlagEphemeral,
 		})
+	}
+
+	selectMenuOptions := []discord.SelectMenuOption{
+		{
+			Label: "Timeout User for 1 hour",
+			Value: "timeout:1",
+			Emoji: &discord.ComponentEmoji{
+				Name: "🚫",
+			},
+		},
+		{
+			Label: "Timeout User for 1 day",
+			Value: "timeout:24",
+			Emoji: &discord.ComponentEmoji{
+				Name: "🚫",
+			},
+		},
+		{
+			Label: "Kick User",
+			Value: "kick",
+			Emoji: &discord.ComponentEmoji{
+				Name: "👞",
+			},
+		},
+		{
+			Label: "Ban User",
+			Value: "ban",
+			Emoji: &discord.ComponentEmoji{
+				Name: "🔨",
+			},
+		},
+	}
+	if report.MessageID != "" && report.ChannelID != "" {
+		selectMenuOptions = append([]discord.SelectMenuOption{
+			{
+				Label: "Delete Message",
+				Value: "delete",
+				Emoji: &discord.ComponentEmoji{
+					Name: "🗑",
+				},
+			},
+		}, selectMenuOptions...)
 	}
 
 	return e.UpdateMessage(discord.MessageUpdate{
@@ -135,43 +197,7 @@ func reportConfirmHandler(b *dbot.Bot, args []string, p *message.Printer, e *eve
 					Placeholder: "Select an action",
 					MinValues:   json.NewPtr(1),
 					MaxValues:   1,
-					Options: []discord.SelectMenuOption{
-						{
-							Label: "Delete Message",
-							Value: "delete",
-							Emoji: &discord.ComponentEmoji{
-								Name: "🗑",
-							},
-						},
-						{
-							Label: "Timeout User for 1 hour",
-							Value: "timeout:1",
-							Emoji: &discord.ComponentEmoji{
-								Name: "🚫",
-							},
-						},
-						{
-							Label: "Timeout User for 1 day",
-							Value: "timeout:24",
-							Emoji: &discord.ComponentEmoji{
-								Name: "🚫",
-							},
-						},
-						{
-							Label: "Kick User",
-							Value: "kick",
-							Emoji: &discord.ComponentEmoji{
-								Name: "👞",
-							},
-						},
-						{
-							Label: "Ban User",
-							Value: "ban",
-							Emoji: &discord.ComponentEmoji{
-								Name: "🔨",
-							},
-						},
-					},
+					Options:     selectMenuOptions,
 				},
 			},
 		},
