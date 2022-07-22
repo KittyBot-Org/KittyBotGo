@@ -12,6 +12,7 @@ import (
 
 type ReportsDB interface {
 	Get(id int32) (Reports, error)
+	GetCount(userID snowflake.ID, guildID snowflake.ID) (int, error)
 	GetAll(userID snowflake.ID, guildID snowflake.ID) ([]Reports, error)
 	Create(userID snowflake.ID, guildID snowflake.ID, description string, createdAt time.Time, messageID snowflake.ID, channelID snowflake.ID) (int32, error)
 	Confirm(id int32) error
@@ -29,6 +30,16 @@ func (s *reportsDBImpl) Get(id int32) (Reports, error) {
 		WHERE(table.Reports.ID.EQ(Int32(id))).
 		Query(s.db, &model)
 	return model, err
+}
+
+func (s *reportsDBImpl) GetCount(userID snowflake.ID, guildID snowflake.ID) (int, error) {
+	var count struct {
+		Count int
+	}
+	err := table.Reports.SELECT(COUNT(table.Reports.ID)).
+		WHERE(table.Reports.UserID.EQ(String(userID.String())).AND(table.Reports.GuildID.EQ(String(guildID.String()))).AND(table.Reports.Confirmed.EQ(Bool(true)))).
+		Query(s.db, &count)
+	return count.Count, err
 }
 
 func (s *reportsDBImpl) GetAll(userID snowflake.ID, guildID snowflake.ID) ([]Reports, error) {

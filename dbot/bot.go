@@ -40,7 +40,7 @@ type Bot struct {
 func (b *Bot) SetupBot(listeners ...bot.EventListener) (err error) {
 	b.Client, err = disgo.New(b.Config.Token,
 		bot.WithLogger(b.Logger),
-		bot.WithGatewayConfigOpts(gateway.WithIntents(gateway.IntentGuilds, gateway.IntentGuildVoiceStates, gateway.IntentAutoModerationExecution)),
+		bot.WithGatewayConfigOpts(gateway.WithIntents(gateway.IntentGuilds, gateway.IntentGuildVoiceStates, gateway.IntentMessageContent, gateway.IntentAutoModerationExecution)),
 		bot.WithEventListeners(append([]bot.EventListener{b.CommandMap, b.Paginator}, listeners...)...),
 	)
 	return err

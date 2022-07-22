@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/KittyBot-Org/KittyBotGo/db/.gen/kittybot-go/public/model"
 	"github.com/KittyBot-Org/KittyBotGo/dbot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
@@ -105,9 +106,21 @@ func reportsViewHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCo
 	}
 
 	return e.CreateMessage(discord.MessageCreate{
-		Content: fmt.Sprintf("**Report #%d:**\n%s", report.ID, report.Description),
+		Content: fmt.Sprintf("**Report #%d from %s:**\n%s", report.ID, discord.TimestampStyleShortDateTime.FormatTime(report.CreatedAt), report.Description),
 		Flags:   discord.MessageFlagEphemeral,
 	})
+}
+
+func formatReports(reports []model.Reports, user discord.User) string {
+	content := fmt.Sprintf("**%d Reports for %s:**\n", len(reports), user.Tag())
+	for i, report := range reports {
+		newLine := fmt.Sprintf("%d. %s, %s\n", i+1, discord.TimestampStyleShortDateTime.FormatTime(report.CreatedAt), trimString(report.Description, 20))
+		if len(content+newLine) > 2000 {
+			break
+		}
+		content += newLine
+	}
+	return content
 }
 
 func reportsViewAllHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionCreate) error {
@@ -115,7 +128,12 @@ func reportsViewAllHandler(b *dbot.Bot, p *message.Printer, e *events.Applicatio
 	userID := data.Snowflake("user")
 
 	reports, err := b.DB.Reports().GetAll(userID, *e.GuildID())
-	if err != nil {
+	if err == sql.ErrNoRows {
+		return e.CreateMessage(discord.MessageCreate{
+			Content: "No reports found.",
+			Flags:   discord.MessageFlagEphemeral,
+		})
+	} else if err != nil {
 		b.Logger.Errorf("Error getting reports: %s", err)
 		return e.CreateMessage(discord.MessageCreate{
 			Content: "Failed to get reports, please reach out to a bot developer.",
@@ -123,13 +141,7 @@ func reportsViewAllHandler(b *dbot.Bot, p *message.Printer, e *events.Applicatio
 		})
 	}
 
-	content := fmt.Sprintf("**%d Reports for %s:**\n", len(reports), data.User("user").Tag())
-	for i, report := range reports {
-		newLine := fmt.Sprintf("%d. %s\n", i+1, trimString(report.Description, 20))
-		if len(content+newLine) > 2000 {
-			break
-		}
-	}
+	content := formatReports(reports, data.User("user"))
 
 	return e.CreateMessage(discord.MessageCreate{
 		Content: content,

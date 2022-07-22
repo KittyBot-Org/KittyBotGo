@@ -71,6 +71,8 @@ func main() {
 		commands.Tags,
 		commands.Volume,
 		commands.Report,
+		commands.Reports,
+		commands.ReportUser,
 		commands.Settings,
 	)
 

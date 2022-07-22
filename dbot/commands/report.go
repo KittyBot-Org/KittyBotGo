@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"database/sql"
 	"fmt"
 	"strconv"
 	"strings"
@@ -139,6 +140,15 @@ func reportConfirmHandler(b *dbot.Bot, args []string, p *message.Printer, e *eve
 		return err
 	}
 
+	reportCount, err := b.DB.Reports().GetCount(snowflake.MustParse(report.UserID), snowflake.MustParse(report.GuildID))
+	if err != nil {
+		b.Logger.Errorf("Failed to get report count: %s", err)
+		return e.CreateMessage(discord.MessageCreate{
+			Content: "Failed to get report count, please reach out to a bot developer.",
+			Flags:   discord.MessageFlagEphemeral,
+		})
+	}
+
 	if err = b.DB.Reports().Confirm(reportID); err != nil {
 		b.Logger.Errorf("Failed to confirm report: %s", err)
 		return e.CreateMessage(discord.MessageCreate{
@@ -147,7 +157,36 @@ func reportConfirmHandler(b *dbot.Bot, args []string, p *message.Printer, e *eve
 		})
 	}
 
-	selectMenuOptions := []discord.SelectMenuOption{
+	var selectMenuOptions []discord.SelectMenuOption
+
+	if reportCount > 0 {
+		selectMenuOptions = append(selectMenuOptions, discord.SelectMenuOption{
+			Label: "Show Previous Reports",
+			Value: "show-reports",
+			Emoji: &discord.ComponentEmoji{
+				Name: "📜",
+			},
+		})
+	}
+
+	if report.MessageID != "0" && report.ChannelID != "0" {
+		selectMenuOptions = append(selectMenuOptions, discord.SelectMenuOption{
+			Label: "Delete Message",
+			Value: "delete-message",
+			Emoji: &discord.ComponentEmoji{
+				Name: "🗑",
+			},
+		})
+	}
+
+	selectMenuOptions = append(selectMenuOptions, []discord.SelectMenuOption{
+		{
+			Label: "Delete Report",
+			Value: "delete-report",
+			Emoji: &discord.ComponentEmoji{
+				Name: "🗑",
+			},
+		},
 		{
 			Label: "Timeout User for 1 hour",
 			Value: "timeout:1",
@@ -176,18 +215,7 @@ func reportConfirmHandler(b *dbot.Bot, args []string, p *message.Printer, e *eve
 				Name: "🔨",
 			},
 		},
-	}
-	if report.MessageID != "" && report.ChannelID != "" {
-		selectMenuOptions = append([]discord.SelectMenuOption{
-			{
-				Label: "Delete Message",
-				Value: "delete",
-				Emoji: &discord.ComponentEmoji{
-					Name: "🗑",
-				},
-			},
-		}, selectMenuOptions...)
-	}
+	}...)
 
 	return e.UpdateMessage(discord.MessageUpdate{
 		Components: &[]discord.ContainerComponent{
@@ -255,12 +283,38 @@ func reportActionHandler(b *dbot.Bot, args []string, p *message.Printer, e *even
 	var content string
 	value := e.SelectMenuInteractionData().Values[0]
 	switch value {
-	case "delete":
+	case "delete-message":
 		if err = b.Client.Rest().DeleteMessage(snowflake.MustParse(report.ChannelID), snowflake.MustParse(report.MessageID), reason); err != nil {
 			b.Logger.Errorf("Failed to delete message: %s", err)
 			content = "Failed to delete message, please reach out to a bot developer."
 		} else {
 			content = "Message deleted."
+		}
+
+	case "delete-report":
+		if err = b.DB.Reports().Delete(reportID); err != nil {
+			b.Logger.Errorf("Failed to delete report: %s", err)
+			content = "Failed to delete report, please reach out to a bot developer."
+		} else {
+			content = "Report deleted."
+		}
+
+	case "show-reports":
+		reports, err := b.DB.Reports().GetAll(snowflake.MustParse(report.UserID), snowflake.MustParse(report.GuildID))
+		if err == sql.ErrNoRows {
+			content = "No reports found."
+		} else if err != nil {
+			b.Logger.Errorf("Failed to get reports: %s", err)
+			content = "Failed to get reports, please reach out to a bot developer."
+		} else {
+			user, err := b.Client.Rest().GetUser(snowflake.MustParse(report.UserID))
+			if err != nil {
+				user = &discord.User{
+					Username:      "Unknown",
+					Discriminator: "xxxx",
+				}
+			}
+			content = formatReports(reports, *user)
 		}
 
 	case "timeout:1", "timeout:24":
@@ -294,6 +348,10 @@ func reportActionHandler(b *dbot.Bot, args []string, p *message.Printer, e *even
 		} else {
 			content = "User banned."
 		}
+
+	default:
+		b.Logger.Errorf("Unknown report action: %s", value)
+		content = "Unknown action."
 	}
 	return e.CreateMessage(discord.MessageCreate{
 		Content: content,
