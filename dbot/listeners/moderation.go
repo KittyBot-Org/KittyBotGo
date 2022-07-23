@@ -51,9 +51,9 @@ func Moderation(b *dbot.Bot) bot.EventListener {
 
 		var content string
 		if messageURL == "" {
-			content = fmt.Sprintf("%s(%s)'s [message](%s) has triggered automod.\nCreated a new report with the id `%d`", user.Tag(), user.Mention(), messageURL, reportID)
+			content = fmt.Sprintf("%s(%s)'s [message](%s) has triggered automod.\nCreated a new report with the id #`%d`", user.Tag(), user.Mention(), messageURL, reportID)
 		} else {
-			content = fmt.Sprintf("%s(%s)'s message has been blocked by automod.\nCreated a new report with the id `%d`", user.Tag(), user.Mention(), reportID)
+			content = fmt.Sprintf("%s(%s)'s message has been blocked by automod.\nCreated a new report with the id #`%d`", user.Tag(), user.Mention(), reportID)
 		}
 
 		var fields []discord.EmbedField

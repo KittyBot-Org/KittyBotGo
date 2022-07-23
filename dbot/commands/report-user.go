@@ -71,7 +71,7 @@ func reportUserHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCom
 	}
 
 	return CreateReport(b, settings, reportID,
-		fmt.Sprintf("%s(%s) has been reported by %s(%s).\nCreated a new report with the id `%d`", user.Tag(), user.Mention(), e.User().Tag(), e.User().Mention(), reportID),
+		fmt.Sprintf("%s(%s) has been reported by %s(%s).\nCreated a new report with the id #`%d`", user.Tag(), user.Mention(), e.User().Tag(), e.User().Mention(), reportID),
 		discord.Embed{
 			Author: &discord.EmbedAuthor{
 				Name:    user.Username,
