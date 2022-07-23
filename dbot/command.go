@@ -10,6 +10,7 @@ type (
 	CommandHandler      func(b *Bot, p *message.Printer, e *events.ApplicationCommandInteractionCreate) error
 	ComponentHandler    func(b *Bot, args []string, p *message.Printer, e *events.ComponentInteractionCreate) error
 	AutocompleteHandler func(b *Bot, p *message.Printer, e *events.AutocompleteInteractionCreate) error
+	ModalHandler        func(b *Bot, args []string, p *message.Printer, e *events.ModalSubmitInteractionCreate) error
 )
 
 type Command struct {
@@ -18,6 +19,7 @@ type Command struct {
 	CommandHandler      map[string]CommandHandler
 	ComponentHandler    map[string]ComponentHandler
 	AutoCompleteHandler map[string]AutocompleteHandler
+	ModalHandler        map[string]ModalHandler
 }
 
 func (b *Bot) LoadCommands(commands ...Command) {

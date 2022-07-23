@@ -74,6 +74,24 @@ func (m *CommandMap) OnEvent(event bot.Event) {
 			}
 			m.bot.Logger.Errorf("No component handler for action \"%s\" on command \"%s\"", action, cmdName)
 		}
+	} else if e, ok := event.(*events.ModalSubmitInteractionCreate); ok {
+		customID := e.Data.CustomID.String()
+		if !strings.HasPrefix(customID, "cmd:") {
+			return
+		}
+		args := strings.Split(customID, ":")
+		cmdName, action := args[1], args[2]
+		if cmd, ok := m.commands[cmdName]; ok {
+			if cmd.ModalHandler != nil {
+				if handler, ok := cmd.ModalHandler[action]; ok {
+					if err := handler(m.bot, args[3:], getMessagePrinter(e.BaseInteraction), e); err != nil {
+						m.bot.Logger.Errorf("Failed to handle modal interaction for \"%s\" \"%s\" : %s", cmdName, action, err)
+					}
+					return
+				}
+			}
+			m.bot.Logger.Errorf("No modal handler for action \"%s\" on command \"%s\"", action, cmdName)
+		}
 	}
 }
 

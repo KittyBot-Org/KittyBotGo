@@ -3,7 +3,7 @@ module github.com/KittyBot-Org/KittyBotGo
 go 1.18
 
 require (
-	github.com/disgoorg/disgo v0.13.5
+	github.com/disgoorg/disgo v0.13.7
 	github.com/disgoorg/disgolink/disgolink v1.7.3-0.20220702231836-318a7f2edb19
 	github.com/disgoorg/disgolink/lavalink v1.7.2-0.20220702231836-318a7f2edb19
 	github.com/disgoorg/log v1.2.0
@@ -37,7 +37,6 @@ require (
 	github.com/sasha-s/go-csync v0.0.0-20210812194225-61421b77c44b // indirect
 	github.com/stretchr/testify v1.8.0 // indirect
 	golang.org/x/exp v0.0.0-20220713135740-79cabaa25d75 // indirect
-	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

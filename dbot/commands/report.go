@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/KittyBot-Org/KittyBotGo/db/.gen/kittybot-go/public/model"
@@ -28,6 +27,9 @@ var Report = dbot.Command{
 		"action":  reportActionHandler,
 		"confirm": reportConfirmHandler,
 		"delete":  reportDeleteHandler,
+	},
+	ModalHandler: map[string]dbot.ModalHandler{
+		"action-confirm": reportActionConfirmHandler,
 	},
 }
 
@@ -188,15 +190,8 @@ func reportConfirmHandler(b *dbot.Bot, args []string, p *message.Printer, e *eve
 			},
 		},
 		{
-			Label: "Timeout User for 1 hour",
-			Value: "timeout:1",
-			Emoji: &discord.ComponentEmoji{
-				Name: "🚫",
-			},
-		},
-		{
-			Label: "Timeout User for 1 day",
-			Value: "timeout:24",
+			Label: "Timeout User",
+			Value: "timeout",
 			Emoji: &discord.ComponentEmoji{
 				Name: "🚫",
 			},
@@ -278,13 +273,13 @@ func reportActionHandler(b *dbot.Bot, args []string, p *message.Printer, e *even
 		})
 	}
 
-	reason := rest.WithReason(fmt.Sprintf("automod action by %s caused by report %d", e.User().Tag(), reportID))
+	reason := fmt.Sprintf("AutoMod action by: %s\nCaused by report #%d", e.User().Tag(), reportID)
 
 	var content string
 	value := e.SelectMenuInteractionData().Values[0]
 	switch value {
 	case "delete-message":
-		if err = b.Client.Rest().DeleteMessage(snowflake.MustParse(report.ChannelID), snowflake.MustParse(report.MessageID), reason); err != nil {
+		if err = b.Client.Rest().DeleteMessage(snowflake.MustParse(report.ChannelID), snowflake.MustParse(report.MessageID), rest.WithReason(reason)); err != nil {
 			b.Logger.Errorf("Failed to delete message: %s", err)
 			content = "Failed to delete message, please reach out to a bot developer."
 		} else {
@@ -333,24 +328,118 @@ func reportActionHandler(b *dbot.Bot, args []string, p *message.Printer, e *even
 			content = formatReports(reports, *user)
 		}
 
-	case "timeout:1", "timeout:24":
+	case "timeout":
+		return e.CreateModal(discord.ModalCreate{
+			CustomID: discord.CustomID(fmt.Sprintf("cmd:report:action-confirm:timeout:%s", report.UserID)),
+			Title:    "Timeout User",
+			Components: []discord.ContainerComponent{
+				discord.ActionRowComponent{
+					discord.TextInputComponent{
+						CustomID:    "duration",
+						Style:       discord.TextInputStyleShort,
+						Label:       "Timeout Duration",
+						MinLength:   json.NewPtr(2),
+						Required:    true,
+						Placeholder: "time units: s, m, h example: 1h3s",
+						Value:       "1h",
+					},
+				},
+				discord.ActionRowComponent{
+					discord.TextInputComponent{
+						CustomID:    "reason",
+						Style:       discord.TextInputStyleParagraph,
+						Label:       "Timeout Reason",
+						Required:    true,
+						Placeholder: "The reason for the timeout",
+						Value:       reason,
+					},
+				},
+			},
+		})
+
+	case "kick":
+		return e.CreateModal(discord.ModalCreate{
+			CustomID: discord.CustomID(fmt.Sprintf("cmd:report:action-confirm:kick:%s", report.UserID)),
+			Title:    "Kick User",
+			Components: []discord.ContainerComponent{
+				discord.ActionRowComponent{
+					discord.TextInputComponent{
+						CustomID:    "reason",
+						Style:       discord.TextInputStyleParagraph,
+						Label:       "Kick Reason",
+						Required:    true,
+						Placeholder: "The reason for the kick",
+						Value:       reason,
+					},
+				},
+			},
+		})
+
+	case "ban":
+		return e.CreateModal(discord.ModalCreate{
+			CustomID: discord.CustomID(fmt.Sprintf("cmd:report:action-confirm:ban:%s", report.UserID)),
+			Title:    "Ban User",
+			Components: []discord.ContainerComponent{
+				discord.ActionRowComponent{
+					discord.TextInputComponent{
+						CustomID:    "del-days",
+						Style:       discord.TextInputStyleShort,
+						Label:       "Message Delete Days",
+						MinLength:   json.NewPtr(1),
+						MaxLength:   1,
+						Required:    true,
+						Placeholder: "0-7",
+						Value:       "0",
+					},
+				},
+				discord.ActionRowComponent{
+					discord.TextInputComponent{
+						CustomID:    "reason",
+						Style:       discord.TextInputStyleParagraph,
+						Label:       "Ban Reason",
+						Required:    true,
+						Placeholder: "The reason for the ban",
+						Value:       reason,
+					},
+				},
+			},
+		})
+
+	default:
+		b.Logger.Errorf("Unknown report action: %s", value)
+		content = "Unknown action."
+	}
+	return e.CreateMessage(discord.MessageCreate{
+		Content: content,
+		Flags:   discord.MessageFlagEphemeral,
+	})
+}
+
+func reportActionConfirmHandler(b *dbot.Bot, args []string, p *message.Printer, e *events.ModalSubmitInteractionCreate) error {
+	userID := snowflake.MustParse(args[1])
+	reason := e.Data.Text("reason")
+
+	var content string
+	switch args[0] {
+	case "timeout":
 		until := time.Now()
-		if strings.HasSuffix(value, "24") {
-			until = until.Add(24 * time.Hour)
+		duration, err := time.ParseDuration(e.Data.Text("duration"))
+		if err != nil {
+			content = "Invalid duration. Please use a valid duration."
 		} else {
-			until = until.Add(1 * time.Hour)
-		}
-		if _, err = b.Client.Rest().UpdateMember(*e.GuildID(), snowflake.MustParse(report.UserID), discord.MemberUpdate{
-			CommunicationDisabledUntil: json.NewOptional(until),
-		}, reason); err != nil {
-			b.Logger.Errorf("Failed to update member: %s", err)
-			content = "Failed to timeout user, please reach out to a bot developer."
-		} else {
-			content = "User timed out."
+			until = until.Add(duration)
+			if _, err = b.Client.Rest().UpdateMember(*e.GuildID(), userID, discord.MemberUpdate{
+				CommunicationDisabledUntil: json.NewOptional(until),
+			}, rest.WithReason(reason)); err != nil {
+				b.Logger.Errorf("Failed to update member: %s", err)
+				content = "Failed to timeout user, please reach out to a bot developer."
+			} else {
+				content = fmt.Sprintf("Timed out user until %s.", discord.TimestampStyleShortDateTime.FormatTime(until))
+			}
 		}
 
 	case "kick":
-		if err = b.Client.Rest().RemoveMember(*e.GuildID(), snowflake.MustParse(report.UserID), reason); err != nil {
+		if err := b.Client.Rest().RemoveMember(*e.GuildID(), userID, rest.WithReason(reason)); err != nil {
 			b.Logger.Errorf("Failed to kick user: %s", err)
 			content = "Failed to kick user, please reach out to a bot developer."
 		} else {
@@ -358,17 +447,19 @@ func reportActionHandler(b *dbot.Bot, args []string, p *message.Printer, e *even
 		}
 
 	case "ban":
-		if err = b.Client.Rest().AddBan(*e.GuildID(), snowflake.MustParse(report.UserID), 0, reason); err != nil {
-			b.Logger.Errorf("Failed to ban user: %s", err)
-			content = "Failed to ban user, please reach out to a bot developer."
+		delDays, err := strconv.Atoi(e.Data.Text("del-days"))
+		if err != nil || delDays < 0 || delDays > 7 {
+			content = "Invalid message deletion days. Make sure it's a number between 0 and 7."
 		} else {
-			content = "User banned."
+			if err = b.Client.Rest().AddBan(*e.GuildID(), userID, 0, rest.WithReason(reason)); err != nil {
+				b.Logger.Errorf("Failed to ban user: %s", err)
+				content = "Failed to ban user, please reach out to a bot developer."
+			} else {
+				content = fmt.Sprintf("Banned %s. And deleted messages of the last %d days.", discord.UserMention(userID), delDays)
+			}
 		}
-
-	default:
-		b.Logger.Errorf("Unknown report action: %s", value)
-		content = "Unknown action."
 	}
+
 	return e.CreateMessage(discord.MessageCreate{
 		Content: content,
 		Flags:   discord.MessageFlagEphemeral,
