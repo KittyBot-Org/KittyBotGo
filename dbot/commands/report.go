@@ -56,7 +56,7 @@ func reportHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommand
 			Flags:   discord.MessageFlagEphemeral,
 		})
 	}
-	if settings.ModerationLogWebhookID == "" {
+	if settings.ModerationLogWebhookID == "0" {
 		return e.CreateMessage(discord.MessageCreate{
 			Content: "Moderation is not enabled on this server, please reach to a moderator.",
 			Flags:   discord.MessageFlagEphemeral,

@@ -10,6 +10,7 @@ import (
 )
 
 type GuildSettingsDB interface {
+	CreateIfNotExist(guildID snowflake.ID) error
 	Get(guildID snowflake.ID) (GuildSetting, error)
 	UpdateModeration(guildID snowflake.ID, webhookID snowflake.ID, webhookToken string) error
 	Delete(guildID snowflake.ID) error
@@ -17,6 +18,14 @@ type GuildSettingsDB interface {
 
 type guildSettingsDBImpl struct {
 	db *sql.DB
+}
+
+func (s *guildSettingsDBImpl) CreateIfNotExist(guildID snowflake.ID) error {
+	_, err := table.GuildSetting.INSERT(table.GuildSetting.AllColumns).
+		VALUES(String(guildID.String()), String("0"), String("")).
+		ON_CONFLICT(table.GuildSetting.ID).DO_NOTHING().
+		Exec(s.db)
+	return err
 }
 
 func (s *guildSettingsDBImpl) Get(guildID snowflake.ID) (GuildSetting, error) {
@@ -34,5 +43,6 @@ func (s *guildSettingsDBImpl) UpdateModeration(guildID snowflake.ID, webhookID s
 }
 
 func (s *guildSettingsDBImpl) Delete(guildID snowflake.ID) error {
-	return nil
+	_, err := table.GuildSetting.DELETE().WHERE(table.GuildSetting.ID.EQ(String(guildID.String()))).Exec(s.db)
+	return err
 }

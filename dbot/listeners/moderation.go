@@ -20,7 +20,7 @@ func Moderation(b *dbot.Bot) bot.EventListener {
 			b.Logger.Errorf("Failed to get guild settings: %s", err)
 			return
 		}
-		if settings.ModerationLogWebhookID == "" {
+		if settings.ModerationLogWebhookID == "0" {
 			return
 		}
 

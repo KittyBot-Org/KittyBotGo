@@ -74,7 +74,7 @@ func settingsModerationLogChannelHandler(b *dbot.Bot, p *message.Printer, e *eve
 		})
 	}
 
-	if settings.ModerationLogWebhookID == "" || settings.ModerationLogWebhookToken == "" {
+	if settings.ModerationLogWebhookID == "0" || settings.ModerationLogWebhookToken == "" {
 		incomingWebhook, err := b.Client.Rest().CreateWebhook(data.Snowflake("channel"), discord.WebhookCreate{
 			Name: "Automod",
 		})

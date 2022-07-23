@@ -80,6 +80,7 @@ func main() {
 		listeners.Metrics(b),
 		listeners.Moderation(b),
 		listeners.Music(b),
+		listeners.Settings(b),
 	); err != nil {
 		b.Logger.Fatal("Failed to setup discord dbot: ", err)
 	}
