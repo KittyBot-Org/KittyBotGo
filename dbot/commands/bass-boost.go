@@ -6,6 +6,7 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgolink/lavalink"
+	"github.com/disgoorg/handler"
 	"golang.org/x/text/message"
 )
 
@@ -27,22 +28,24 @@ var bassBoost = &lavalink.Equalizer{
 	14: -0.1,
 }
 
-var BassBoost = dbot.Command{
-	Create: discord.SlashCommandCreate{
-		CommandName: "bass-boost",
-		Description: "Enables or disables bass boost of the music player.",
-		Options: []discord.ApplicationCommandOption{
-			discord.ApplicationCommandOptionBool{
-				OptionName:  "enable",
-				Description: "if the bass boost should be enabled or disabled",
-				Required:    true,
+func BassBoost(b *dbot.Bot) handler.Command {
+	return handler.Command{
+		Create: discord.SlashCommandCreate{
+			Name:        "bass-boost",
+			Description: "Enables or disables bass boost of the music player.",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionBool{
+					Name:        "enable",
+					Description: "if the bass boost should be enabled or disabled",
+					Required:    true,
+				},
 			},
 		},
-	},
-	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel),
-	CommandHandler: map[string]dbot.CommandHandler{
-		"": bassBoostHandler,
-	},
+		Check: dbot.HasMusicPlayer(b).And(dbot.IsMemberConnectedToVoiceChannel),
+		CommandHandler: map[string]handler.CommandHandler{
+			"": bassBoostHandler,
+		},
+	}
 }
 
 func bassBoostHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionCreate) error {

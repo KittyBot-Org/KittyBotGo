@@ -8,13 +8,13 @@ import (
 	"golang.org/x/text/message"
 )
 
-var Pause = dbot.Command{
+var Pause = handler.Command{
 	Create: discord.SlashCommandCreate{
 		CommandName: "pause",
 		Description: "Pauses or resumes the music.",
 	},
 	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel),
-	CommandHandler: map[string]dbot.CommandHandler{
+	CommandHandler: map[string]handler.CommandHandler{
 		"": pauseHandler,
 	},
 }

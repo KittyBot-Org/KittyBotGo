@@ -10,7 +10,7 @@ import (
 	"golang.org/x/text/message"
 )
 
-var Tag = dbot.Command{
+var Tag = handler.Command{
 	Create: discord.SlashCommandCreate{
 		CommandName: "tag",
 		Description: "lets you display a tag",
@@ -24,7 +24,7 @@ var Tag = dbot.Command{
 			},
 		},
 	},
-	CommandHandler: map[string]dbot.CommandHandler{
+	CommandHandler: map[string]handler.CommandHandler{
 		"": tagHandler,
 	},
 	AutoCompleteHandler: map[string]dbot.AutocompleteHandler{

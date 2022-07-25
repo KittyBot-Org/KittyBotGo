@@ -9,7 +9,7 @@ import (
 	"golang.org/x/text/message"
 )
 
-var Volume = dbot.Command{
+var Volume = handler.Command{
 	Create: discord.SlashCommandCreate{
 		CommandName: "volume",
 		Description: "Changes the volume of the music player.",
@@ -24,7 +24,7 @@ var Volume = dbot.Command{
 		},
 	},
 	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel),
-	CommandHandler: map[string]dbot.CommandHandler{
+	CommandHandler: map[string]handler.CommandHandler{
 		"": volumeHandler,
 	},
 }

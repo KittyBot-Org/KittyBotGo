@@ -10,13 +10,13 @@ import (
 	"golang.org/x/text/message"
 )
 
-var History = dbot.Command{
+var History = handler.Command{
 	Create: discord.SlashCommandCreate{
 		CommandName: "history",
 		Description: "Shows the current history.",
 	},
 	Checks: dbot.HasMusicPlayer.And(dbot.HasHistoryItems),
-	CommandHandler: map[string]dbot.CommandHandler{
+	CommandHandler: map[string]handler.CommandHandler{
 		"": historyHandler,
 	},
 }

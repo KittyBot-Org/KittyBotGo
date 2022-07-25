@@ -11,7 +11,7 @@ import (
 	"golang.org/x/text/message"
 )
 
-var ReportUser = dbot.Command{
+var ReportUser = handler.Command{
 	Create: discord.SlashCommandCreate{
 		CommandName: "report-user",
 		Description: "Report a user for breaking the rules.",
@@ -28,7 +28,7 @@ var ReportUser = dbot.Command{
 			},
 		},
 	},
-	CommandHandler: map[string]dbot.CommandHandler{
+	CommandHandler: map[string]handler.CommandHandler{
 		"": reportUserHandler,
 	},
 }

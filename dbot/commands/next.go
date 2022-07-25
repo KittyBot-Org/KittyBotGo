@@ -8,13 +8,13 @@ import (
 	"golang.org/x/text/message"
 )
 
-var Next = dbot.Command{
+var Next = handler.Command{
 	Create: discord.SlashCommandCreate{
 		CommandName: "next",
 		Description: "Stops the song and starts the next one.",
 	},
 	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasQueueItems),
-	CommandHandler: map[string]dbot.CommandHandler{
+	CommandHandler: map[string]handler.CommandHandler{
 		"": nextHandler,
 	},
 }

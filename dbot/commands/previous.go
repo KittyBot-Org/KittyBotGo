@@ -8,13 +8,13 @@ import (
 	"golang.org/x/text/message"
 )
 
-var Previous = dbot.Command{
+var Previous = handler.Command{
 	Create: discord.SlashCommandCreate{
 		CommandName: "previous",
 		Description: "Stops the song and starts the previous one.",
 	},
 	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasHistoryItems),
-	CommandHandler: map[string]dbot.CommandHandler{
+	CommandHandler: map[string]handler.CommandHandler{
 		"": previousHandler,
 	},
 }

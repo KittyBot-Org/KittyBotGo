@@ -11,7 +11,7 @@ import (
 	"golang.org/x/text/message"
 )
 
-var Reports = dbot.Command{
+var Reports = handler.Command{
 	Create: discord.SlashCommandCreate{
 		CommandName: "reports",
 		Description: "View/Delete reports of a user.",
@@ -75,7 +75,7 @@ var Reports = dbot.Command{
 		},
 		DefaultMemberPermissions: discord.PermissionKickMembers | discord.PermissionBanMembers | discord.PermissionModerateMembers,
 	},
-	CommandHandler: map[string]dbot.CommandHandler{
+	CommandHandler: map[string]handler.CommandHandler{
 		"view":       reportsViewHandler,
 		"view-all":   reportsViewAllHandler,
 		"delete":     reportsDeleteHandler,

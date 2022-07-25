@@ -12,7 +12,7 @@ import (
 	"golang.org/x/text/message"
 )
 
-var Remove = dbot.Command{
+var Remove = handler.Command{
 	Create: discord.SlashCommandCreate{
 		CommandName: "remove",
 		Description: "Removes songs from the queue.",
@@ -43,7 +43,7 @@ var Remove = dbot.Command{
 		},
 	},
 	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasQueueItems),
-	CommandHandler: map[string]dbot.CommandHandler{
+	CommandHandler: map[string]handler.CommandHandler{
 		"song":       removeSongHandler,
 		"user-songs": removeUserSongsHandler,
 	},

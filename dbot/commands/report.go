@@ -16,11 +16,11 @@ import (
 	"golang.org/x/text/message"
 )
 
-var Report = dbot.Command{
+var Report = handler.Command{
 	Create: discord.MessageCommandCreate{
 		CommandName: "report",
 	},
-	CommandHandler: map[string]dbot.CommandHandler{
+	CommandHandler: map[string]handler.CommandHandler{
 		"": reportHandler,
 	},
 	ComponentHandler: map[string]dbot.ComponentHandler{

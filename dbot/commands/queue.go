@@ -10,13 +10,13 @@ import (
 	"golang.org/x/text/message"
 )
 
-var Queue = dbot.Command{
+var Queue = handler.Command{
 	Create: discord.SlashCommandCreate{
 		CommandName: "queue",
 		Description: "Shows the current queue.",
 	},
 	Checks: dbot.HasMusicPlayer.And(dbot.HasQueueItems),
-	CommandHandler: map[string]dbot.CommandHandler{
+	CommandHandler: map[string]handler.CommandHandler{
 		"": queueHandler,
 	},
 }

@@ -59,12 +59,14 @@ github.com/creack/pty v1.1.7/go.mod h1:lj5s0c3V2DBrqTV7llrYr5NG6My20zk30Fl46Y7Do
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/disgoorg/disgo v0.13.7 h1:vvgZ47VLaIRN1PQAdRBOXiXj99joTnRNTI0oIDyw/lE=
-github.com/disgoorg/disgo v0.13.7/go.mod h1:Cyip4bCYHD3rHgDhBPT9cLo81e9AMbDe8ocM50UNRM4=
+github.com/disgoorg/disgo v0.13.9 h1:J08TYlZnrJZgiwrEr150jbu2q/qQHdNMsUdFnELdYAQ=
+github.com/disgoorg/disgo v0.13.9/go.mod h1:Cyip4bCYHD3rHgDhBPT9cLo81e9AMbDe8ocM50UNRM4=
 github.com/disgoorg/disgolink/disgolink v1.7.3-0.20220702231836-318a7f2edb19 h1:+IkMfFkue6i1waPkKU6fcO1DOY5b8LtYXDRcdU0W/zk=
 github.com/disgoorg/disgolink/disgolink v1.7.3-0.20220702231836-318a7f2edb19/go.mod h1:Cnqo4HnuGSqzIJK4wTWXW4IlE6PHxt7yeq3pOA8qJy0=
 github.com/disgoorg/disgolink/lavalink v1.7.2-0.20220702231836-318a7f2edb19 h1:QmoAgvxH1q8X7fSiNLpmXPFp0+NZe+77Bz0egVMMHq4=
 github.com/disgoorg/disgolink/lavalink v1.7.2-0.20220702231836-318a7f2edb19/go.mod h1:e/oo6afxnHvjkgGeJYrDazVIJEsQuWVSFahsek+K1mo=
+github.com/disgoorg/handler v0.2.0 h1:Qa4NlbKuZRwcsvR7DOWMXR0pMbcNJlBYmqiiyDuBPJs=
+github.com/disgoorg/handler v0.2.0/go.mod h1:WnH4baM/USvLy6y4XycGt4PQ2gTSdSlORKpYlbEiI6s=
 github.com/disgoorg/log v1.2.0 h1:sqlXnu/ZKAlIlHV9IO+dbMto7/hCQ474vlIdMWk8QKo=
 github.com/disgoorg/log v1.2.0/go.mod h1:3x1KDG6DI1CE2pDwi3qlwT3wlXpeHW/5rVay+1qDqOo=
 github.com/disgoorg/snowflake/v2 v2.0.0 h1:+xvyyDddXmXLHmiG8SZiQ3sdZdZPbUR22fSHoqwkrOA=

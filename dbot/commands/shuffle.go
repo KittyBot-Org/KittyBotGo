@@ -8,13 +8,13 @@ import (
 	"golang.org/x/text/message"
 )
 
-var Shuffle = dbot.Command{
+var Shuffle = handler.Command{
 	Create: discord.SlashCommandCreate{
 		CommandName: "shuffle",
 		Description: "Shuffles the queue of songs.",
 	},
 	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasQueueItems),
-	CommandHandler: map[string]dbot.CommandHandler{
+	CommandHandler: map[string]handler.CommandHandler{
 		"": shuffleHandler,
 	},
 }

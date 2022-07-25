@@ -10,13 +10,13 @@ import (
 	"golang.org/x/text/message"
 )
 
-var NowPlaying = dbot.Command{
+var NowPlaying = handler.Command{
 	Create: discord.SlashCommandCreate{
 		CommandName: "now-playing",
 		Description: "Tells you about the currently playing song.",
 	},
 	Checks: dbot.HasMusicPlayer.And(dbot.IsPlaying),
-	CommandHandler: map[string]dbot.CommandHandler{
+	CommandHandler: map[string]handler.CommandHandler{
 		"": nowPlayingHandler,
 	},
 	ComponentHandler: map[string]dbot.ComponentHandler{

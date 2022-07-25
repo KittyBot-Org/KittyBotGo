@@ -7,13 +7,13 @@ import (
 	"golang.org/x/text/message"
 )
 
-var ClearQueue = dbot.Command{
+var ClearQueue = handler.Command{
 	Create: discord.SlashCommandCreate{
 		CommandName: "clear-queue",
 		Description: "Removes all songs from your queue.",
 	},
 	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasQueueItems),
-	CommandHandler: map[string]dbot.CommandHandler{
+	CommandHandler: map[string]handler.CommandHandler{
 		"": clearQueueHandler,
 	},
 }

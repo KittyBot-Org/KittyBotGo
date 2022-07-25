@@ -9,13 +9,13 @@ import (
 	"golang.org/x/text/message"
 )
 
-var Stop = dbot.Command{
+var Stop = handler.Command{
 	Create: discord.SlashCommandCreate{
 		CommandName: "stop",
 		Description: "Stops the playing music.",
 	},
 	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel),
-	CommandHandler: map[string]dbot.CommandHandler{
+	CommandHandler: map[string]handler.CommandHandler{
 		"": stopHandler,
 	},
 }

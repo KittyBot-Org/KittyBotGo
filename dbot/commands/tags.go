@@ -16,7 +16,7 @@ import (
 	"golang.org/x/text/message"
 )
 
-var Tags = dbot.Command{
+var Tags = handler.Command{
 	Create: discord.SlashCommandCreate{
 		CommandName: "tags",
 		Description: "lets you create/delete/edit tags",
@@ -82,7 +82,7 @@ var Tags = dbot.Command{
 			},
 		},
 	},
-	CommandHandler: map[string]dbot.CommandHandler{
+	CommandHandler: map[string]handler.CommandHandler{
 		"create": createTagHandler,
 		"delete": deleteTagHandler,
 		"edit":   editTagHandler,

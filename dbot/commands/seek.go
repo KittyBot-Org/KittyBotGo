@@ -10,7 +10,7 @@ import (
 	"golang.org/x/text/message"
 )
 
-var Seek = dbot.Command{
+var Seek = handler.Command{
 	Create: discord.SlashCommandCreate{
 		CommandName: "seek",
 		Description: "Seeks the music to a point in the queue.",
@@ -43,7 +43,7 @@ var Seek = dbot.Command{
 		},
 	},
 	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel),
-	CommandHandler: map[string]dbot.CommandHandler{
+	CommandHandler: map[string]handler.CommandHandler{
 		"": seekHandler,
 	},
 }

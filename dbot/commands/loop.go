@@ -7,7 +7,7 @@ import (
 	"golang.org/x/text/message"
 )
 
-var Loop = dbot.Command{
+var Loop = handler.Command{
 	Create: discord.SlashCommandCreate{
 		CommandName: "loop",
 		Description: "Loops your queue.",
@@ -34,7 +34,7 @@ var Loop = dbot.Command{
 		},
 	},
 	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel),
-	CommandHandler: map[string]dbot.CommandHandler{
+	CommandHandler: map[string]handler.CommandHandler{
 		"": loopHandler,
 	},
 }

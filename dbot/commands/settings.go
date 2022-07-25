@@ -9,7 +9,7 @@ import (
 	"golang.org/x/text/message"
 )
 
-var Settings = dbot.Command{
+var Settings = handler.Command{
 	Create: discord.SlashCommandCreate{
 		CommandName: "settings",
 		Description: "View and edit settings",
@@ -42,7 +42,7 @@ var Settings = dbot.Command{
 		},
 		DefaultMemberPermissions: discord.PermissionManageServer,
 	},
-	CommandHandler: map[string]dbot.CommandHandler{
+	CommandHandler: map[string]handler.CommandHandler{
 		"moderation/disable":     settingsModerationDisableHandler,
 		"moderation/log-channel": settingsModerationLogChannelHandler,
 	},

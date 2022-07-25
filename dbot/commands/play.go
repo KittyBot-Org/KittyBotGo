@@ -21,7 +21,7 @@ var urlPattern = regexp.MustCompile("^https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-
 var trackRegex = regexp.MustCompile(`\[\x60(?P<title>.+)\x60]\((?P<url>.+)?\)`)
 var searchPattern = regexp.MustCompile(`^(.{2})search:(.+)`)
 
-var Play = dbot.Command{
+var Play = handler.Command{
 	Create: discord.SlashCommandCreate{
 		CommandName: "play",
 		Description: "Plays music for you.",
@@ -61,7 +61,7 @@ var Play = dbot.Command{
 		},
 	},
 	Checks: dbot.IsMemberConnectedToVoiceChannel,
-	CommandHandler: map[string]dbot.CommandHandler{
+	CommandHandler: map[string]handler.CommandHandler{
 		"": playHandler,
 	},
 	AutoCompleteHandler: map[string]dbot.AutocompleteHandler{

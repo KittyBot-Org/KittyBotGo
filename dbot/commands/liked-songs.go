@@ -12,7 +12,7 @@ import (
 	"golang.org/x/text/message"
 )
 
-var LikedSongs = dbot.Command{
+var LikedSongs = handler.Command{
 	Create: discord.SlashCommandCreate{
 		CommandName: "liked-songs",
 		Description: "Lists/Removes/Plays a liked song.",
@@ -51,7 +51,7 @@ var LikedSongs = dbot.Command{
 			},*/
 		},
 	},
-	CommandHandler: map[string]dbot.CommandHandler{
+	CommandHandler: map[string]handler.CommandHandler{
 		"list":   likedSongsListHandler,
 		"remove": likedSongsRemoveHandler,
 		"clear":  likedSongsClearHandler,
