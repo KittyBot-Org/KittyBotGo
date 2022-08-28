@@ -3,13 +3,13 @@ module github.com/KittyBot-Org/KittyBotGo
 go 1.18
 
 require (
-	github.com/disgoorg/disgo v0.13.7
+	github.com/disgoorg/disgo v0.13.18-0.20220828162428-9f10939de2ca
 	github.com/disgoorg/disgolink/disgolink v1.7.3-0.20220702231836-318a7f2edb19
 	github.com/disgoorg/disgolink/lavalink v1.7.2-0.20220702231836-318a7f2edb19
 	github.com/disgoorg/log v1.2.0
 	github.com/disgoorg/snowflake/v2 v2.0.0
 	github.com/disgoorg/source-plugins v1.3.0
-	github.com/disgoorg/utils/paginator v0.0.0-20220702232326-4d172e2902b6
+	github.com/disgoorg/utils/paginator v0.0.0-20220811191046-2474e390fa3b
 	github.com/go-jet/jet/v2 v2.8.0
 	github.com/gorilla/mux v1.8.0
 	github.com/lib/pq v1.10.6

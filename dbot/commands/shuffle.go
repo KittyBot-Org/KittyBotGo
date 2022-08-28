@@ -10,7 +10,7 @@ import (
 
 var Shuffle = dbot.Command{
 	Create: discord.SlashCommandCreate{
-		CommandName: "shuffle",
+		Name:        "shuffle",
 		Description: "Shuffles the queue of songs.",
 	},
 	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasQueueItems),

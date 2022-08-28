@@ -29,11 +29,11 @@ var bassBoost = &lavalink.Equalizer{
 
 var BassBoost = dbot.Command{
 	Create: discord.SlashCommandCreate{
-		CommandName: "bass-boost",
+		Name:        "bass-boost",
 		Description: "Enables or disables bass boost of the music player.",
 		Options: []discord.ApplicationCommandOption{
 			discord.ApplicationCommandOptionBool{
-				OptionName:  "enable",
+				Name:        "enable",
 				Description: "if the bass boost should be enabled or disabled",
 				Required:    true,
 			},

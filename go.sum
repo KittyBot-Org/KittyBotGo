@@ -59,8 +59,8 @@ github.com/creack/pty v1.1.7/go.mod h1:lj5s0c3V2DBrqTV7llrYr5NG6My20zk30Fl46Y7Do
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/disgoorg/disgo v0.13.7 h1:vvgZ47VLaIRN1PQAdRBOXiXj99joTnRNTI0oIDyw/lE=
-github.com/disgoorg/disgo v0.13.7/go.mod h1:Cyip4bCYHD3rHgDhBPT9cLo81e9AMbDe8ocM50UNRM4=
+github.com/disgoorg/disgo v0.13.18-0.20220828162428-9f10939de2ca h1:qwxfSKyn3S7GBXoo3Bt1sm+2S/pEIXogh2oVyAgk6F4=
+github.com/disgoorg/disgo v0.13.18-0.20220828162428-9f10939de2ca/go.mod h1:Cyip4bCYHD3rHgDhBPT9cLo81e9AMbDe8ocM50UNRM4=
 github.com/disgoorg/disgolink/disgolink v1.7.3-0.20220702231836-318a7f2edb19 h1:+IkMfFkue6i1waPkKU6fcO1DOY5b8LtYXDRcdU0W/zk=
 github.com/disgoorg/disgolink/disgolink v1.7.3-0.20220702231836-318a7f2edb19/go.mod h1:Cnqo4HnuGSqzIJK4wTWXW4IlE6PHxt7yeq3pOA8qJy0=
 github.com/disgoorg/disgolink/lavalink v1.7.2-0.20220702231836-318a7f2edb19 h1:QmoAgvxH1q8X7fSiNLpmXPFp0+NZe+77Bz0egVMMHq4=
@@ -71,8 +71,8 @@ github.com/disgoorg/snowflake/v2 v2.0.0 h1:+xvyyDddXmXLHmiG8SZiQ3sdZdZPbUR22fSHo
 github.com/disgoorg/snowflake/v2 v2.0.0/go.mod h1:SPU9c2CNn5DSyb86QcKtdZgix9osEtKrHLW4rMhfLCs=
 github.com/disgoorg/source-plugins v1.3.0 h1:7jg8TsnEhzPaMdJ70PFWdarNT2lObSENhvnzOvdcqX4=
 github.com/disgoorg/source-plugins v1.3.0/go.mod h1:N0FjJBs/+TtXkbgGjem5Am7LllOL8WSx3yxE4p4ryE0=
-github.com/disgoorg/utils/paginator v0.0.0-20220702232326-4d172e2902b6 h1:KWGoMUFtfsuasTPREcyJjdTFwkV5tS06pTiKZyoFtok=
-github.com/disgoorg/utils/paginator v0.0.0-20220702232326-4d172e2902b6/go.mod h1:BFLPh0GbRwWdl7bmzL+L5QzvDjFXA9YVwbxJFvIzFds=
+github.com/disgoorg/utils/paginator v0.0.0-20220811191046-2474e390fa3b h1:FjX9UtO1z+g/edySDyPs44rg5/wDlHtSKdmRT63qi7s=
+github.com/disgoorg/utils/paginator v0.0.0-20220811191046-2474e390fa3b/go.mod h1:hjSzv3tsqShOFDWtd3Rd/yYWcYcxa16aVehPDrqt15M=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=

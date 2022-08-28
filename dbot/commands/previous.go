@@ -10,7 +10,7 @@ import (
 
 var Previous = dbot.Command{
 	Create: discord.SlashCommandCreate{
-		CommandName: "previous",
+		Name:        "previous",
 		Description: "Stops the song and starts the previous one.",
 	},
 	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasHistoryItems),

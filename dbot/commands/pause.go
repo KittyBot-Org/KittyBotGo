@@ -10,7 +10,7 @@ import (
 
 var Pause = dbot.Command{
 	Create: discord.SlashCommandCreate{
-		CommandName: "pause",
+		Name:        "pause",
 		Description: "Pauses or resumes the music.",
 	},
 	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel),

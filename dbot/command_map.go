@@ -57,7 +57,7 @@ func (m *CommandMap) OnEvent(event bot.Event) {
 			m.bot.Logger.Errorf("No autocomplete handler for command \"%s\"", e.Data.CommandName)
 		}
 	} else if e, ok := event.(*events.ComponentInteractionCreate); ok {
-		customID := e.Data.CustomID().String()
+		customID := e.Data.CustomID()
 		if !strings.HasPrefix(customID, "cmd:") {
 			return
 		}
@@ -75,7 +75,7 @@ func (m *CommandMap) OnEvent(event bot.Event) {
 			m.bot.Logger.Errorf("No component handler for action \"%s\" on command \"%s\"", action, cmdName)
 		}
 	} else if e, ok := event.(*events.ModalSubmitInteractionCreate); ok {
-		customID := e.Data.CustomID.String()
+		customID := e.Data.CustomID
 		if !strings.HasPrefix(customID, "cmd:") {
 			return
 		}
@@ -119,6 +119,6 @@ func buildCommandPath(subcommand *string, subcommandGroup *string) string {
 
 func (m *CommandMap) AddAll(c []Command) {
 	for _, cmd := range c {
-		m.commands[cmd.Create.Name()] = cmd
+		m.commands[cmd.Create.CommandName()] = cmd
 	}
 }

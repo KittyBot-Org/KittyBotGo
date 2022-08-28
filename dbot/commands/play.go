@@ -23,17 +23,17 @@ var searchPattern = regexp.MustCompile(`^(.{2})search:(.+)`)
 
 var Play = dbot.Command{
 	Create: discord.SlashCommandCreate{
-		CommandName: "play",
+		Name:        "play",
 		Description: "Plays music for you.",
 		Options: []discord.ApplicationCommandOption{
 			discord.ApplicationCommandOptionString{
-				OptionName:   "query",
+				Name:         "query",
 				Description:  "song name or url",
 				Required:     true,
 				Autocomplete: true,
 			},
 			discord.ApplicationCommandOptionString{
-				OptionName:  "search-provider",
+				Name:        "search-provider",
 				Description: "where to search for the query",
 				Choices: []discord.ApplicationCommandOptionChoiceString{
 					{
@@ -293,7 +293,7 @@ func giveSearchSelection(b *dbot.Bot, p *message.Printer, e *events.ApplicationC
 
 	if _, err := e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(),
 		responses.UpdateSuccessComponentsf(p, "modules.music.autocomplete.select.songs", nil, discord.NewActionRow(
-			discord.NewSelectMenu(discord.CustomID("play:search:"+e.ID().String()), p.Sprintf("modules.music.commands.play.select.songs"), options...).WithMaxValues(len(options)),
+			discord.NewSelectMenu("play:search:"+e.ID().String(), p.Sprintf("modules.music.commands.play.select.songs"), options...).WithMaxValues(len(options)),
 		)),
 	); err != nil {
 		b.Logger.Error("Error while updating interaction message: ", err)
@@ -301,7 +301,7 @@ func giveSearchSelection(b *dbot.Bot, p *message.Printer, e *events.ApplicationC
 
 	go func() {
 		collectorChan, cancel := bot.NewEventCollector(e.Client(), func(e *events.ComponentInteractionCreate) bool {
-			return e.Data.CustomID() == discord.CustomID("play:search:"+e.ID().String())
+			return e.Data.CustomID() == "play:search:"+e.ID().String()
 		})
 		defer cancel()
 		for {

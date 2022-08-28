@@ -12,7 +12,7 @@ import (
 
 var Queue = dbot.Command{
 	Create: discord.SlashCommandCreate{
-		CommandName: "queue",
+		Name:        "queue",
 		Description: "Shows the current queue.",
 	},
 	Checks: dbot.HasMusicPlayer.And(dbot.HasQueueItems),

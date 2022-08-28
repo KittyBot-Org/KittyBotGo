@@ -12,12 +12,12 @@ import (
 
 var Tag = dbot.Command{
 	Create: discord.SlashCommandCreate{
-		CommandName: "tag",
+		Name:        "tag",
 		Description: "lets you display a tag",
 		Options: []discord.ApplicationCommandOption{
 
 			discord.ApplicationCommandOptionString{
-				OptionName:   "name",
+				Name:         "name",
 				Description:  "the name of the tag to display",
 				Required:     true,
 				Autocomplete: true,

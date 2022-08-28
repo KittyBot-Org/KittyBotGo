@@ -9,7 +9,7 @@ import (
 
 var ClearQueue = dbot.Command{
 	Create: discord.SlashCommandCreate{
-		CommandName: "clear-queue",
+		Name:        "clear-queue",
 		Description: "Removes all songs from your queue.",
 	},
 	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasQueueItems),

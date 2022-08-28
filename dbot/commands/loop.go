@@ -9,11 +9,11 @@ import (
 
 var Loop = dbot.Command{
 	Create: discord.SlashCommandCreate{
-		CommandName: "loop",
+		Name:        "loop",
 		Description: "Loops your queue.",
 		Options: []discord.ApplicationCommandOption{
 			discord.ApplicationCommandOptionInt{
-				OptionName:  "looping-type",
+				Name:        "looping-type",
 				Description: "how to loop your queue",
 				Required:    true,
 				Choices: []discord.ApplicationCommandOptionChoiceInt{

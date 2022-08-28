@@ -18,58 +18,58 @@ import (
 
 var Tags = dbot.Command{
 	Create: discord.SlashCommandCreate{
-		CommandName: "tags",
+		Name:        "tags",
 		Description: "lets you create/delete/edit tags",
 		Options: []discord.ApplicationCommandOption{
 			discord.ApplicationCommandOptionSubCommand{
-				CommandName: "create",
+				Name:        "create",
 				Description: "lets you create a tag",
 				Options: []discord.ApplicationCommandOption{
 					discord.ApplicationCommandOptionString{
-						OptionName:  "name",
+						Name:        "name",
 						Description: "the name of the tag to create",
 						Required:    true,
 					},
 					discord.ApplicationCommandOptionString{
-						OptionName:  "content",
+						Name:        "content",
 						Description: "the content of the new tag",
 						Required:    true,
 					},
 				},
 			},
 			discord.ApplicationCommandOptionSubCommand{
-				CommandName: "delete",
+				Name:        "delete",
 				Description: "lets you delete a tag",
 				Options: []discord.ApplicationCommandOption{
 					discord.ApplicationCommandOptionString{
-						OptionName:  "name",
+						Name:        "name",
 						Description: "the name of the tag to delete",
 						Required:    true,
 					},
 				},
 			},
 			discord.ApplicationCommandOptionSubCommand{
-				CommandName: "edit",
+				Name:        "edit",
 				Description: "lets you edit a tag",
 				Options: []discord.ApplicationCommandOption{
 					discord.ApplicationCommandOptionString{
-						OptionName:  "name",
+						Name:        "name",
 						Description: "the name of the tag to edit",
 						Required:    true,
 					},
 					discord.ApplicationCommandOptionString{
-						OptionName:  "content",
+						Name:        "content",
 						Description: "the new content of the new tag",
 						Required:    true,
 					},
 				},
 			},
 			discord.ApplicationCommandOptionSubCommand{
-				CommandName: "info",
+				Name:        "info",
 				Description: "lets you view a tag's info",
 				Options: []discord.ApplicationCommandOption{
 					discord.ApplicationCommandOptionString{
-						OptionName:   "name",
+						Name:         "name",
 						Description:  "the name of the tag to view",
 						Required:     true,
 						Autocomplete: true,
@@ -77,7 +77,7 @@ var Tags = dbot.Command{
 				},
 			},
 			discord.ApplicationCommandOptionSubCommand{
-				CommandName: "list",
+				Name:        "list",
 				Description: "lists all tags",
 			},
 		},

@@ -11,11 +11,11 @@ import (
 
 var Volume = dbot.Command{
 	Create: discord.SlashCommandCreate{
-		CommandName: "volume",
+		Name:        "volume",
 		Description: "Changes the volume of the music player.",
 		Options: []discord.ApplicationCommandOption{
 			discord.ApplicationCommandOptionInt{
-				OptionName:  "volume",
+				Name:        "volume",
 				Description: "the desired volume",
 				Required:    true,
 				MinValue:    json.NewPtr(0),
