@@ -44,7 +44,7 @@ func (b *Bot) SetupBot(listeners ...bot.EventListener) (err error) {
 		bot.WithLogger(b.Logger),
 		bot.WithGatewayConfigOpts(gateway.WithIntents(gateway.IntentGuilds, gateway.IntentGuildVoiceStates, gateway.IntentMessageContent, gateway.IntentAutoModerationExecution)),
 		bot.WithCacheConfigOpts(
-			cache.WithCacheFlags(cache.FlagVoiceStates, cache.FlagMembers, cache.FlagChannels, cache.FlagGuilds),
+			cache.WithCacheFlags(cache.FlagVoiceStates, cache.FlagMembers, cache.FlagChannels, cache.FlagGuilds, cache.FlagRoles),
 			cache.WithMemberCachePolicy(func(member discord.Member) bool {
 				return member.User.ID == b.Client.ID()
 			}),
