@@ -42,8 +42,8 @@ var Remove = handler.Command{
 			},
 		},
 	},
-	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasQueueItems),
-	CommandHandler: map[string]handler.CommandHandler{
+	Check: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasQueueItems),
+	CommandHandlers: map[string]handler.CommandHandler{
 		"song":       removeSongHandler,
 		"user-songs": removeUserSongsHandler,
 	},

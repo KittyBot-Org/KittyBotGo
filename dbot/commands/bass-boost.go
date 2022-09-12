@@ -7,7 +7,6 @@ import (
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgolink/lavalink"
 	"github.com/disgoorg/handler"
-	"golang.org/x/text/message"
 )
 
 var bassBoost = &lavalink.Equalizer{
@@ -41,25 +40,27 @@ func BassBoost(b *dbot.Bot) handler.Command {
 				},
 			},
 		},
-		Check: dbot.HasMusicPlayer(b).And(dbot.IsMemberConnectedToVoiceChannel),
-		CommandHandler: map[string]handler.CommandHandler{
-			"": bassBoostHandler,
+		Check: dbot.HasMusicPlayer(b).And(dbot.IsMemberConnectedToVoiceChannel(b)),
+		CommandHandlers: map[string]handler.CommandHandler{
+			"": bassBoostHandler(b),
 		},
 	}
 }
 
-func bassBoostHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionCreate) error {
-	player := b.MusicPlayers.Get(*e.GuildID())
-	enable := e.SlashCommandInteractionData().Bool("enable")
+func bassBoostHandler(b *dbot.Bot) handler.CommandHandler {
+	return func(e *events.ApplicationCommandInteractionCreate) error {
+		player := b.MusicPlayers.Get(*e.GuildID())
+		enable := e.SlashCommandInteractionData().Bool("enable")
 
-	if enable {
-		if err := player.Filters().SetEqualizer(bassBoost).Commit(); err != nil {
-			return e.CreateMessage(responses.CreateErrorf(p, "modules.music.commands.bass.boost.enable.error"))
+		if enable {
+			if err := player.Filters().SetEqualizer(bassBoost).Commit(); err != nil {
+				return e.CreateMessage(responses.CreateErrorf("modules.music.commands.bass.boost.enable.error"))
+			}
+			return e.CreateMessage(responses.CreateSuccessf("modules.music.commands.bass.boost.enable.success"))
 		}
-		return e.CreateMessage(responses.CreateSuccessf(p, "modules.music.commands.bass.boost.enable.success"))
+		if err := player.Filters().SetEqualizer(&lavalink.Equalizer{}).Commit(); err != nil {
+			return e.CreateMessage(responses.CreateErrorf("modules.music.commands.bass.boost.disable.error"))
+		}
+		return e.CreateMessage(responses.CreateSuccessf("modules.music.commands.bass.boost.disable.success"))
 	}
-	if err := player.Filters().SetEqualizer(&lavalink.Equalizer{}).Commit(); err != nil {
-		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.commands.bass.boost.disable.error"))
-	}
-	return e.CreateMessage(responses.CreateSuccessf(p, "modules.music.commands.bass.boost.disable.success"))
 }

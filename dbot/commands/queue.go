@@ -15,8 +15,8 @@ var Queue = handler.Command{
 		Name:        "queue",
 		Description: "Shows the current queue.",
 	},
-	Checks: dbot.HasMusicPlayer.And(dbot.HasQueueItems),
-	CommandHandler: map[string]handler.CommandHandler{
+	Check: dbot.HasMusicPlayer.And(dbot.HasQueueItems),
+	CommandHandlers: map[string]handler.CommandHandler{
 		"": queueHandler,
 	},
 }

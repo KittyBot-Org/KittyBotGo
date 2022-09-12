@@ -24,7 +24,7 @@ var Tag = handler.Command{
 			},
 		},
 	},
-	CommandHandler: map[string]handler.CommandHandler{
+	CommandHandlers: map[string]handler.CommandHandler{
 		"": tagHandler,
 	},
 	AutoCompleteHandler: map[string]dbot.AutocompleteHandler{

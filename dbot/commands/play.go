@@ -60,8 +60,8 @@ var Play = handler.Command{
 			},
 		},
 	},
-	Checks: dbot.IsMemberConnectedToVoiceChannel,
-	CommandHandler: map[string]handler.CommandHandler{
+	Check: dbot.IsMemberConnectedToVoiceChannel,
+	CommandHandlers: map[string]handler.CommandHandler{
 		"": playHandler,
 	},
 	AutoCompleteHandler: map[string]dbot.AutocompleteHandler{

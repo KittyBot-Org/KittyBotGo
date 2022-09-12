@@ -1,8 +1,9 @@
 package responses
 
 import (
+	"fmt"
+
 	"github.com/disgoorg/disgo/discord"
-	"golang.org/x/text/message"
 )
 
 const (
@@ -10,23 +11,23 @@ const (
 	SuccessColor = 0x5C5FEA
 )
 
-func CreateSuccessf(p *message.Printer, languageString string, a ...any) discord.MessageCreate {
+func CreateSuccessf(languageString string, a ...any) discord.MessageCreate {
 	return discord.MessageCreate{
 		Embeds: []discord.Embed{
 			{
 				Color:       SuccessColor,
-				Description: p.Sprintf(languageString, a...),
+				Description: fmt.Sprintf(languageString, a...),
 			},
 		},
 	}
 }
 
-func CreateSuccessComponentsf(p *message.Printer, languageString string, a []any, components ...discord.ContainerComponent) discord.MessageCreate {
+func CreateSuccessComponentsf(languageString string, a []any, components ...discord.ContainerComponent) discord.MessageCreate {
 	return discord.MessageCreate{
 		Embeds: []discord.Embed{
 			{
 				Color:       SuccessColor,
-				Description: p.Sprintf(languageString, a...),
+				Description: fmt.Sprintf(languageString, a...),
 			},
 		},
 		Components: components,
@@ -52,24 +53,24 @@ func CreateSuccessEmbedComponents(embed discord.Embed, components ...discord.Con
 	}
 }
 
-func CreateErrorf(p *message.Printer, languageString string, a ...any) discord.MessageCreate {
+func CreateErrorf(msg string, a ...any) discord.MessageCreate {
 	return discord.MessageCreate{
 		Embeds: []discord.Embed{
 			{
 				Color:       ErrorColor,
-				Description: p.Sprintf(languageString, a...),
+				Description: fmt.Sprintf(msg, a...),
 			},
 		},
 		Flags: discord.MessageFlagEphemeral,
 	}
 }
 
-func CreateErrorComponentsf(p *message.Printer, languageString string, a []any, components ...discord.ContainerComponent) discord.MessageCreate {
+func CreateErrorComponentsf(msg string, a []any, components ...discord.ContainerComponent) discord.MessageCreate {
 	return discord.MessageCreate{
 		Embeds: []discord.Embed{
 			{
 				Color:       ErrorColor,
-				Description: p.Sprintf(languageString, a...),
+				Description: fmt.Sprintf(msg, a...),
 			},
 		},
 		Components: components,

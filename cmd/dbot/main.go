@@ -14,6 +14,7 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/dbot/listeners"
 	"github.com/KittyBot-Org/KittyBotGo/i18n"
 	"github.com/disgoorg/log"
+	"github.com/disgoorg/snowflake/v2"
 	_ "github.com/lib/pq"
 )
 
@@ -52,28 +53,28 @@ func main() {
 
 	b := dbot.New(logger, cfg, version)
 	b.LoadCommands(
-		commands.BassBoost,
-		commands.ClearQueue,
-		commands.History,
-		commands.LikedSongs,
-		commands.Loop,
-		commands.Next,
-		commands.NowPlaying,
-		commands.Pause,
-		commands.Play,
-		commands.Previous,
-		commands.Queue,
-		commands.Remove,
-		commands.Seek,
-		commands.Shuffle,
-		commands.Stop,
-		commands.Tag,
-		commands.Tags,
-		commands.Volume,
-		commands.Report,
-		commands.Reports,
-		commands.ReportUser,
-		commands.Settings,
+		commands.BassBoost(b),
+		commands.ClearQueue(b),
+		commands.History(b),
+		commands.LikedSongs(b),
+		commands.Loop(b),
+		commands.Next(b),
+		commands.NowPlaying(b),
+		commands.Pause(b),
+		commands.Play(b),
+		commands.Previous(b),
+		commands.Queue(b),
+		commands.Remove(b),
+		commands.Seek(b),
+		commands.Shuffle(b),
+		commands.Stop(b),
+		commands.Tag(b),
+		commands.Tags(b),
+		commands.Volume(b),
+		commands.Report(b),
+		commands.Reports(b),
+		commands.ReportUser(b),
+		commands.Settings(b),
 	)
 
 	if err := b.SetupBot(
@@ -87,7 +88,11 @@ func main() {
 	defer b.Client.Close(context.TODO())
 
 	if *shouldSyncCommands {
-		b.SyncCommands()
+		var guilds []snowflake.ID
+		if b.Config.DevMode {
+			guilds = b.Config.DevGuildIDs
+		}
+		b.Handler.SyncCommands(b.Client, guilds...)
 	}
 
 	var err error

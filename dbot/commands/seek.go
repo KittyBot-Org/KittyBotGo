@@ -42,8 +42,8 @@ var Seek = handler.Command{
 			},
 		},
 	},
-	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel),
-	CommandHandler: map[string]handler.CommandHandler{
+	Check: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel),
+	CommandHandlers: map[string]handler.CommandHandler{
 		"": seekHandler,
 	},
 }

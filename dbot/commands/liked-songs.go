@@ -51,7 +51,7 @@ var LikedSongs = handler.Command{
 			},*/
 		},
 	},
-	CommandHandler: map[string]handler.CommandHandler{
+	CommandHandlers: map[string]handler.CommandHandler{
 		"list":   likedSongsListHandler,
 		"remove": likedSongsRemoveHandler,
 		"clear":  likedSongsClearHandler,

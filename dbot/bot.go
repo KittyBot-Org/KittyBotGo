@@ -35,7 +35,6 @@ type Bot struct {
 	Lavalink            disgolink.Link
 	MusicPlayers        *MusicPlayerMap
 	Paginator           *paginator.Manager
-	CommandMap          *CommandMap
 	DB                  db.DB
 	ReportLogWebhookMap *ReportLogWebhookMap
 	Config              Config

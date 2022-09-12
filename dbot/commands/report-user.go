@@ -28,7 +28,7 @@ var ReportUser = handler.Command{
 			},
 		},
 	},
-	CommandHandler: map[string]handler.CommandHandler{
+	CommandHandlers: map[string]handler.CommandHandler{
 		"": reportUserHandler,
 	},
 }

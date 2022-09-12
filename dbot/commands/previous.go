@@ -13,8 +13,8 @@ var Previous = handler.Command{
 		Name:        "previous",
 		Description: "Stops the song and starts the previous one.",
 	},
-	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasHistoryItems),
-	CommandHandler: map[string]handler.CommandHandler{
+	Check: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasHistoryItems),
+	CommandHandlers: map[string]handler.CommandHandler{
 		"": previousHandler,
 	},
 }

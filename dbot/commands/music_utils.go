@@ -10,7 +10,6 @@ import (
 	"github.com/disgoorg/disgolink/lavalink"
 	source_plugins "github.com/disgoorg/source-plugins"
 	"github.com/go-jet/jet/v2/qrm"
-	"golang.org/x/text/message"
 )
 
 func getMusicControllerComponents(track lavalink.AudioTrack) discord.ContainerComponent {
@@ -36,10 +35,10 @@ func getTrackQuery(title string, url *string) string {
 	return title
 }
 
-func checkPlayer(b *dbot.Bot, p *message.Printer, e *events.ComponentInteractionCreate) (*dbot.MusicPlayer, error) {
+func checkPlayer(b *dbot.Bot, e *events.ComponentInteractionCreate) (*dbot.MusicPlayer, error) {
 	player := b.MusicPlayers.Get(*e.GuildID())
 	if player == nil {
-		return nil, e.CreateMessage(responses.CreateErrorf(p, "modules.music.components.no.player"))
+		return nil, e.CreateMessage(responses.CreateErrorf("modules.music.components.no.player"))
 	}
 	return player, nil
 }
@@ -72,51 +71,51 @@ func getArtworkURL(track lavalink.AudioTrack) string {
 	return ""
 }
 
-func playPauseComponentHandler(b *dbot.Bot, _ []string, p *message.Printer, e *events.ComponentInteractionCreate) error {
-	player, err := checkPlayer(b, p, e)
+func playPauseComponentHandler(b *dbot.Bot, _ []string, e *events.ComponentInteractionCreate) error {
+	player, err := checkPlayer(b, e)
 	if player == nil {
 		return err
 	}
 	if player.PlayingTrack() == nil {
-		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.components.play.pause.not.playing"))
+		return e.CreateMessage(responses.CreateErrorf("modules.music.components.play.pause.not.playing"))
 	}
 	paused := !player.Paused()
 	if err = player.Pause(paused); err != nil {
 		if paused {
-			return e.CreateMessage(responses.CreateErrorf(p, "modules.music.components.play.pause.pause.error"))
+			return e.CreateMessage(responses.CreateErrorf("modules.music.components.play.pause.pause.error"))
 		}
-		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.components.play.pause.play.error"))
+		return e.CreateMessage(responses.CreateErrorf("modules.music.components.play.pause.play.error"))
 	}
 	track := player.PlayingTrack()
 	if paused {
-		return e.UpdateMessage(responses.UpdateSuccessComponentsf(p, "modules.music.components.play.pause.pause.success", []any{formatTrack(track), track.Info().Length, player.Position()}, getMusicControllerComponents(track)))
+		return e.UpdateMessage(responses.UpdateSuccessComponentsf("modules.music.components.play.pause.pause.success", []any{formatTrack(track), track.Info().Length, player.Position()}, getMusicControllerComponents(track)))
 	}
-	return e.UpdateMessage(responses.UpdateSuccessComponentsf(p, "modules.music.components.play.pause.play.success", []any{formatTrack(track), track.Info().Length}, getMusicControllerComponents(track)))
+	return e.UpdateMessage(responses.UpdateSuccessComponentsf("modules.music.components.play.pause.play.success", []any{formatTrack(track), track.Info().Length}, getMusicControllerComponents(track)))
 }
 
-func nextComponentHandler(b *dbot.Bot, _ []string, p *message.Printer, e *events.ComponentInteractionCreate) error {
-	player, err := checkPlayer(b, p, e)
+func nextComponentHandler(b *dbot.Bot, _ []string, e *events.ComponentInteractionCreate) error {
+	player, err := checkPlayer(b, e)
 	if player == nil {
 		return err
 	}
 	nextTrack := player.Queue.Pop()
 	if nextTrack == nil {
-		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.components.next.empty"))
+		return e.CreateMessage(responses.CreateErrorf("modules.music.components.next.empty"))
 	}
 
 	if err = player.Play(nextTrack); err != nil {
-		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.components.next.error"))
+		return e.CreateMessage(responses.CreateErrorf("modules.music.components.next.error"))
 	}
-	return e.UpdateMessage(responses.UpdateSuccessComponentsf(p, "modules.music.commands.next.success", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
+	return e.UpdateMessage(responses.UpdateSuccessComponentsf("modules.music.commands.next.success", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
 }
 
-func likeComponentHandler(b *dbot.Bot, _ []string, p *message.Printer, e *events.ComponentInteractionCreate) error {
+func likeComponentHandler(b *dbot.Bot, _ []string, e *events.ComponentInteractionCreate) error {
 	if len(e.Message.Embeds) == 0 {
-		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.components.like.no.embed"))
+		return e.CreateMessage(responses.CreateErrorf("modules.music.components.like.no.embed"))
 	}
 	allMatches := trackRegex.FindAllStringSubmatch(e.Message.Embeds[0].Description, -1)
 	if allMatches == nil {
-		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.components.like.no.track"))
+		return e.CreateMessage(responses.CreateErrorf("modules.music.components.like.no.track"))
 	}
 	matches := allMatches[0]
 	var (
@@ -136,18 +135,18 @@ func likeComponentHandler(b *dbot.Bot, _ []string, p *message.Printer, e *events
 	if err == qrm.ErrNoRows {
 		if err = b.DB.LikedSongs().Add(e.User().ID, getTrackQuery(title, url), title); err != nil {
 			b.Logger.Error("Error adding music history entry: ", err)
-			return e.CreateMessage(responses.CreateErrorf(p, "modules.music.components.like.add.error"))
+			return e.CreateMessage(responses.CreateErrorf("modules.music.components.like.add.error"))
 		}
-		res := responses.CreateSuccessf(p, "modules.music.components.like.add.success", title, url)
+		res := responses.CreateSuccessf("modules.music.components.like.add.success", title, url)
 		res.Flags = discord.MessageFlagEphemeral
 		return e.CreateMessage(res)
 
 	}
 	if err = b.DB.LikedSongs().Delete(e.User().ID, title); err != nil {
 		b.Logger.Error("Error removing music history entry: ", err)
-		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.components.like.remove.error"))
+		return e.CreateMessage(responses.CreateErrorf("modules.music.components.like.remove.error"))
 	}
-	res := responses.CreateSuccessf(p, "modules.music.components.like.remove.success", title, url)
+	res := responses.CreateSuccessf("modules.music.components.like.remove.success", title, url)
 	res.Flags = discord.MessageFlagEphemeral
 	return e.CreateMessage(res)
 }

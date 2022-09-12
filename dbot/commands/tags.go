@@ -9,6 +9,7 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/dbot/responses"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
+	"github.com/disgoorg/handler"
 	"github.com/disgoorg/utils/paginator"
 	"github.com/go-jet/jet/v2/qrm"
 	"github.com/lib/pq"
@@ -82,7 +83,7 @@ var Tags = handler.Command{
 			},
 		},
 	},
-	CommandHandler: map[string]handler.CommandHandler{
+	CommandHandlers: map[string]handler.CommandHandler{
 		"create": createTagHandler,
 		"delete": deleteTagHandler,
 		"edit":   editTagHandler,

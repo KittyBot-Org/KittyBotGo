@@ -42,7 +42,7 @@ var Settings = handler.Command{
 		},
 		DefaultMemberPermissions: discord.PermissionManageServer,
 	},
-	CommandHandler: map[string]handler.CommandHandler{
+	CommandHandlers: map[string]handler.CommandHandler{
 		"moderation/disable":     settingsModerationDisableHandler,
 		"moderation/log-channel": settingsModerationLogChannelHandler,
 	},

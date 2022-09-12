@@ -13,8 +13,8 @@ var Next = handler.Command{
 		Name:        "next",
 		Description: "Stops the song and starts the next one.",
 	},
-	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasQueueItems),
-	CommandHandler: map[string]handler.CommandHandler{
+	Check: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasQueueItems),
+	CommandHandlers: map[string]handler.CommandHandler{
 		"": nextHandler,
 	},
 }

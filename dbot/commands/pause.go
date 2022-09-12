@@ -13,8 +13,8 @@ var Pause = handler.Command{
 		Name:        "pause",
 		Description: "Pauses or resumes the music.",
 	},
-	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel),
-	CommandHandler: map[string]handler.CommandHandler{
+	Check: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel),
+	CommandHandlers: map[string]handler.CommandHandler{
 		"": pauseHandler,
 	},
 }

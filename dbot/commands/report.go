@@ -20,7 +20,7 @@ var Report = handler.Command{
 	Create: discord.MessageCommandCreate{
 		Name: "report",
 	},
-	CommandHandler: map[string]handler.CommandHandler{
+	CommandHandlers: map[string]handler.CommandHandler{
 		"": reportHandler,
 	},
 	ComponentHandler: map[string]dbot.ComponentHandler{
