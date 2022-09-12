@@ -18,7 +18,7 @@ import (
 
 var Report = handler.Command{
 	Create: discord.MessageCommandCreate{
-		CommandName: "report",
+		Name: "report",
 	},
 	CommandHandler: map[string]handler.CommandHandler{
 		"": reportHandler,
@@ -110,12 +110,12 @@ func CreateReport(b *dbot.Bot, settings model.GuildSetting, reportID int32, cont
 				discord.ButtonComponent{
 					Style:    discord.ButtonStyleSuccess,
 					Label:    "Confirm",
-					CustomID: discord.CustomID(fmt.Sprintf("cmd:report:confirm:%d", reportID)),
+					CustomID: fmt.Sprintf("cmd:report:confirm:%d", reportID),
 				},
 				discord.ButtonComponent{
 					Style:    discord.ButtonStyleDanger,
 					Label:    "Delete",
-					CustomID: discord.CustomID(fmt.Sprintf("cmd:report:delete:%d", reportID)),
+					CustomID: fmt.Sprintf("cmd:report:delete:%d", reportID),
 				},
 			},
 		},
@@ -216,7 +216,7 @@ func reportConfirmHandler(b *dbot.Bot, args []string, p *message.Printer, e *eve
 		Components: &[]discord.ContainerComponent{
 			discord.ActionRowComponent{
 				discord.SelectMenuComponent{
-					CustomID:    discord.CustomID(fmt.Sprintf("cmd:report:action:%d", reportID)),
+					CustomID:    fmt.Sprintf("cmd:report:action:%d", reportID),
 					Placeholder: "Select an action",
 					MinValues:   json.NewPtr(1),
 					MaxValues:   1,
@@ -330,7 +330,7 @@ func reportActionHandler(b *dbot.Bot, args []string, p *message.Printer, e *even
 
 	case "timeout":
 		return e.CreateModal(discord.ModalCreate{
-			CustomID: discord.CustomID(fmt.Sprintf("cmd:report:action-confirm:timeout:%s", report.UserID)),
+			CustomID: fmt.Sprintf("cmd:report:action-confirm:timeout:%s", report.UserID),
 			Title:    "Timeout User",
 			Components: []discord.ContainerComponent{
 				discord.ActionRowComponent{
@@ -359,7 +359,7 @@ func reportActionHandler(b *dbot.Bot, args []string, p *message.Printer, e *even
 
 	case "kick":
 		return e.CreateModal(discord.ModalCreate{
-			CustomID: discord.CustomID(fmt.Sprintf("cmd:report:action-confirm:kick:%s", report.UserID)),
+			CustomID: fmt.Sprintf("cmd:report:action-confirm:kick:%s", report.UserID),
 			Title:    "Kick User",
 			Components: []discord.ContainerComponent{
 				discord.ActionRowComponent{
@@ -377,7 +377,7 @@ func reportActionHandler(b *dbot.Bot, args []string, p *message.Printer, e *even
 
 	case "ban":
 		return e.CreateModal(discord.ModalCreate{
-			CustomID: discord.CustomID(fmt.Sprintf("cmd:report:action-confirm:ban:%s", report.UserID)),
+			CustomID: fmt.Sprintf("cmd:report:action-confirm:ban:%s", report.UserID),
 			Title:    "Ban User",
 			Components: []discord.ContainerComponent{
 				discord.ActionRowComponent{

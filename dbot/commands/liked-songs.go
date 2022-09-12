@@ -14,19 +14,19 @@ import (
 
 var LikedSongs = handler.Command{
 	Create: discord.SlashCommandCreate{
-		CommandName: "liked-songs",
+		Name:        "liked-songs",
 		Description: "Lists/Removes/Plays a liked song.",
 		Options: []discord.ApplicationCommandOption{
 			discord.ApplicationCommandOptionSubCommand{
-				CommandName: "list",
+				Name:        "list",
 				Description: "Lists all your liked songs.",
 			},
 			discord.ApplicationCommandOptionSubCommand{
-				CommandName: "remove",
+				Name:        "remove",
 				Description: "Removes a liked song.",
 				Options: []discord.ApplicationCommandOption{
 					discord.ApplicationCommandOptionString{
-						OptionName:   "song",
+						Name:         "song",
 						Description:  "The song to remove",
 						Required:     true,
 						Autocomplete: true,
@@ -34,7 +34,7 @@ var LikedSongs = handler.Command{
 				},
 			},
 			discord.ApplicationCommandOptionSubCommand{
-				CommandName: "clear",
+				Name:        "clear",
 				Description: "Clears all your liked song.",
 			},
 			/*discord.ApplicationCommandOptionSubCommand{

@@ -12,17 +12,17 @@ import (
 
 var Seek = handler.Command{
 	Create: discord.SlashCommandCreate{
-		CommandName: "seek",
+		Name:        "seek",
 		Description: "Seeks the music to a point in the queue.",
 		Options: []discord.ApplicationCommandOption{
 			discord.ApplicationCommandOptionInt{
-				OptionName:  "position",
+				Name:        "position",
 				Description: "the position to seek to in seconds(default)/minutes/hours",
 				Required:    true,
 				MinValue:    json.NewPtr(0),
 			},
 			discord.ApplicationCommandOptionInt{
-				OptionName:  "time-unit",
+				Name:        "time-unit",
 				Description: "in which time unit to seek",
 				Required:    false,
 				Choices: []discord.ApplicationCommandOptionChoiceInt{

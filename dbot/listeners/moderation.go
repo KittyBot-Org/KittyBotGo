@@ -45,15 +45,17 @@ func Moderation(b *dbot.Bot) bot.EventListener {
 		}
 
 		var messageURL string
-		if messageID != 0 && channelID != 0 {
-			messageURL = fmt.Sprintf("https://discord.com/channels/%s/%s/%s", e.GuildID, channelID, messageID)
+		if e.MessageID != nil {
+			messageURL = discord.MessageURL(e.GuildID, channelID, messageID)
+		} else {
+			messageURL = discord.MessageURL(e.GuildID, channelID, snowflake.New(time.Now()))
 		}
 
 		var content string
-		if messageURL == "" {
-			content = fmt.Sprintf("%s(%s)'s [message](%s) has triggered automod.\nCreated a new report with the id #`%d`", user.Tag(), user.Mention(), messageURL, reportID)
+		if messageID != 0 {
+			content = fmt.Sprintf("%s(%s)'s [message](%s) has triggered automod in %s.\nCreated a new report with the id #`%d`", user.Tag(), user.Mention(), messageURL, discord.ChannelMention(channelID), reportID)
 		} else {
-			content = fmt.Sprintf("%s(%s)'s message has been blocked by automod.\nCreated a new report with the id #`%d`", user.Tag(), user.Mention(), reportID)
+			content = fmt.Sprintf("%s(%s)'s [message](%s) has been blocked by automod in %s.\nCreated a new report with the id #`%d`", user.Tag(), user.Mention(), messageURL, discord.ChannelMention(channelID), reportID)
 		}
 
 		var fields []discord.EmbedField

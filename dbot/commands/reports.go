@@ -13,20 +13,20 @@ import (
 
 var Reports = handler.Command{
 	Create: discord.SlashCommandCreate{
-		CommandName: "reports",
+		Name:        "reports",
 		Description: "View/Delete reports of a user.",
 		Options: []discord.ApplicationCommandOption{
 			discord.ApplicationCommandOptionSubCommand{
-				CommandName: "view",
+				Name:        "view",
 				Description: "View a report of a user.",
 				Options: []discord.ApplicationCommandOption{
 					discord.ApplicationCommandOptionUser{
-						OptionName:  "user",
+						Name:        "user",
 						Description: "The user to view a report of.",
 						Required:    true,
 					},
 					discord.ApplicationCommandOptionInt{
-						OptionName:   "report",
+						Name:         "report",
 						Description:  "The user to view a report of.",
 						Required:     true,
 						Autocomplete: true,
@@ -34,27 +34,27 @@ var Reports = handler.Command{
 				},
 			},
 			discord.ApplicationCommandOptionSubCommand{
-				CommandName: "view-all",
+				Name:        "view-all",
 				Description: "View all reports of a user.",
 				Options: []discord.ApplicationCommandOption{
 					discord.ApplicationCommandOptionUser{
-						OptionName:  "user",
+						Name:        "user",
 						Description: "The user to view reports of.",
 						Required:    true,
 					},
 				},
 			},
 			discord.ApplicationCommandOptionSubCommand{
-				CommandName: "delete",
+				Name:        "delete",
 				Description: "Delete a reports of a user.",
 				Options: []discord.ApplicationCommandOption{
 					discord.ApplicationCommandOptionUser{
-						OptionName:  "user",
+						Name:        "user",
 						Description: "The user to delete a report of.",
 						Required:    true,
 					},
 					discord.ApplicationCommandOptionInt{
-						OptionName:   "report",
+						Name:         "report",
 						Description:  "The user to view reports of.",
 						Required:     true,
 						Autocomplete: true,
@@ -62,11 +62,11 @@ var Reports = handler.Command{
 				},
 			},
 			discord.ApplicationCommandOptionSubCommand{
-				CommandName: "delete-all",
+				Name:        "delete-all",
 				Description: "Deletes all reports of a user.",
 				Options: []discord.ApplicationCommandOption{
 					discord.ApplicationCommandOptionUser{
-						OptionName:  "user",
+						Name:        "user",
 						Description: "The user to view reports of.",
 						Required:    true,
 					},

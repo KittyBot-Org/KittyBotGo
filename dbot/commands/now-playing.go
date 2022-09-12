@@ -12,7 +12,7 @@ import (
 
 var NowPlaying = handler.Command{
 	Create: discord.SlashCommandCreate{
-		CommandName: "now-playing",
+		Name:        "now-playing",
 		Description: "Tells you about the currently playing song.",
 	},
 	Checks: dbot.HasMusicPlayer.And(dbot.IsPlaying),

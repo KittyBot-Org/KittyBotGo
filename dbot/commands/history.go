@@ -12,7 +12,7 @@ import (
 
 var History = handler.Command{
 	Create: discord.SlashCommandCreate{
-		CommandName: "history",
+		Name:        "history",
 		Description: "Shows the current history.",
 	},
 	Checks: dbot.HasMusicPlayer.And(dbot.HasHistoryItems),

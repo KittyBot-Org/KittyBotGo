@@ -14,15 +14,15 @@ import (
 
 var Remove = handler.Command{
 	Create: discord.SlashCommandCreate{
-		CommandName: "remove",
+		Name:        "remove",
 		Description: "Removes songs from the queue.",
 		Options: []discord.ApplicationCommandOption{
 			discord.ApplicationCommandOptionSubCommand{
-				CommandName: "song",
+				Name:        "song",
 				Description: "Removes a songs from the queue.",
 				Options: []discord.ApplicationCommandOption{
 					discord.ApplicationCommandOptionString{
-						OptionName:   "song",
+						Name:         "song",
 						Description:  "the song to remove",
 						Required:     true,
 						Autocomplete: true,
@@ -30,11 +30,11 @@ var Remove = handler.Command{
 				},
 			},
 			discord.ApplicationCommandOptionSubCommand{
-				CommandName: "user-songs",
+				Name:        "user-songs",
 				Description: "Removes all songs from a user from the queue.",
 				Options: []discord.ApplicationCommandOption{
 					discord.ApplicationCommandOptionUser{
-						OptionName:  "user",
+						Name:        "user",
 						Description: "from which user to remove the songs",
 						Required:    true,
 					},

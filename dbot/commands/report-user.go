@@ -13,16 +13,16 @@ import (
 
 var ReportUser = handler.Command{
 	Create: discord.SlashCommandCreate{
-		CommandName: "report-user",
+		Name:        "report-user",
 		Description: "Report a user for breaking the rules.",
 		Options: []discord.ApplicationCommandOption{
 			discord.ApplicationCommandOptionUser{
-				OptionName:  "user",
+				Name:        "user",
 				Description: "The user to report.",
 				Required:    true,
 			},
 			discord.ApplicationCommandOptionString{
-				OptionName:  "reason",
+				Name:        "reason",
 				Description: "The reason for the report.",
 				Required:    true,
 			},

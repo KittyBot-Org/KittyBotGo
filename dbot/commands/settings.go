@@ -11,27 +11,27 @@ import (
 
 var Settings = handler.Command{
 	Create: discord.SlashCommandCreate{
-		CommandName: "settings",
+		Name:        "settings",
 		Description: "View and edit settings",
 		Options: []discord.ApplicationCommandOption{
 			discord.ApplicationCommandOptionSubCommand{
-				CommandName: "view",
+				Name:        "view",
 				Description: "View all settings",
 			},
 			discord.ApplicationCommandOptionSubCommandGroup{
-				GroupName:   "moderation",
+				Name:        "moderation",
 				Description: "Moderation settings",
 				Options: []discord.ApplicationCommandOptionSubCommand{
 					{
-						CommandName: "disable",
+						Name:        "disable",
 						Description: "Disables moderation",
 					},
 					{
-						CommandName: "log-channel",
+						Name:        "log-channel",
 						Description: "Set the channel to log moderation actions",
 						Options: []discord.ApplicationCommandOption{
 							discord.ApplicationCommandOptionChannel{
-								OptionName:  "channel",
+								Name:        "channel",
 								Description: "The channel to log moderation actions to",
 								Required:    true,
 							},

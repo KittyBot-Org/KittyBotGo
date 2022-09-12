@@ -11,7 +11,7 @@ import (
 
 var Stop = handler.Command{
 	Create: discord.SlashCommandCreate{
-		CommandName: "stop",
+		Name:        "stop",
 		Description: "Stops the playing music.",
 	},
 	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel),
