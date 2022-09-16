@@ -11,23 +11,23 @@ const (
 	SuccessColor = 0x5C5FEA
 )
 
-func CreateSuccessf(languageString string, a ...any) discord.MessageCreate {
+func CreateSuccessf(msg string, a ...any) discord.MessageCreate {
 	return discord.MessageCreate{
 		Embeds: []discord.Embed{
 			{
 				Color:       SuccessColor,
-				Description: fmt.Sprintf(languageString, a...),
+				Description: fmt.Sprintf(msg, a...),
 			},
 		},
 	}
 }
 
-func CreateSuccessComponentsf(languageString string, a []any, components ...discord.ContainerComponent) discord.MessageCreate {
+func CreateSuccessComponentsf(msg string, a []any, components ...discord.ContainerComponent) discord.MessageCreate {
 	return discord.MessageCreate{
 		Embeds: []discord.Embed{
 			{
 				Color:       SuccessColor,
-				Description: fmt.Sprintf(languageString, a...),
+				Description: fmt.Sprintf(msg, a...),
 			},
 		},
 		Components: components,

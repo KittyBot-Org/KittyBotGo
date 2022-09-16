@@ -5,30 +5,34 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/dbot/responses"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
-	"golang.org/x/text/message"
+	"github.com/disgoorg/handler"
 )
 
-var Previous = handler.Command{
-	Create: discord.SlashCommandCreate{
-		Name:        "previous",
-		Description: "Stops the song and starts the previous one.",
-	},
-	Check: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasHistoryItems),
-	CommandHandlers: map[string]handler.CommandHandler{
-		"": previousHandler,
-	},
+func Previous(b *dbot.Bot) handler.Command {
+	return handler.Command{
+		Create: discord.SlashCommandCreate{
+			Name:        "previous",
+			Description: "Stops the song and starts the previous one.",
+		},
+		Check: dbot.HasMusicPlayer(b).And(dbot.IsMemberConnectedToVoiceChannel(b)).And(dbot.HasHistoryItems(b)),
+		CommandHandlers: map[string]handler.CommandHandler{
+			"": previousHandler(b),
+		},
+	}
 }
 
-func previousHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionCreate) error {
-	player := b.MusicPlayers.Get(*e.GuildID())
-	previousTrack := player.History.Last()
+func previousHandler(b *dbot.Bot) handler.CommandHandler {
+	return func(e *events.ApplicationCommandInteractionCreate) error {
+		player := b.MusicPlayers.Get(*e.GuildID())
+		previousTrack := player.History.Last()
 
-	if previousTrack == nil {
-		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.commands.previous.no.track"))
-	}
+		if previousTrack == nil {
+			return e.CreateMessage(responses.CreateErrorf("No track found in history."))
+		}
 
-	if err := player.Play(previousTrack); err != nil {
-		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.commands.previous.error"))
+		if err := player.Play(previousTrack); err != nil {
+			return e.CreateMessage(responses.CreateErrorf("Failed to play previous song. Please try again."))
+		}
+		return e.CreateMessage(responses.CreateSuccessComponentsf("⏮ Skipped track.\nNow playing: %s - %s", []any{formatTrack(previousTrack), previousTrack.Info().Length}, getMusicControllerComponents(previousTrack)))
 	}
-	return e.CreateMessage(responses.CreateSuccessComponentsf(p, "modules.music.commands.previous.success", []any{formatTrack(previousTrack), previousTrack.Info().Length}, getMusicControllerComponents(previousTrack)))
 }

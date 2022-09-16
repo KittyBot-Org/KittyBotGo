@@ -12,7 +12,6 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/dbot"
 	"github.com/KittyBot-Org/KittyBotGo/dbot/commands"
 	"github.com/KittyBot-Org/KittyBotGo/dbot/listeners"
-	"github.com/KittyBot-Org/KittyBotGo/i18n"
 	"github.com/disgoorg/log"
 	"github.com/disgoorg/snowflake/v2"
 	_ "github.com/lib/pq"
@@ -47,12 +46,8 @@ func main() {
 	logger.Info("Exiting after syncing? ", *exitAfterSync)
 	defer logger.Info("Shutting down discord dbot...")
 
-	if err := i18n.Setup(logger); err != nil {
-		logger.Fatal("Failed to setup i18n: ", err)
-	}
-
 	b := dbot.New(logger, cfg, version)
-	b.LoadCommands(
+	b.Handler.AddCommands(
 		commands.BassBoost(b),
 		commands.ClearQueue(b),
 		commands.History(b),
@@ -75,6 +70,20 @@ func main() {
 		commands.Reports(b),
 		commands.ReportUser(b),
 		commands.Settings(b),
+	)
+
+	b.Handler.AddComponents(
+		commands.ReportAction(b),
+		commands.ReportConfirm(b),
+		commands.ReportDelete(b),
+		commands.PlayerLike(b),
+		commands.PlayerNext(b),
+		commands.PlayerPlayPause(b),
+		commands.PlayerPrevious(b),
+	)
+
+	b.Handler.AddModals(
+		commands.ReportActionConfirm(b),
 	)
 
 	if err := b.SetupBot(

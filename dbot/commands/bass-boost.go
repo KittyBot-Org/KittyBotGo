@@ -35,7 +35,7 @@ func BassBoost(b *dbot.Bot) handler.Command {
 			Options: []discord.ApplicationCommandOption{
 				discord.ApplicationCommandOptionBool{
 					Name:        "enable",
-					Description: "if the bass boost should be enabled or disabled",
+					Description: "If the bass boost should be enabled or disabled",
 					Required:    true,
 				},
 			},
@@ -54,13 +54,13 @@ func bassBoostHandler(b *dbot.Bot) handler.CommandHandler {
 
 		if enable {
 			if err := player.Filters().SetEqualizer(bassBoost).Commit(); err != nil {
-				return e.CreateMessage(responses.CreateErrorf("modules.music.commands.bass.boost.enable.error"))
+				return e.CreateMessage(responses.CreateErrorf("Failed to enable bass boost. Please try again."))
 			}
-			return e.CreateMessage(responses.CreateSuccessf("modules.music.commands.bass.boost.enable.success"))
+			return e.CreateMessage(responses.CreateSuccessf("🔊 Bass boost enabled."))
 		}
 		if err := player.Filters().SetEqualizer(&lavalink.Equalizer{}).Commit(); err != nil {
-			return e.CreateMessage(responses.CreateErrorf("modules.music.commands.bass.boost.disable.error"))
+			return e.CreateMessage(responses.CreateErrorf("Failed to disable bass boost. Please try again."))
 		}
-		return e.CreateMessage(responses.CreateSuccessf("modules.music.commands.bass.boost.disable.success"))
+		return e.CreateMessage(responses.CreateSuccessf("🔊 Bass boost disabled."))
 	}
 }

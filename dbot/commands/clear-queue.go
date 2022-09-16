@@ -23,6 +23,6 @@ func ClearQueue(b *dbot.Bot) handler.Command {
 func clearQueueHandler(b *dbot.Bot) handler.CommandHandler {
 	return func(e *events.ApplicationCommandInteractionCreate) error {
 		b.MusicPlayers.Get(*e.GuildID()).Queue.Clear()
-		return e.CreateMessage(discord.MessageCreate{Content: "modules.music.commands.clear.cleared"})
+		return e.CreateMessage(discord.MessageCreate{Content: "Cleared the queue."})
 	}
 }

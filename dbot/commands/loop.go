@@ -17,7 +17,7 @@ func Loop(b *dbot.Bot) handler.Command {
 			Options: []discord.ApplicationCommandOption{
 				discord.ApplicationCommandOptionInt{
 					Name:        "looping-type",
-					Description: "how to loop your queue",
+					Description: "How to loop your queue",
 					Required:    true,
 					Choices: []discord.ApplicationCommandOptionChoiceInt{
 						{
@@ -57,7 +57,7 @@ func loopHandler(b *dbot.Bot) handler.CommandHandler {
 			emoji = "🔁"
 		}
 		return e.CreateMessage(discord.MessageCreate{
-			Content: fmt.Sprintf("modules.commands.loop", emoji, loopingType),
+			Content: fmt.Sprintf("%s Looping: %s", emoji, loopingType),
 		})
 	}
 }

@@ -17,7 +17,7 @@ func Volume(bot *dbot.Bot) handler.Command {
 			Options: []discord.ApplicationCommandOption{
 				discord.ApplicationCommandOptionInt{
 					Name:        "volume",
-					Description: "the desired volume",
+					Description: "The new volume",
 					Required:    true,
 					MinValue:    json.NewPtr(0),
 					MaxValue:    json.NewPtr(100),
@@ -36,8 +36,8 @@ func volumeHandler(bot *dbot.Bot) handler.CommandHandler {
 		player := bot.MusicPlayers.Get(*e.GuildID())
 		volume := e.SlashCommandInteractionData().Int("volume")
 		if err := player.SetVolume(volume); err != nil {
-			return e.CreateMessage(responses.CreateErrorf("modules.music.commands.volume.error"))
+			return e.CreateMessage(responses.CreateErrorf("Failed to set the volume. Please try again."))
 		}
-		return e.CreateMessage(responses.CreateSuccessf("modules.music.commands.volume.success", volume))
+		return e.CreateMessage(responses.CreateSuccessf("🔊 Volume set to `%d%`.", volume))
 	}
 }

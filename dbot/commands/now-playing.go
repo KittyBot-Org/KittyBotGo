@@ -20,12 +20,6 @@ func NowPlaying(b *dbot.Bot) handler.Command {
 		CommandHandlers: map[string]handler.CommandHandler{
 			"": nowPlayingHandler(b),
 		},
-		ComponentHandlers: map[string]handler.ComponentHandler{
-			"previous":   previousComponentHandler(b),
-			"play-pause": playPauseComponentHandler,
-			"next":       nextComponentHandler,
-			"like":       likeComponentHandler,
-		},
 	}
 }
 
@@ -35,18 +29,18 @@ func nowPlayingHandler(b *dbot.Bot) handler.CommandHandler {
 		track := player.PlayingTrack()
 
 		if track == nil {
-			return e.CreateMessage(responses.CreateErrorf("modules.music.commands.nowplaying.no.track"))
+			return e.CreateMessage(responses.CreateErrorf("There is no song playing right now."))
 		}
 		i := track.Info()
 		embed := discord.NewEmbedBuilder().
-			SetAuthorName(p.Sprintf("modules.music.commands.nowplaying.title")).
+			SetAuthorName("Currently playing:").
 			SetTitle(i.Title).
 			SetURL(*i.URI).
-			AddField("modules.music.commands.nowplaying.author", i.Author, true).
-			AddField("modules.music.commands.nowplaying.requested.by", discord.UserMention(track.UserData().(dbot.AudioTrackData).Requester), true).
-			AddField("modules.music.commands.nowplaying.volume", fmt.Sprintf("%d%%", player.Volume()), true).
+			AddField("Author:", i.Author, true).
+			AddField("Requested by:", discord.UserMention(track.UserData().(dbot.AudioTrackData).Requester), true).
+			AddField("Volume:", fmt.Sprintf("%d%%", player.Volume()), true).
 			SetThumbnail(getArtworkURL(player.PlayingTrack())).
-			SetFooterText(fmt.Sprintf("modules.music.commands.nowplaying.footer", player.Queue.Len()))
+			SetFooterText(fmt.Sprintf("Tracks in queue: %d", player.Queue.Len()))
 		if !i.IsStream {
 			bar := [10]string{"▬", "▬", "▬", "▬", "▬", "▬", "▬", "▬", "▬", "▬"}
 			t1 := player.Position()

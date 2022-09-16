@@ -26,7 +26,6 @@ func History(bot *dbot.Bot) handler.Command {
 func historyHandler(b *dbot.Bot) handler.CommandHandler {
 	return func(e *events.ApplicationCommandInteractionCreate) error {
 		tracks := b.MusicPlayers.Get(*e.GuildID()).History.Tracks()
-
 		var (
 			pages         []string
 			page          string
@@ -34,7 +33,7 @@ func historyHandler(b *dbot.Bot) handler.CommandHandler {
 		)
 		for i := len(tracks) - 1; i >= 0; i-- {
 			track := tracks[i]
-			trackStr := fmt.Sprintf("%d. %s - %s [<@%s>]\n", len(tracks)-i, formatTrack(track), track.Info().Length, track.UserData().(dbot.AudioTrackData).Requester)
+			trackStr := fmt.Sprintf("%d. %s - %s [%s]\n", len(tracks)-i, formatTrack(track), track.Info().Length, discord.UserMention(track.UserData().(dbot.AudioTrackData).Requester))
 			if len(page)+len(trackStr) > 4096 || tracksCounter >= 10 {
 				pages = append(pages, page)
 				page = ""
@@ -49,7 +48,7 @@ func historyHandler(b *dbot.Bot) handler.CommandHandler {
 
 		return b.Paginator.Create(e.Respond, &paginator.Paginator{
 			PageFunc: func(page int, embed *discord.EmbedBuilder) {
-				embed.SetTitlef("modules.music.commands.history.title", len(tracks)).SetDescription(pages[page])
+				embed.SetTitlef("Currently `%d` songs are in the history:", len(tracks)).SetDescription(pages[page])
 			},
 			MaxPages:        len(pages),
 			ExpiryLastUsage: true,

@@ -41,10 +41,6 @@ type Bot struct {
 	Version             string
 }
 
-func (b *Bot) LoadCommands(commands ...handler.Command) {
-	b.Handler.AddCommands(commands...)
-}
-
 func (b *Bot) SetupBot(listeners ...bot.EventListener) (err error) {
 	b.Client, err = disgo.New(b.Config.Token,
 		bot.WithLogger(b.Logger),
