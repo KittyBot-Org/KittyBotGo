@@ -104,20 +104,20 @@ func createTagHandler(b *dbot.Bot) handler.CommandHandler {
 		content := data.String("content")
 
 		if len(name) >= 64 {
-			return e.CreateMessage(responses.CreateErrorf("modules.tags.commands.tags.create.name.too.long"))
+			return e.CreateMessage(responses.CreateErrorf("Tag name must be less than 64 characters."))
 		}
 		if len(content) >= 2048 {
-			return e.CreateMessage(responses.CreateErrorf("modules.tags.commands.tags.create.content.too.long"))
+			return e.CreateMessage(responses.CreateErrorf("Tag content must be less than 2048 characters."))
 		}
 
 		if err := b.DB.Tags().Create(*e.GuildID(), e.User().ID, name, content); err != nil {
 			if pgErr, ok := err.(*pq.Error); ok && pgErr.Code == "23505" {
-				return e.CreateMessage(responses.CreateErrorf("modules.tags.commands.tags.create.duplicate", name))
+				return e.CreateMessage(responses.CreateErrorf("Tag with this name already exists."))
 			}
 			b.Logger.Error("Failed to create tag: ", err)
-			return e.CreateMessage(responses.CreateErrorf("modules.tags.commands.tags.create.error", name))
+			return e.CreateMessage(responses.CreateErrorf("Failed to create tag. Please try again."))
 		}
-		return e.CreateMessage(responses.CreateErrorf("modules.tags.commands.tags.create.success", name))
+		return e.CreateMessage(responses.CreateErrorf("Created tag with name: `%s`.", name))
 	}
 }
 
@@ -126,19 +126,19 @@ func deleteTagHandler(b *dbot.Bot) handler.CommandHandler {
 		name := strings.ToLower(e.SlashCommandInteractionData().String("name"))
 		tag, err := b.DB.Tags().Get(*e.GuildID(), name)
 		if err == qrm.ErrNoRows {
-			return e.CreateMessage(responses.CreateErrorf("modules.tags.commands.tags.not.found", name))
+			return e.CreateMessage(responses.CreateErrorf("No tag found with name `%s`.", name))
 		} else if err != nil {
-			return e.CreateMessage(responses.CreateErrorf("modules.tags.commands.tags.error", name))
+			return e.CreateMessage(responses.CreateErrorf("Failed to check tag. Please try again."))
 		}
 
 		if tag.OwnerID != e.User().ID.String() || !e.Member().Permissions.Has(discord.PermissionManageServer) {
-			return e.CreateMessage(responses.CreateErrorf("modules.tags.commands.tags.delete.no.permissions", name))
+			return e.CreateMessage(responses.CreateErrorf("You don't have permissions to delete this tag."))
 		}
 		if err = b.DB.Tags().Delete(*e.GuildID(), name); err != nil {
 			b.Logger.Error("Failed to delete tag: ", err)
-			return e.CreateMessage(responses.CreateErrorf("modules.tags.commands.tags.delete.error", name))
+			return e.CreateMessage(responses.CreateErrorf("Failed to delete tag. Please try again."))
 		}
-		return e.CreateMessage(responses.CreateSuccessf("modules.tags.commands.tags.delete.success", name))
+		return e.CreateMessage(responses.CreateSuccessf("Deleted tag with name: `%s`."))
 	}
 }
 
@@ -150,20 +150,20 @@ func editTagHandler(b *dbot.Bot) handler.CommandHandler {
 
 		tag, err := b.DB.Tags().Get(*e.GuildID(), name)
 		if err == qrm.ErrNoRows {
-			return e.CreateMessage(responses.CreateErrorf("modules.tags.commands.tags.edit.not.found", name))
+			return e.CreateMessage(responses.CreateErrorf("No tag found with name `%s`.", name))
 		} else if err != nil {
-			return e.CreateMessage(responses.CreateErrorf("modules.tags.commands.tags.edit.error", name))
+			return e.CreateMessage(responses.CreateErrorf("Failed to check tag. Please try again."))
 		}
 
 		if tag.OwnerID != e.User().ID.String() || !e.Member().Permissions.Has(discord.PermissionManageServer) {
-			return e.CreateMessage(responses.CreateErrorf("modules.tags.commands.tags.edit.no.permissions", name))
+			return e.CreateMessage(responses.CreateErrorf("You don't have permissions to edit this tag."))
 		}
 
 		if err = b.DB.Tags().Edit(*e.GuildID(), name, content); err != nil {
-			b.Logger.Error("Failed to delete tag: ", err)
-			return e.CreateMessage(responses.CreateErrorf("modules.tags.commands.tags.delete.error", name))
+			b.Logger.Error("Failed to edit tag: ", err)
+			return e.CreateMessage(responses.CreateErrorf("Failed to edit tag. Please try again."))
 		}
-		return e.CreateMessage(responses.CreateSuccessf("modules.tags.commands.tags.edit.success", name))
+		return e.CreateMessage(responses.CreateSuccessf("Edited tag with name: `%s`.", name))
 	}
 }
 
@@ -179,11 +179,11 @@ func infoTagHandler(b *dbot.Bot) handler.CommandHandler {
 		}
 
 		return e.CreateMessage(responses.CreateSuccessEmbed(discord.NewEmbedBuilder().
-			SetTitlef("modules.tags.commands.tags.info.title", tag.Name).
+			SetTitlef("Tag Info: %s", tag.Name).
 			SetDescription(tag.Content).
-			AddField("modules.tags.commands.tags.info.owner", "<@"+tag.OwnerID+">", true).
-			AddField("modules.tags.commands.tags.info.uses", strconv.FormatInt(tag.Uses, 10), true).
-			AddField("modules.tags.commands.tags.info.created.at", fmt.Sprintf("%s (%s)", discord.NewTimestamp(discord.TimestampStyleNone, tag.CreatedAt), discord.NewTimestamp(discord.TimestampStyleRelative, tag.CreatedAt)), false).
+			AddField("Owner:", "<@"+tag.OwnerID+">", true).
+			AddField("Uses:", strconv.FormatInt(tag.Uses, 10), true).
+			AddField("Created:", fmt.Sprintf("%s (%s)", discord.NewTimestamp(discord.TimestampStyleNone, tag.CreatedAt), discord.NewTimestamp(discord.TimestampStyleRelative, tag.CreatedAt)), false).
 			Build()))
 	}
 }
@@ -192,11 +192,11 @@ func listTagHandler(b *dbot.Bot) handler.CommandHandler {
 	return func(e *events.ApplicationCommandInteractionCreate) error {
 		tags, err := b.DB.Tags().GetAll(*e.GuildID())
 		if err != nil {
-			return e.CreateMessage(responses.CreateErrorf("modules.tags.commands.tags.list.error"))
+			return e.CreateMessage(responses.CreateErrorf("Failed to list tags. Please try again."))
 		}
 
 		if len(tags) == 0 {
-			return e.CreateMessage(responses.CreateErrorf("modules.tags.commands.tags.list.no.tags"))
+			return e.CreateMessage(responses.CreateErrorf("No tags found for this server."))
 		}
 
 		var pages []string
@@ -215,7 +215,7 @@ func listTagHandler(b *dbot.Bot) handler.CommandHandler {
 
 		return b.Paginator.Create(e.Respond, &paginator.Paginator{
 			PageFunc: func(page int, embed *discord.EmbedBuilder) {
-				embed.SetTitlef("modules.tags.commands.tags.list.title", len(tags)).SetDescription(pages[page])
+				embed.SetTitlef("Tags(%d):", len(tags)).SetDescription(pages[page])
 			},
 			MaxPages:        len(pages),
 			ExpiryLastUsage: true,

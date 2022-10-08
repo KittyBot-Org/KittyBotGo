@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"fmt"
 	"regexp"
 	"strconv"
 	"time"
@@ -248,8 +247,6 @@ func playAndQueue(b *dbot.Bot, i discord.BaseInteraction, tracks ...lavalink.Aud
 			Requester: i.User().ID,
 		})
 	}
-
-	fmt.Printf("PlayingTrack: %v", player.PlayingTrack())
 
 	if player.PlayingTrack() == nil {
 		track := tracks[0]
