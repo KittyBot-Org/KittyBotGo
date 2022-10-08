@@ -138,7 +138,7 @@ func deleteTagHandler(b *dbot.Bot) handler.CommandHandler {
 			b.Logger.Error("Failed to delete tag: ", err)
 			return e.CreateMessage(responses.CreateErrorf("Failed to delete tag. Please try again."))
 		}
-		return e.CreateMessage(responses.CreateSuccessf("Deleted tag with name: `%s`."))
+		return e.CreateMessage(responses.CreateSuccessf("Deleted tag with name: `%s`.", name))
 	}
 }
 
@@ -173,9 +173,9 @@ func infoTagHandler(b *dbot.Bot) handler.CommandHandler {
 
 		tag, err := b.DB.Tags().Get(*e.GuildID(), name)
 		if err == qrm.ErrNoRows {
-			return e.CreateMessage(responses.CreateErrorf("modules.tags.commands.tags.info.not.found", name))
+			return e.CreateMessage(responses.CreateErrorf("No tag found with name `%s`.", name))
 		} else if err != nil {
-			return e.CreateMessage(responses.CreateErrorf("modules.tags.commands.tags.info.error", name))
+			return e.CreateMessage(responses.CreateErrorf("Failed to check tag. Please try again."))
 		}
 
 		return e.CreateMessage(responses.CreateSuccessEmbed(discord.NewEmbedBuilder().

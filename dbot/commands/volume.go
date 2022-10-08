@@ -38,6 +38,6 @@ func volumeHandler(bot *dbot.Bot) handler.CommandHandler {
 		if err := player.SetVolume(volume); err != nil {
 			return e.CreateMessage(responses.CreateErrorf("Failed to set the volume. Please try again."))
 		}
-		return e.CreateMessage(responses.CreateSuccessf("🔊 Volume set to `%d%`.", volume))
+		return e.CreateMessage(responses.CreateSuccessf("🔊 Volume set to `%d`.", volume))
 	}
 }
