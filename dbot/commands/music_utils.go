@@ -27,9 +27,9 @@ func formatTrack(track lavalink.AudioTrack) string {
 	return fmt.Sprintf("[`%s`](%s)", track.Info().Title, *track.Info().URI)
 }
 
-func getTrackQuery(title string, url *string) string {
-	if url != nil {
-		return *url
+func getTrackQuery(title string, url string) string {
+	if url != "" {
+		return url
 	}
 	return title
 }

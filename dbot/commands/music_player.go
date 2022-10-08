@@ -111,11 +111,11 @@ func likeComponentHandler(b *dbot.Bot) handler.ComponentHandler {
 		matches := allMatches[0]
 		var (
 			title string
-			url   *string
+			url   string
 		)
 		title = matches[trackRegex.SubexpIndex("title")]
 		if len(matches) > 2 {
-			url = &matches[trackRegex.SubexpIndex("url")]
+			url = matches[trackRegex.SubexpIndex("url")]
 		}
 
 		_, err := b.DB.LikedSongs().Get(e.User().ID, title)
