@@ -5,30 +5,34 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/dbot/responses"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
-	"golang.org/x/text/message"
+	"github.com/disgoorg/handler"
 )
 
-var Next = dbot.Command{
-	Create: discord.SlashCommandCreate{
-		Name:        "next",
-		Description: "Stops the song and starts the next one.",
-	},
-	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasQueueItems),
-	CommandHandler: map[string]dbot.CommandHandler{
-		"": nextHandler,
-	},
+func Next(b *dbot.Bot) handler.Command {
+	return handler.Command{
+		Create: discord.SlashCommandCreate{
+			Name:        "next",
+			Description: "Stops the song and starts the next one.",
+		},
+		Check: dbot.HasMusicPlayer(b).And(dbot.IsMemberConnectedToVoiceChannel(b)).And(dbot.HasQueueItems(b)),
+		CommandHandlers: map[string]handler.CommandHandler{
+			"": nextHandler(b),
+		},
+	}
 }
 
-func nextHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionCreate) error {
-	player := b.MusicPlayers.Get(*e.GuildID())
-	nextTrack := player.Queue.Pop()
+func nextHandler(b *dbot.Bot) handler.CommandHandler {
+	return func(e *events.ApplicationCommandInteractionCreate) error {
+		player := b.MusicPlayers.Get(*e.GuildID())
+		nextTrack := player.Queue.Pop()
 
-	if nextTrack == nil {
-		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.commands.next.no.track"))
-	}
+		if nextTrack == nil {
+			return e.CreateMessage(responses.CreateErrorf("No next track found in queue."))
+		}
 
-	if err := player.Play(nextTrack); err != nil {
-		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.commands.next.error"))
+		if err := player.Play(nextTrack); err != nil {
+			return e.CreateMessage(responses.CreateErrorf("Failed to play next song. Please try again."))
+		}
+		return e.CreateMessage(responses.CreateSuccessComponentsf("⏭ Skipped track.\nNow playing: %s - %s", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
 	}
-	return e.CreateMessage(responses.CreateSuccessComponentsf(p, "modules.music.commands.next.success", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/disgoorg/disgo/gateway"
 	"github.com/disgoorg/disgo/webhook"
 	"github.com/disgoorg/disgolink/disgolink"
+	"github.com/disgoorg/handler"
 	"github.com/disgoorg/log"
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/disgoorg/utils/paginator"
@@ -19,6 +20,7 @@ import (
 func New(logger log.Logger, config Config, version string) *Bot {
 	return &Bot{
 		Logger:              logger,
+		Handler:             handler.New(logger),
 		Paginator:           paginator.NewManager(),
 		ReportLogWebhookMap: NewReportLogWebhookMap(),
 		Config:              config,
@@ -29,10 +31,10 @@ func New(logger log.Logger, config Config, version string) *Bot {
 type Bot struct {
 	Logger              log.Logger
 	Client              bot.Client
+	Handler             *handler.Handler
 	Lavalink            disgolink.Link
 	MusicPlayers        *MusicPlayerMap
 	Paginator           *paginator.Manager
-	CommandMap          *CommandMap
 	DB                  db.DB
 	ReportLogWebhookMap *ReportLogWebhookMap
 	Config              Config
@@ -49,7 +51,7 @@ func (b *Bot) SetupBot(listeners ...bot.EventListener) (err error) {
 				return member.User.ID == b.Client.ID()
 			}),
 		),
-		bot.WithEventListeners(append([]bot.EventListener{b.CommandMap, b.Paginator}, listeners...)...),
+		bot.WithEventListeners(append([]bot.EventListener{b.Handler, b.Paginator}, listeners...)...),
 	)
 	return err
 }

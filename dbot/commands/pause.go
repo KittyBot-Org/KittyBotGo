@@ -5,37 +5,41 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/dbot/responses"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
-	"golang.org/x/text/message"
+	"github.com/disgoorg/handler"
 )
 
-var Pause = dbot.Command{
-	Create: discord.SlashCommandCreate{
-		Name:        "pause",
-		Description: "Pauses or resumes the music.",
-	},
-	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel),
-	CommandHandler: map[string]dbot.CommandHandler{
-		"": pauseHandler,
-	},
+func Pause(b *dbot.Bot) handler.Command {
+	return handler.Command{
+		Create: discord.SlashCommandCreate{
+			Name:        "pause",
+			Description: "Pauses or resumes the player.",
+		},
+		Check: dbot.HasMusicPlayer(b).And(dbot.IsMemberConnectedToVoiceChannel(b)),
+		CommandHandlers: map[string]handler.CommandHandler{
+			"": pauseHandler(b),
+		},
+	}
 }
 
-func pauseHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionCreate) error {
-	player := b.MusicPlayers.Get(*e.GuildID())
-	pause := !player.Paused()
-	if err := player.Pause(pause); err != nil {
+func pauseHandler(b *dbot.Bot) handler.CommandHandler {
+	return func(e *events.ApplicationCommandInteractionCreate) error {
+		player := b.MusicPlayers.Get(*e.GuildID())
+		pause := !player.Paused()
+		if err := player.Pause(pause); err != nil {
+			var msg string
+			if pause {
+				msg = "Failed to pause the player. Please try again."
+			} else {
+				msg = "Failed to resume the player. Please try again."
+			}
+			return e.CreateMessage(responses.CreateSuccessf(msg))
+		}
 		var msg string
 		if pause {
-			msg = p.Sprintf("modules.music.commands.pause.error")
+			msg = "⏯ Paused the player."
 		} else {
-			msg = p.Sprintf("modules.music.commands.unpause.error")
+			msg = "⏯ Resumed the player."
 		}
-		return e.CreateMessage(responses.CreateSuccessf(p, msg))
+		return e.CreateMessage(responses.CreateSuccessComponentsf(msg, nil, getMusicControllerComponents(player.PlayingTrack())))
 	}
-	var msg string
-	if pause {
-		msg = p.Sprintf("modules.music.commands.pause")
-	} else {
-		msg = p.Sprintf("modules.music.commands.unpause")
-	}
-	return e.CreateMessage(responses.CreateSuccessComponentsf(p, msg, nil, getMusicControllerComponents(player.PlayingTrack())))
 }

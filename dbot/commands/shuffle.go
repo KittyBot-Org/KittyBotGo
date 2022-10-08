@@ -5,25 +5,29 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/dbot/responses"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
-	"golang.org/x/text/message"
+	"github.com/disgoorg/handler"
 )
 
-var Shuffle = dbot.Command{
-	Create: discord.SlashCommandCreate{
-		Name:        "shuffle",
-		Description: "Shuffles the queue of songs.",
-	},
-	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasQueueItems),
-	CommandHandler: map[string]dbot.CommandHandler{
-		"": shuffleHandler,
-	},
+func Shuffle(b *dbot.Bot) handler.Command {
+	return handler.Command{
+		Create: discord.SlashCommandCreate{
+			Name:        "shuffle",
+			Description: "Shuffles the queue of songs.",
+		},
+		Check: dbot.HasMusicPlayer(b).And(dbot.IsMemberConnectedToVoiceChannel(b)).And(dbot.HasQueueItems(b)),
+		CommandHandlers: map[string]handler.CommandHandler{
+			"": shuffleHandler(b),
+		},
+	}
 }
 
-func shuffleHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionCreate) error {
-	queue := b.MusicPlayers.Get(*e.GuildID()).Queue
+func shuffleHandler(b *dbot.Bot) handler.CommandHandler {
+	return func(e *events.ApplicationCommandInteractionCreate) error {
+		queue := b.MusicPlayers.Get(*e.GuildID()).Queue
 
-	if queue.Len() == 0 {
-		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.commands.shuffle.no.track"))
+		if queue.Len() == 0 {
+			return e.CreateMessage(responses.CreateErrorf("No tracks in queue to shuffle."))
+		}
+		return e.CreateMessage(responses.CreateSuccessf("🔀 Shuffled the queue."))
 	}
-	return e.CreateMessage(responses.CreateSuccessf(p, "modules.music.commands.shuffle.success"))
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgolink/lavalink"
-	"golang.org/x/text/message"
+	"github.com/disgoorg/handler"
 )
 
 var bassBoost = &lavalink.Equalizer{
@@ -27,36 +27,40 @@ var bassBoost = &lavalink.Equalizer{
 	14: -0.1,
 }
 
-var BassBoost = dbot.Command{
-	Create: discord.SlashCommandCreate{
-		Name:        "bass-boost",
-		Description: "Enables or disables bass boost of the music player.",
-		Options: []discord.ApplicationCommandOption{
-			discord.ApplicationCommandOptionBool{
-				Name:        "enable",
-				Description: "if the bass boost should be enabled or disabled",
-				Required:    true,
+func BassBoost(b *dbot.Bot) handler.Command {
+	return handler.Command{
+		Create: discord.SlashCommandCreate{
+			Name:        "bass-boost",
+			Description: "Enables or disables bass boost of the music player.",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionBool{
+					Name:        "enable",
+					Description: "If the bass boost should be enabled or disabled",
+					Required:    true,
+				},
 			},
 		},
-	},
-	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel),
-	CommandHandler: map[string]dbot.CommandHandler{
-		"": bassBoostHandler,
-	},
+		Check: dbot.HasMusicPlayer(b).And(dbot.IsMemberConnectedToVoiceChannel(b)),
+		CommandHandlers: map[string]handler.CommandHandler{
+			"": bassBoostHandler(b),
+		},
+	}
 }
 
-func bassBoostHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionCreate) error {
-	player := b.MusicPlayers.Get(*e.GuildID())
-	enable := e.SlashCommandInteractionData().Bool("enable")
+func bassBoostHandler(b *dbot.Bot) handler.CommandHandler {
+	return func(e *events.ApplicationCommandInteractionCreate) error {
+		player := b.MusicPlayers.Get(*e.GuildID())
+		enable := e.SlashCommandInteractionData().Bool("enable")
 
-	if enable {
-		if err := player.Filters().SetEqualizer(bassBoost).Commit(); err != nil {
-			return e.CreateMessage(responses.CreateErrorf(p, "modules.music.commands.bass.boost.enable.error"))
+		if enable {
+			if err := player.Filters().SetEqualizer(bassBoost).Commit(); err != nil {
+				return e.CreateMessage(responses.CreateErrorf("Failed to enable bass boost. Please try again."))
+			}
+			return e.CreateMessage(responses.CreateSuccessf("🔊 Bass boost enabled."))
 		}
-		return e.CreateMessage(responses.CreateSuccessf(p, "modules.music.commands.bass.boost.enable.success"))
+		if err := player.Filters().SetEqualizer(&lavalink.Equalizer{}).Commit(); err != nil {
+			return e.CreateMessage(responses.CreateErrorf("Failed to disable bass boost. Please try again."))
+		}
+		return e.CreateMessage(responses.CreateSuccessf("🔊 Bass boost disabled."))
 	}
-	if err := player.Filters().SetEqualizer(&lavalink.Equalizer{}).Commit(); err != nil {
-		return e.CreateMessage(responses.CreateErrorf(p, "modules.music.commands.bass.boost.disable.error"))
-	}
-	return e.CreateMessage(responses.CreateSuccessf(p, "modules.music.commands.bass.boost.disable.success"))
 }

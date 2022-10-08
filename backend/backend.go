@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/KittyBot-Org/KittyBotGo/db"
-	"github.com/KittyBot-Org/KittyBotGo/dbot"
+	"github.com/disgoorg/handler"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/rest"
@@ -49,7 +49,7 @@ func (b *Backend) SetupScheduler() error {
 	return nil
 }
 
-func (b *Backend) LoadCommands(commands ...dbot.Command) {
+func (b *Backend) LoadCommands(commands ...handler.Command) {
 	b.Logger.Info("Loading commands...")
 
 	for _, command := range commands {

@@ -4,21 +4,25 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/dbot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
-	"golang.org/x/text/message"
+	"github.com/disgoorg/handler"
 )
 
-var ClearQueue = dbot.Command{
-	Create: discord.SlashCommandCreate{
-		Name:        "clear-queue",
-		Description: "Removes all songs from your queue.",
-	},
-	Checks: dbot.HasMusicPlayer.And(dbot.IsMemberConnectedToVoiceChannel).And(dbot.HasQueueItems),
-	CommandHandler: map[string]dbot.CommandHandler{
-		"": clearQueueHandler,
-	},
+func ClearQueue(b *dbot.Bot) handler.Command {
+	return handler.Command{
+		Create: discord.SlashCommandCreate{
+			Name:        "clear-queue",
+			Description: "Removes all songs from your queue.",
+		},
+		Check: dbot.HasMusicPlayer(b).And(dbot.IsMemberConnectedToVoiceChannel(b)).And(dbot.HasQueueItems(b)),
+		CommandHandlers: map[string]handler.CommandHandler{
+			"": clearQueueHandler(b),
+		},
+	}
 }
 
-func clearQueueHandler(b *dbot.Bot, p *message.Printer, e *events.ApplicationCommandInteractionCreate) error {
-	b.MusicPlayers.Get(*e.GuildID()).Queue.Clear()
-	return e.CreateMessage(discord.MessageCreate{Content: p.Sprintf("modules.music.commands.clear.cleared")})
+func clearQueueHandler(b *dbot.Bot) handler.CommandHandler {
+	return func(e *events.ApplicationCommandInteractionCreate) error {
+		b.MusicPlayers.Get(*e.GuildID()).Queue.Clear()
+		return e.CreateMessage(discord.MessageCreate{Content: "Cleared the queue."})
+	}
 }

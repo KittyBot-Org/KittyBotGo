@@ -3,12 +3,13 @@ module github.com/KittyBot-Org/KittyBotGo
 go 1.18
 
 require (
-	github.com/disgoorg/disgo v0.13.18-0.20220828162428-9f10939de2ca
-	github.com/disgoorg/disgolink/disgolink v1.7.3-0.20220702231836-318a7f2edb19
-	github.com/disgoorg/disgolink/lavalink v1.7.2-0.20220702231836-318a7f2edb19
+	github.com/disgoorg/disgo v0.13.19
+	github.com/disgoorg/disgolink/disgolink v1.7.3
+	github.com/disgoorg/disgolink/lavalink v1.7.2
+	github.com/disgoorg/handler v0.3.0
 	github.com/disgoorg/log v1.2.0
 	github.com/disgoorg/snowflake/v2 v2.0.0
-	github.com/disgoorg/source-plugins v1.3.0
+	github.com/disgoorg/source-plugins v1.3.1-0.20221006172956-3cd83d858623
 	github.com/disgoorg/utils/paginator v0.0.0-20220811191046-2474e390fa3b
 	github.com/go-jet/jet/v2 v2.8.0
 	github.com/gorilla/mux v1.8.0
@@ -17,7 +18,6 @@ require (
 	github.com/procyon-projects/chrono v1.0.0
 	github.com/prometheus/client_golang v1.12.2
 	github.com/prometheus/common v0.37.0
-	golang.org/x/text v0.3.7
 )
 
 require (
@@ -38,6 +38,7 @@ require (
 	github.com/stretchr/testify v1.8.0 // indirect
 	golang.org/x/exp v0.0.0-20220713135740-79cabaa25d75 // indirect
 	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
+	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
