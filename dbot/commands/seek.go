@@ -67,6 +67,6 @@ func seekHandler(b *dbot.Bot) handler.CommandHandler {
 		if err := player.Seek(finalPosition); err != nil {
 			return e.CreateMessage(responses.CreateErrorf("Failed to seek. Please try again."))
 		}
-		return e.CreateMessage(responses.CreateSuccessf("⏩ Seeked to `%s`."))
+		return e.CreateMessage(responses.CreateSuccessf("⏩ Seeked to `%s`.", finalPosition.String()))
 	}
 }

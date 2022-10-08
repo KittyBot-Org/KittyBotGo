@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strconv"
 	"time"
@@ -58,6 +59,14 @@ func Play(b *dbot.Bot) handler.Command {
 							Name:  "Apple Music",
 							Value: string(source_plugins.SearchTypeAppleMusic),
 						},
+						{
+							Name:  "Deezer ISRC",
+							Value: string(source_plugins.SearchTypeDeezerISRC),
+						},
+						{
+							Name:  "Deezer",
+							Value: string(source_plugins.SearchTypeDeezer),
+						},
 					},
 				},
 			},
@@ -76,26 +85,18 @@ func playHandler(b *dbot.Bot) handler.CommandHandler {
 	return func(e *events.ApplicationCommandInteractionCreate) error {
 		data := e.SlashCommandInteractionData()
 
-		var voiceChannelID snowflake.ID
 		if voiceState, ok := b.Client.Caches().VoiceStates().Get(*e.GuildID(), e.User().ID); !ok || voiceState.ChannelID == nil {
 			return e.CreateMessage(responses.CreateErrorf("You must be in a voice channel to use this command."))
-		} else {
-			voiceChannelID = *voiceState.ChannelID
 		}
 
 		channel, _ := e.GuildChannel()
-		if perms := b.Client.Caches().GetMemberPermissionsInChannel(channel, e.Member().Member); perms.Missing(discord.PermissionVoiceConnect) {
+		selfMember, _ := e.Client().Caches().GetSelfMember(*e.GuildID())
+		if perms := b.Client.Caches().GetMemberPermissionsInChannel(channel, selfMember); perms.Missing(discord.PermissionVoiceConnect) {
 			return e.CreateMessage(responses.CreateErrorf("It seems like I don't have permissions to join your voice channel."))
 		}
 
-		if voiceState, ok := b.Client.Caches().VoiceStates().Get(*e.GuildID(), b.Client.ID()); !ok || voiceState.ChannelID == nil || *voiceState.ChannelID != voiceChannelID {
-			if err := b.Client.Connect(context.TODO(), *e.GuildID(), voiceChannelID); err != nil {
-				return e.CreateMessage(responses.CreateErrorf("Failed to connect to your voice channel. Please try again."))
-			}
-		}
-
 		query := data.String("query")
-		if searchProvider, ok := data.OptString("searchProvider"); ok {
+		if searchProvider, ok := data.OptString("search-provider"); ok {
 			query = lavalink.SearchType(searchProvider).Apply(query)
 		} else {
 			if !urlPattern.MatchString(query) && !searchPattern.MatchString(query) {
@@ -248,6 +249,8 @@ func playAndQueue(b *dbot.Bot, i discord.BaseInteraction, tracks ...lavalink.Aud
 		})
 	}
 
+	fmt.Printf("PlayingTrack: %v", player.PlayingTrack())
+
 	if player.PlayingTrack() == nil {
 		track := tracks[0]
 		if len(tracks) > 0 {
@@ -299,26 +302,29 @@ func giveSearchSelection(b *dbot.Bot, e *events.ApplicationCommandInteractionCre
 
 	if _, err := e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(),
 		responses.UpdateSuccessComponentsf("Select songs to play.", nil, discord.NewActionRow(
-			discord.NewSelectMenu("play:search:"+e.ID().String(), "Select songs to play.", options...).WithMaxValues(len(options)),
+			discord.NewSelectMenu("search:"+e.ID().String(), "Select songs to play.", options...).WithMaxValues(len(options)),
 		)),
 	); err != nil {
 		b.Logger.Error("Error while updating interaction message: ", err)
 	}
 
 	go func() {
-		collectorChan, cancel := bot.NewEventCollector(e.Client(), func(e *events.ComponentInteractionCreate) bool {
-			return e.Data.CustomID() == "play:search:"+e.ID().String()
-		})
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 		defer cancel()
-		for {
-			select {
-			case ne := <-collectorChan:
-				if e.User().ID != ne.User().ID {
-					if err := e.CreateMessage(responses.CreateErrorf("This is not your search.")); err != nil {
-						b.Logger.Error("Failed to update error message: ", err)
+		bot.WaitForEvent(e.Client(), ctx,
+			func(ne *events.ComponentInteractionCreate) bool {
+				if ne.Data.CustomID() == "search:"+e.ID().String() {
+					if e.User().ID == ne.User().ID {
+						return true
 					}
-					continue
+					err := ne.CreateMessage(responses.CreateErrorf("You can't select songs for someone else."))
+					if err != nil {
+						b.Logger.Error("Error while creating message: ", err)
+					}
 				}
+				return false
+			},
+			func(ne *events.ComponentInteractionCreate) {
 				if err := ne.DeferUpdateMessage(); err != nil {
 					b.Logger.Error(err)
 					return
@@ -330,13 +336,12 @@ func giveSearchSelection(b *dbot.Bot, e *events.ApplicationCommandInteractionCre
 				}
 				playAndQueue(b, e.BaseInteraction, playTracks...)
 				return
-
-			case <-time.After(time.Minute):
+			},
+			func() {
 				if _, err := e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(), responses.UpdateErrorComponentsf("Search timed out after 60s. Please try again.", nil)); err != nil {
 					b.Logger.Error("Error while updating interaction message: ", err)
 				}
-				return
-			}
-		}
+			},
+		)
 	}()
 }

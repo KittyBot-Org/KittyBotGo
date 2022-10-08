@@ -11,7 +11,7 @@ import (
 
 func (b *Bot) SetupLavalink() {
 	b.MusicPlayers = NewMusicPlayerMap(b)
-	b.Lavalink = disgolink.New(b.Client, lavalink.WithPlugins(source_plugins.NewSpotifyPlugin(), source_plugins.NewAppleMusicPlugin()))
+	b.Lavalink = disgolink.New(b.Client, lavalink.WithPlugins(source_plugins.NewSpotifyPlugin(), source_plugins.NewAppleMusicPlugin(), source_plugins.NewDeezerPlugin()))
 	b.RegisterNodes()
 }
 

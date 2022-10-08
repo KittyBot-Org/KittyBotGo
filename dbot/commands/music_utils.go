@@ -66,6 +66,11 @@ func getArtworkURL(track lavalink.AudioTrack) string {
 		if appleMusicTrack, ok := track.(*source_plugins.AppleMusicAudioTrack); ok && appleMusicTrack.ArtworkURL != nil {
 			return *appleMusicTrack.ArtworkURL
 		}
+
+	case "deezer":
+		if deezerTrack, ok := track.(*source_plugins.DeezerAudioTrack); ok && deezerTrack.ArtworkURL != nil {
+			return *deezerTrack.ArtworkURL
+		}
 	}
 	return ""
 }
