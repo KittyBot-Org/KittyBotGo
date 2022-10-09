@@ -9,7 +9,7 @@ require (
 	github.com/disgoorg/handler v0.3.0
 	github.com/disgoorg/log v1.2.0
 	github.com/disgoorg/snowflake/v2 v2.0.0
-	github.com/disgoorg/source-plugins v1.3.1-0.20221006172956-3cd83d858623
+	github.com/disgoorg/source-plugins v1.3.1-0.20221009162536-28cea64ea737
 	github.com/disgoorg/utils/paginator v0.0.0-20220811191046-2474e390fa3b
 	github.com/go-jet/jet/v2 v2.8.0
 	github.com/gorilla/mux v1.8.0
