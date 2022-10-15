@@ -103,12 +103,12 @@ func CreateReport(b *dbot.Bot, settings model.GuildSetting, reportID int32, cont
 				discord.ButtonComponent{
 					Style:    discord.ButtonStyleSuccess,
 					Label:    "Confirm",
-					CustomID: fmt.Sprintf("cmd:report:confirm:%d", reportID),
+					CustomID: fmt.Sprintf("handler:report-confirm:%d", reportID),
 				},
 				discord.ButtonComponent{
 					Style:    discord.ButtonStyleDanger,
 					Label:    "Delete",
-					CustomID: fmt.Sprintf("cmd:report:delete:%d", reportID),
+					CustomID: fmt.Sprintf("handler:report-delete:%d", reportID),
 				},
 			},
 		},

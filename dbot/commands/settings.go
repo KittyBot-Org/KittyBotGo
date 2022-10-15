@@ -28,8 +28,8 @@ func Settings(b *dbot.Bot) handler.Command {
 							Description: "Disables moderation",
 						},
 						{
-							Name:        "log-channel",
-							Description: "Set the channel to log moderation actions",
+							Name:        "enable",
+							Description: "Enables & sets the channel to log moderation actions to",
 							Options: []discord.ApplicationCommandOption{
 								discord.ApplicationCommandOptionChannel{
 									Name:        "channel",
@@ -44,8 +44,8 @@ func Settings(b *dbot.Bot) handler.Command {
 			DefaultMemberPermissions: json.NewOptional(discord.PermissionManageServer),
 		},
 		CommandHandlers: map[string]handler.CommandHandler{
-			"moderation/disable":     settingsModerationDisableHandler(b),
-			"moderation/log-channel": settingsModerationLogChannelHandler(b),
+			"moderation/disable": settingsModerationDisableHandler(b),
+			"moderation/enable":  settingsModerationEnableHandler(b),
 		},
 	}
 }
@@ -67,7 +67,7 @@ func settingsModerationDisableHandler(b *dbot.Bot) handler.CommandHandler {
 	}
 }
 
-func settingsModerationLogChannelHandler(b *dbot.Bot) handler.CommandHandler {
+func settingsModerationEnableHandler(b *dbot.Bot) handler.CommandHandler {
 	return func(e *events.ApplicationCommandInteractionCreate) error {
 		data := e.SlashCommandInteractionData()
 		settings, err := b.DB.GuildSettings().Get(*e.GuildID())

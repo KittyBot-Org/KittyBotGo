@@ -18,28 +18,28 @@ import (
 
 func ReportAction(b *dbot.Bot) handler.Component {
 	return handler.Component{
-		Name:    "action",
+		Name:    "report-action",
 		Handler: reportActionHandler(b),
 	}
 }
 
 func ReportConfirm(b *dbot.Bot) handler.Component {
 	return handler.Component{
-		Name:    "confirm",
+		Name:    "report-confirm",
 		Handler: reportConfirmHandler(b),
 	}
 }
 
 func ReportDelete(b *dbot.Bot) handler.Component {
 	return handler.Component{
-		Name:    "delete",
+		Name:    "report-delete",
 		Handler: reportDeleteHandler(b),
 	}
 }
 
 func ReportActionConfirm(b *dbot.Bot) handler.Modal {
 	return handler.Modal{
-		Name:    "action-confirm",
+		Name:    "report-action-confirm",
 		Handler: reportActionConfirmHandler(b),
 	}
 }
@@ -47,7 +47,7 @@ func ReportActionConfirm(b *dbot.Bot) handler.Modal {
 func reportConfirmHandler(b *dbot.Bot) handler.ComponentHandler {
 	return func(e *events.ComponentInteractionCreate) error {
 		args := strings.Split(e.Data.CustomID(), ":")
-		reportID, err := parseReportID(args[0])
+		reportID, err := parseReportID(args[2])
 		if err != nil {
 			return err
 		}
@@ -131,7 +131,7 @@ func reportConfirmHandler(b *dbot.Bot) handler.ComponentHandler {
 			Components: &[]discord.ContainerComponent{
 				discord.ActionRowComponent{
 					discord.SelectMenuComponent{
-						CustomID:    fmt.Sprintf("cmd:report:action:%d", reportID),
+						CustomID:    fmt.Sprintf("handler:report-action:%d", reportID),
 						Placeholder: "Select an action",
 						MinValues:   json.NewPtr(1),
 						MaxValues:   1,
@@ -146,7 +146,7 @@ func reportConfirmHandler(b *dbot.Bot) handler.ComponentHandler {
 func reportDeleteHandler(b *dbot.Bot) handler.ComponentHandler {
 	return func(e *events.ComponentInteractionCreate) error {
 		args := strings.Split(e.Data.CustomID(), ":")
-		reportID, err := parseReportID(args[0])
+		reportID, err := parseReportID(args[2])
 		if err != nil {
 			return err
 		}
@@ -181,7 +181,7 @@ func reportActionHandler(b *dbot.Bot) handler.ComponentHandler {
 	return func(e *events.ComponentInteractionCreate) error {
 
 		args := strings.Split(e.Data.CustomID(), ":")
-		reportID, err := parseReportID(args[0])
+		reportID, err := parseReportID(args[2])
 		if err != nil {
 			return err
 		}
@@ -252,7 +252,7 @@ func reportActionHandler(b *dbot.Bot) handler.ComponentHandler {
 
 		case "timeout":
 			return e.CreateModal(discord.ModalCreate{
-				CustomID: fmt.Sprintf("cmd:report:action-confirm:timeout:%s", report.UserID),
+				CustomID: fmt.Sprintf("handler:report-action-confirm:timeout:%s", report.UserID),
 				Title:    "Timeout User",
 				Components: []discord.ContainerComponent{
 					discord.ActionRowComponent{
@@ -281,7 +281,7 @@ func reportActionHandler(b *dbot.Bot) handler.ComponentHandler {
 
 		case "kick":
 			return e.CreateModal(discord.ModalCreate{
-				CustomID: fmt.Sprintf("cmd:report:action-confirm:kick:%s", report.UserID),
+				CustomID: fmt.Sprintf("handler:report-action-confirm:kick:%s", report.UserID),
 				Title:    "Kick User",
 				Components: []discord.ContainerComponent{
 					discord.ActionRowComponent{
@@ -299,7 +299,7 @@ func reportActionHandler(b *dbot.Bot) handler.ComponentHandler {
 
 		case "ban":
 			return e.CreateModal(discord.ModalCreate{
-				CustomID: fmt.Sprintf("cmd:report:action-confirm:ban:%s", report.UserID),
+				CustomID: fmt.Sprintf("handler:report-action-confirm:ban:%s", report.UserID),
 				Title:    "Ban User",
 				Components: []discord.ContainerComponent{
 					discord.ActionRowComponent{
@@ -341,11 +341,11 @@ func reportActionHandler(b *dbot.Bot) handler.ComponentHandler {
 func reportActionConfirmHandler(b *dbot.Bot) handler.ModalHandler {
 	return func(e *events.ModalSubmitInteractionCreate) error {
 		args := strings.Split(e.Data.CustomID, ":")
-		userID := snowflake.MustParse(args[1])
+		userID := snowflake.MustParse(args[3])
 		reason := e.Data.Text("reason")
 
 		var content string
-		switch args[0] {
+		switch args[2] {
 		case "timeout":
 			until := time.Now()
 			duration, err := time.ParseDuration(e.Data.Text("duration"))
