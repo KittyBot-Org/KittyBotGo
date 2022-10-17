@@ -13,12 +13,12 @@ import (
 
 func getMusicControllerComponents(track lavalink.AudioTrack) discord.ContainerComponent {
 	buttons := discord.ActionRowComponent{
-		discord.NewPrimaryButton("", "now-playing:previous").WithEmoji(discord.ComponentEmoji{Name: "⏮"}),
-		discord.NewPrimaryButton("", "now-playing:play-pause").WithEmoji(discord.ComponentEmoji{Name: "⏯"}),
-		discord.NewPrimaryButton("", "now-playing:next").WithEmoji(discord.ComponentEmoji{Name: "⏭"}),
+		discord.NewPrimaryButton("", "handler:previous").WithEmoji(discord.ComponentEmoji{Name: "⏮"}),
+		discord.NewPrimaryButton("", "handler:play-pause").WithEmoji(discord.ComponentEmoji{Name: "⏯"}),
+		discord.NewPrimaryButton("", "handler:next").WithEmoji(discord.ComponentEmoji{Name: "⏭"}),
 	}
 	if track != nil {
-		buttons = buttons.AddComponents(discord.NewPrimaryButton("", "now-playing:like").WithEmoji(discord.ComponentEmoji{Name: "❤"}))
+		buttons = buttons.AddComponents(discord.NewPrimaryButton("", "handler:like").WithEmoji(discord.ComponentEmoji{Name: "❤"}))
 	}
 	return buttons
 }
