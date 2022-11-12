@@ -110,35 +110,35 @@ func playHandler(b *dbot.Bot) handler.CommandHandler {
 		err := b.Lavalink.BestRestClient().LoadItemHandler(context.TODO(), query, lavalink.NewResultHandler(
 			func(track lavalink.AudioTrack) {
 				if err := b.DB.PlayHistory().Add(e.User().ID, query, track.Info().Title); err != nil {
-					b.Logger.Error("Failed to add track to play history: ", err)
+					b.Logger.Error("Failed to add song to play history: ", err)
 				}
 				playAndQueue(b, e.BaseInteraction, track)
 			},
 			func(playlist lavalink.AudioPlaylist) {
 				if err := b.DB.PlayHistory().Add(e.User().ID, query, playlist.Name()); err != nil {
-					b.Logger.Error("Failed to add track to play history: ", err)
+					b.Logger.Error("Failed to add song to play history: ", err)
 				}
 				playAndQueue(b, e.BaseInteraction, playlist.Tracks()...)
 			},
 			func(tracks []lavalink.AudioTrack) {
 				if err := b.DB.PlayHistory().Add(e.User().ID, query, data.String("query")); err != nil {
-					b.Logger.Error("Failed to add track to play history: ", err)
+					b.Logger.Error("Failed to add song to play history: ", err)
 				}
 				giveSearchSelection(b, e, tracks)
 			},
 			func() {
-				if _, err := e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(), responses.UpdateErrorf("No track/s found for your link/query")); err != nil {
+				if _, err := e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(), responses.UpdateErrorf("No song/s found for your link/query")); err != nil {
 					b.Logger.Error("Failed to update not found message: ", err)
 				}
 			},
 			func(ex lavalink.FriendlyException) {
-				if _, err := e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(), responses.UpdateErrorf("Failed to load track/s: %s", ex.Message)); err != nil {
+				if _, err := e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(), responses.UpdateErrorf("Failed to load song/s: %s", ex.Message)); err != nil {
 					b.Logger.Error("Failed to update error message: ", err)
 				}
 			},
 		))
 		if err != nil {
-			if _, err = e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(), responses.UpdateErrorf("Failed to lookup track. Please try again.")); err != nil {
+			if _, err = e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(), responses.UpdateErrorf("Failed to lookup song. Please try again.")); err != nil {
 				b.Logger.Error("Failed to update error message: ", err)
 			}
 		}

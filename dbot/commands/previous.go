@@ -27,7 +27,7 @@ func previousHandler(b *dbot.Bot) handler.CommandHandler {
 		previousTrack := player.History.Last()
 
 		if previousTrack == nil {
-			return e.CreateMessage(responses.CreateErrorf("No track found in history."))
+			return e.CreateMessage(responses.CreateErrorf("No song found in history."))
 		}
 
 		if err := player.Play(previousTrack); err != nil {

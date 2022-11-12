@@ -88,7 +88,7 @@ func IsPlaying(b *Bot) handler.Check[*events.ApplicationCommandInteractionCreate
 		if b.MusicPlayers.Get(*ctx.GuildID()).PlayingTrack() == nil {
 			if err := ctx.CreateMessage(
 				discord.MessageCreate{
-					Content: "No track is currently playing.",
+					Content: "No song is currently playing.",
 					Flags:   discord.MessageFlagEphemeral,
 				}); err != nil {
 				b.Logger.Error(err)

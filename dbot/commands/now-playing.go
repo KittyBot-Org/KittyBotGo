@@ -33,12 +33,12 @@ func nowPlayingHandler(b *dbot.Bot) handler.CommandHandler {
 		}
 		i := track.Info()
 		embed := discord.NewEmbedBuilder().
-			SetDescriptionf("Currently playing: ", formatTrack(track)).
+			SetDescriptionf("Currently playing: %s", formatTrack(track)).
 			AddField("Author:", i.Author, true).
 			AddField("Requested by:", discord.UserMention(track.UserData().(dbot.AudioTrackData).Requester), true).
 			AddField("Volume:", fmt.Sprintf("%d%%", player.Volume()), true).
 			SetThumbnail(getArtworkURL(player.PlayingTrack())).
-			SetFooterText(fmt.Sprintf("Tracks in queue: %d", player.Queue.Len()))
+			SetFooterText(fmt.Sprintf("Songs in queue: %d", player.Queue.Len()))
 		if !i.IsStream {
 			bar := [10]string{"▬", "▬", "▬", "▬", "▬", "▬", "▬", "▬", "▬", "▬"}
 			t1 := player.Position()

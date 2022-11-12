@@ -69,7 +69,7 @@ func removeSongHandler(b *dbot.Bot) handler.CommandHandler {
 		removeTrack := player.Queue.Get(index - 1)
 		if removeTrack == nil {
 			return e.CreateMessage(discord.MessageCreate{
-				Content: fmt.Sprintf("No track found with index `%d`.", index),
+				Content: fmt.Sprintf("No song found with index `%d`.", index),
 				Flags:   discord.MessageFlagEphemeral,
 			})
 		}

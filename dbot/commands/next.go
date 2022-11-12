@@ -27,7 +27,7 @@ func nextHandler(b *dbot.Bot) handler.CommandHandler {
 		nextTrack := player.Queue.Pop()
 
 		if nextTrack == nil {
-			return e.CreateMessage(responses.CreateErrorf("No next track found in queue."))
+			return e.CreateMessage(responses.CreateErrorf("No next song found in queue."))
 		}
 
 		if err := player.Play(nextTrack); err != nil {
