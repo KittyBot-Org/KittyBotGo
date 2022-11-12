@@ -33,7 +33,8 @@ func nowPlayingHandler(b *dbot.Bot) handler.CommandHandler {
 		}
 		i := track.Info()
 		embed := discord.NewEmbedBuilder().
-			SetDescriptionf("Currently playing: %s", formatTrack(track)).
+			SetTitle("Currently playing:").
+			SetDescription(formatTrack(track)).
 			AddField("Author:", i.Author, true).
 			AddField("Requested by:", discord.UserMention(track.UserData().(dbot.AudioTrackData).Requester), true).
 			AddField("Volume:", fmt.Sprintf("%d%%", player.Volume()), true).

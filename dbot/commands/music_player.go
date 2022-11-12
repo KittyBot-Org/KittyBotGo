@@ -128,7 +128,7 @@ func likeComponentHandler(b *dbot.Bot) handler.ComponentHandler {
 				b.Logger.Error("Error adding music history entry: ", err)
 				return e.CreateMessage(responses.CreateErrorf("Failed to add track to liked tracks. Please try again."))
 			}
-			res := responses.CreateSuccessf("👍 Added [`%s`](%s) to your liked tracks.", title, url)
+			res := responses.CreateSuccessf("❤ Added [`%s`](%s) to your liked tracks.", title, url)
 			res.Flags = discord.MessageFlagEphemeral
 			return e.CreateMessage(res)
 
@@ -137,7 +137,7 @@ func likeComponentHandler(b *dbot.Bot) handler.ComponentHandler {
 			b.Logger.Error("Error removing music history entry: ", err)
 			return e.CreateMessage(responses.CreateErrorf("Failed to remove track from your liked tracks. Please try again."))
 		}
-		res := responses.CreateSuccessf("👎 Removed [`%s`](%s) from your liked tracks.", title, url)
+		res := responses.CreateSuccessf("💔 Removed [`%s`](%s) from your liked tracks.", title, url)
 		res.Flags = discord.MessageFlagEphemeral
 		return e.CreateMessage(res)
 	}

@@ -4,8 +4,8 @@ go 1.18
 
 require (
 	github.com/disgoorg/disgo v0.13.21
-	github.com/disgoorg/disgolink/disgolink v1.7.3
-	github.com/disgoorg/disgolink/lavalink v1.7.2
+	github.com/disgoorg/disgolink/disgolink v1.7.4
+	github.com/disgoorg/disgolink/lavalink v1.7.3
 	github.com/disgoorg/handler v0.3.0
 	github.com/disgoorg/log v1.2.0
 	github.com/disgoorg/snowflake/v2 v2.0.1
