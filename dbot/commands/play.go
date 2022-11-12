@@ -84,11 +84,12 @@ func playHandler(b *dbot.Bot) handler.CommandHandler {
 	return func(e *events.ApplicationCommandInteractionCreate) error {
 		data := e.SlashCommandInteractionData()
 
-		if voiceState, ok := b.Client.Caches().VoiceStates().Get(*e.GuildID(), e.User().ID); !ok || voiceState.ChannelID == nil {
+		voiceState, ok := b.Client.Caches().VoiceStates().Get(*e.GuildID(), e.User().ID)
+		if !ok || voiceState.ChannelID == nil {
 			return e.CreateMessage(responses.CreateErrorf("You must be in a voice channel to use this command."))
 		}
 
-		channel, _ := e.GuildChannel()
+		channel, _ := e.Client().Caches().Channels().GetGuildAudioChannel(*voiceState.ChannelID)
 		selfMember, _ := e.Client().Caches().GetSelfMember(*e.GuildID())
 		if perms := b.Client.Caches().GetMemberPermissionsInChannel(channel, selfMember); perms.Missing(discord.PermissionVoiceConnect) {
 			return e.CreateMessage(responses.CreateErrorf("It seems like I don't have permissions to join your voice channel."))
