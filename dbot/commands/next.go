@@ -33,6 +33,6 @@ func nextHandler(b *dbot.Bot) handler.CommandHandler {
 		if err := player.Play(nextTrack); err != nil {
 			return e.CreateMessage(responses.CreateErrorf("Failed to play next song. Please try again."))
 		}
-		return e.CreateMessage(responses.CreateSuccessComponentsf("⏭ Skipped track.\nNow playing: %s - %s", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
+		return e.CreateMessage(responses.CreateSuccessComponentsf("⏭ Skipped to next song.\nNow playing: %s - %s", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
 	}
 }
