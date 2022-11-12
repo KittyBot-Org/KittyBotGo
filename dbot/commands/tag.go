@@ -15,12 +15,12 @@ func Tag(b *dbot.Bot) handler.Command {
 	return handler.Command{
 		Create: discord.SlashCommandCreate{
 			Name:        "tag",
-			Description: "lets you display a tag",
+			Description: "Lets you display a tag",
 			Options: []discord.ApplicationCommandOption{
 
 				discord.ApplicationCommandOptionString{
 					Name:         "name",
-					Description:  "the name of the tag to display",
+					Description:  "The name of the tag to display",
 					Required:     true,
 					Autocomplete: true,
 				},

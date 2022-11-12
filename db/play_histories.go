@@ -11,7 +11,7 @@ import (
 )
 
 type PlayHistoriesDB interface {
-	Get(userID snowflake.ID) ([]PlayHistory, error)
+	Get(userID snowflake.ID) ([]PlayHistories, error)
 	Add(userID snowflake.ID, query string, title string) error
 }
 
@@ -19,20 +19,20 @@ type playHistoriesDBImpl struct {
 	db *sql.DB
 }
 
-func (h *playHistoriesDBImpl) Get(userID snowflake.ID) ([]PlayHistory, error) {
-	var playHistories []PlayHistory
-	err := table.PlayHistory.SELECT(table.PlayHistory.AllColumns).
-		WHERE(table.PlayHistory.UserID.EQ(String(userID.String()))).
-		ORDER_BY(table.PlayHistory.LastUsedAt.DESC()).
+func (h *playHistoriesDBImpl) Get(userID snowflake.ID) ([]PlayHistories, error) {
+	var playHistories []PlayHistories
+	err := table.PlayHistories.SELECT(table.PlayHistories.AllColumns).
+		WHERE(table.PlayHistories.UserID.EQ(String(userID.String()))).
+		ORDER_BY(table.PlayHistories.LastUsedAt.DESC()).
 		Query(h.db, &playHistories)
 	return playHistories, err
 }
 
 func (h *playHistoriesDBImpl) Add(userID snowflake.ID, query string, title string) error {
-	_, err := table.PlayHistory.INSERT(table.PlayHistory.AllColumns).
+	_, err := table.PlayHistories.INSERT(table.PlayHistories.AllColumns).
 		VALUES(String(userID.String()), String(query), String(title), time.Now()).
-		ON_CONFLICT(table.PlayHistory.UserID, table.PlayHistory.Title).
-		DO_UPDATE(SET(table.PlayHistory.LastUsedAt.SET(TimestampT(time.Now())))).
+		ON_CONFLICT(table.PlayHistories.UserID, table.PlayHistories.Title).
+		DO_UPDATE(SET(table.PlayHistories.LastUsedAt.SET(TimestampT(time.Now())))).
 		Exec(h.db)
 	return err
 }

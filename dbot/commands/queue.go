@@ -14,7 +14,7 @@ func Queue(b *dbot.Bot) handler.Command {
 	return handler.Command{
 		Create: discord.SlashCommandCreate{
 			Name:        "queue",
-			Description: "Shows the current song queue.",
+			Description: "Shows the current track queue.",
 		},
 		Check: dbot.HasMusicPlayer(b).And(dbot.HasQueueItems(b)),
 		CommandHandlers: map[string]handler.CommandHandler{

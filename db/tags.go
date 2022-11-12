@@ -11,8 +11,8 @@ import (
 )
 
 type TagsDB interface {
-	Get(guildID snowflake.ID, name string) (Tag, error)
-	GetAll(guildID snowflake.ID) ([]Tag, error)
+	Get(guildID snowflake.ID, name string) (Tags, error)
+	GetAll(guildID snowflake.ID) ([]Tags, error)
 	Create(guildID snowflake.ID, ownerID snowflake.ID, name string, content string) error
 	Edit(guildID snowflake.ID, name string, content string) error
 	IncrementUses(guildID snowflake.ID, name string) error
@@ -23,46 +23,46 @@ type tagsDBImpl struct {
 	db *sql.DB
 }
 
-func (t *tagsDBImpl) Get(guildID snowflake.ID, name string) (Tag, error) {
-	var tag Tag
-	err := table.Tag.SELECT(table.Tag.AllColumns).
-		WHERE(table.Tag.GuildID.EQ(String(guildID.String())).AND(table.Tag.Name.EQ(String(name)))).
-		Query(t.db, &tag)
-	return tag, err
+func (t *tagsDBImpl) Get(guildID snowflake.ID, name string) (Tags, error) {
+	var Tags Tags
+	err := table.Tags.SELECT(table.Tags.AllColumns).
+		WHERE(table.Tags.GuildID.EQ(String(guildID.String())).AND(table.Tags.Name.EQ(String(name)))).
+		Query(t.db, &Tags)
+	return Tags, err
 }
 
-func (t *tagsDBImpl) GetAll(guildID snowflake.ID) ([]Tag, error) {
-	var tags []Tag
-	err := table.Tag.SELECT(table.Tag.AllColumns).
-		WHERE(table.Tag.GuildID.EQ(String(guildID.String()))).
+func (t *tagsDBImpl) GetAll(guildID snowflake.ID) ([]Tags, error) {
+	var tags []Tags
+	err := table.Tags.SELECT(table.Tags.AllColumns).
+		WHERE(table.Tags.GuildID.EQ(String(guildID.String()))).
 		Query(t.db, &tags)
 	return tags, err
 }
 
 func (t *tagsDBImpl) Create(guildID snowflake.ID, ownerID snowflake.ID, name string, content string) error {
-	_, err := table.Tag.INSERT(table.Tag.AllColumns).VALUES(guildID, ownerID, name, content, 0, time.Now()).Exec(t.db)
+	_, err := table.Tags.INSERT(table.Tags.AllColumns).VALUES(guildID, ownerID, name, content, 0, time.Now()).Exec(t.db)
 	return err
 }
 
 func (t *tagsDBImpl) Edit(guildID snowflake.ID, name string, content string) error {
-	_, err := table.Tag.UPDATE(table.Tag.Content).
+	_, err := table.Tags.UPDATE(table.Tags.Content).
 		SET(content).
-		WHERE(table.Tag.GuildID.EQ(String(guildID.String())).AND(table.Tag.Name.EQ(String(name)))).
+		WHERE(table.Tags.GuildID.EQ(String(guildID.String())).AND(table.Tags.Name.EQ(String(name)))).
 		Exec(t.db)
 	return err
 }
 
 func (t *tagsDBImpl) IncrementUses(guildID snowflake.ID, name string) error {
-	_, err := table.Tag.UPDATE(table.Tag.Uses).
-		SET(table.Tag.Uses.ADD(Int(1))).
-		WHERE(table.Tag.GuildID.EQ(String(guildID.String())).AND(table.Tag.Name.EQ(String(name)))).
+	_, err := table.Tags.UPDATE(table.Tags.Uses).
+		SET(table.Tags.Uses.ADD(Int(1))).
+		WHERE(table.Tags.GuildID.EQ(String(guildID.String())).AND(table.Tags.Name.EQ(String(name)))).
 		Exec(t.db)
 	return err
 }
 
 func (t *tagsDBImpl) Delete(guildID snowflake.ID, name string) error {
-	_, err := table.Tag.DELETE().
-		WHERE(table.Tag.GuildID.EQ(String(guildID.String())).AND(table.Tag.Name.EQ(String(name)))).
+	_, err := table.Tags.DELETE().
+		WHERE(table.Tags.GuildID.EQ(String(guildID.String())).AND(table.Tags.Name.EQ(String(name)))).
 		Exec(t.db)
 	return err
 }

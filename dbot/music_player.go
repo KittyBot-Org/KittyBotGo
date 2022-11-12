@@ -52,7 +52,7 @@ func (p *MusicPlayer) OnTrackEnd(player lavalink.Player, track lavalink.AudioTra
 			}
 			nextTrack = p.Queue.Pop()
 
-		case LoopingTypeRepeatSong:
+		case LoopingTypeRepeatTrack:
 			nextTrack = track.Clone()
 
 		case LoopingTypeRepeatQueue:

@@ -25,8 +25,8 @@ func Loop(b *dbot.Bot) handler.Command {
 							Value: int(dbot.LoopingTypeOff),
 						},
 						{
-							Name:  "Repeat Song",
-							Value: int(dbot.LoopingTypeRepeatSong),
+							Name:  "Repeat Track",
+							Value: int(dbot.LoopingTypeRepeatTrack),
 						},
 						{
 							Name:  "Repeat Queue",
@@ -51,7 +51,7 @@ func loopHandler(b *dbot.Bot) handler.CommandHandler {
 		player.Queue.SetType(loopingType)
 		emoji := ""
 		switch loopingType {
-		case dbot.LoopingTypeRepeatSong:
+		case dbot.LoopingTypeRepeatTrack:
 			emoji = "🔂"
 		case dbot.LoopingTypeRepeatQueue:
 			emoji = "🔁"

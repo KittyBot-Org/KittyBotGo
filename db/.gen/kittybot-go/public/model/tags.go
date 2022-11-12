@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-type Tag struct {
+type Tags struct {
 	GuildID   string `sql:"primary_key"`
 	OwnerID   string
 	Name      string `sql:"primary_key"`

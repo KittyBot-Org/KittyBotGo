@@ -91,7 +91,7 @@ func reportHandler(b *dbot.Bot) handler.CommandHandler {
 	}
 }
 
-func CreateReport(b *dbot.Bot, settings model.GuildSetting, reportID int32, content string, embed discord.Embed) error {
+func CreateReport(b *dbot.Bot, settings model.GuildSettings, reportID int32, content string, embed discord.Embed) error {
 	client := b.ReportLogWebhookMap.Get(snowflake.MustParse(settings.ModerationLogWebhookID), settings.ModerationLogWebhookToken)
 	_, err := client.CreateMessage(discord.WebhookMessageCreate{
 		Content: content,

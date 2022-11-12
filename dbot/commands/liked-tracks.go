@@ -12,23 +12,23 @@ import (
 	"github.com/lithammer/fuzzysearch/fuzzy"
 )
 
-func LikedSongs(b *dbot.Bot) handler.Command {
+func LikedTracks(b *dbot.Bot) handler.Command {
 	return handler.Command{
 		Create: discord.SlashCommandCreate{
-			Name:        "liked-songs",
-			Description: "Lists/Removes/Plays a liked song.",
+			Name:        "liked-tracks",
+			Description: "Lists/Removes a liked track.",
 			Options: []discord.ApplicationCommandOption{
 				discord.ApplicationCommandOptionSubCommand{
 					Name:        "list",
-					Description: "Lists all your liked songs.",
+					Description: "Lists all your liked tracks.",
 				},
 				discord.ApplicationCommandOptionSubCommand{
 					Name:        "remove",
-					Description: "Removes a liked song.",
+					Description: "Removes a liked track.",
 					Options: []discord.ApplicationCommandOption{
 						discord.ApplicationCommandOptionString{
-							Name:         "song",
-							Description:  "The song to remove",
+							Name:         "track",
+							Description:  "The track to remove",
 							Required:     true,
 							Autocomplete: true,
 						},
@@ -36,15 +36,15 @@ func LikedSongs(b *dbot.Bot) handler.Command {
 				},
 				discord.ApplicationCommandOptionSubCommand{
 					Name:        "clear",
-					Description: "Clears all your liked song.",
+					Description: "Clears all your liked tracks.",
 				},
 				/*discord.ApplicationCommandOptionSubCommand{
 					Name:        "play",
-					Description: "Plays a liked song.",
+					Description: "Plays a liked track.",
 					Options: []discord.ApplicationCommandOption{
 						discord.ApplicationCommandOptionString{
-							Name:         "song",
-							Description:  "The song to play",
+							Name:         "track",
+							Description:  "The track to play",
 							Required:     false,
 							Autocomplete: true,
 						},
@@ -53,26 +53,26 @@ func LikedSongs(b *dbot.Bot) handler.Command {
 			},
 		},
 		CommandHandlers: map[string]handler.CommandHandler{
-			"list":   likedSongsListHandler(b),
-			"remove": likedSongsRemoveHandler(b),
-			"clear":  likedSongsClearHandler(b),
-			"play":   likedSongsPlayHandler(b),
+			"list":   likedTracksListHandler(b),
+			"remove": likedTracksRemoveHandler(b),
+			"clear":  likedTracksClearHandler(b),
+			"play":   likedTracksPlayHandler(b),
 		},
 		AutocompleteHandlers: map[string]handler.AutocompleteHandler{
-			"remove": likedSongAutocompleteHandler(b),
-			//"play":   likedSongAutocompleteHandler(b),
+			"remove": likedTrackAutocompleteHandler(b),
+			//"play":   likedTrackAutocompleteHandler(b),
 		},
 	}
 }
 
-func likedSongsListHandler(b *dbot.Bot) handler.CommandHandler {
+func likedTracksListHandler(b *dbot.Bot) handler.CommandHandler {
 	return func(e *events.ApplicationCommandInteractionCreate) error {
-		tracks, err := b.DB.LikedSongs().GetAll(e.User().ID)
+		tracks, err := b.DB.LikedTracks().GetAll(e.User().ID)
 		if err != nil {
 			return err
 		}
 		if len(tracks) == 0 {
-			return e.CreateMessage(responses.CreateErrorf("You haven't liked any songs yet."))
+			return e.CreateMessage(responses.CreateErrorf("You haven't liked any tracks yet."))
 		}
 		var (
 			pages         []string
@@ -95,7 +95,7 @@ func likedSongsListHandler(b *dbot.Bot) handler.CommandHandler {
 
 		return b.Paginator.Create(e.Respond, &paginator.Paginator{
 			PageFunc: func(page int, embed *discord.EmbedBuilder) {
-				embed.SetTitlef("You have `%d` liked songs:", len(tracks)).SetDescription(pages[page])
+				embed.SetTitlef("You have `%d` liked tracks:", len(tracks)).SetDescription(pages[page])
 			},
 			MaxPages:        len(pages),
 			ExpiryLastUsage: true,
@@ -104,52 +104,52 @@ func likedSongsListHandler(b *dbot.Bot) handler.CommandHandler {
 	}
 }
 
-func likedSongsRemoveHandler(b *dbot.Bot) handler.CommandHandler {
+func likedTracksRemoveHandler(b *dbot.Bot) handler.CommandHandler {
 	return func(e *events.ApplicationCommandInteractionCreate) error {
-		songName := e.SlashCommandInteractionData().String("song")
+		trackName := e.SlashCommandInteractionData().String("track")
 
-		if err := b.DB.LikedSongs().Delete(e.User().ID, songName); err != nil {
-			return e.CreateMessage(responses.CreateErrorf("Failed to remove song from liked songs. Please try again."))
+		if err := b.DB.LikedTracks().Delete(e.User().ID, trackName); err != nil {
+			return e.CreateMessage(responses.CreateErrorf("Failed to remove track from liked tracks. Please try again."))
 		}
-		return e.CreateMessage(responses.CreateSuccessf("Removed `%s` from liked songs.", songName))
+		return e.CreateMessage(responses.CreateSuccessf("Removed `%s` from liked tracks.", trackName))
 	}
 }
 
-func likedSongsClearHandler(b *dbot.Bot) handler.CommandHandler {
+func likedTracksClearHandler(b *dbot.Bot) handler.CommandHandler {
 	return func(e *events.ApplicationCommandInteractionCreate) error {
-		if err := b.DB.LikedSongs().DeleteAll(e.User().ID); err != nil {
-			return e.CreateMessage(responses.CreateErrorf("Failed to clear liked songs. Please try again."))
+		if err := b.DB.LikedTracks().DeleteAll(e.User().ID); err != nil {
+			return e.CreateMessage(responses.CreateErrorf("Failed to clear liked tracks. Please try again."))
 		}
-		return e.CreateMessage(responses.CreateSuccessf("Cleared all liked songs."))
+		return e.CreateMessage(responses.CreateSuccessf("Cleared all liked tracks."))
 	}
 }
 
-func likedSongsPlayHandler(b *dbot.Bot) handler.CommandHandler {
+func likedTracksPlayHandler(b *dbot.Bot) handler.CommandHandler {
 	return func(e *events.ApplicationCommandInteractionCreate) error {
 		return nil
 	}
 }
 
-func likedSongAutocompleteHandler(b *dbot.Bot) handler.AutocompleteHandler {
+func likedTrackAutocompleteHandler(b *dbot.Bot) handler.AutocompleteHandler {
 	return func(e *events.AutocompleteInteractionCreate) error {
-		song := e.Data.String("song")
-		likedSongs, err := b.DB.LikedSongs().GetAll(e.User().ID)
+		track := e.Data.String("track")
+		likedTracks, err := b.DB.LikedTracks().GetAll(e.User().ID)
 		if err != nil {
 			return err
 		}
-		if (len(likedSongs) == 0) && song == "" {
+		if (len(likedTracks) == 0) && track == "" {
 			return e.Result(nil)
 		}
-		labels := make([]string, len(likedSongs))
-		unsortedResult := make(map[string]string, len(likedSongs))
+		labels := make([]string, len(likedTracks))
+		unsortedResult := make(map[string]string, len(likedTracks))
 		i := 0
-		for _, entry := range likedSongs {
+		for _, entry := range likedTracks {
 			labels[i] = entry.Title
 			unsortedResult[entry.Title] = entry.Title
 			i++
 		}
 
-		if song == "" {
+		if track == "" {
 			var choices []discord.AutocompleteChoice
 			for key, value := range unsortedResult {
 				choices = append(choices, discord.AutocompleteChoiceString{
@@ -160,7 +160,7 @@ func likedSongAutocompleteHandler(b *dbot.Bot) handler.AutocompleteHandler {
 			return e.Result(choices)
 		}
 
-		ranks := fuzzy.RankFindFold(song, labels)
+		ranks := fuzzy.RankFindFold(track, labels)
 		resultLen := len(ranks)
 		if resultLen > 25 {
 			resultLen = 25

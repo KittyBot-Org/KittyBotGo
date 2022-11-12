@@ -23,7 +23,7 @@ func SetupDatabase(config DatabaseConfig) (DB, error) {
 	return &dbImpl{
 		db:            db,
 		guildSettings: &guildSettingsDBImpl{db: db},
-		likedSongs:    &likedSongsDBImpl{db: db},
+		likedTracks:   &likedTracksDBImpl{db: db},
 		playHistory:   &playHistoriesDBImpl{db: db},
 		tags:          &tagsDBImpl{db: db},
 		voters:        &votersDBImpl{db: db},
@@ -33,7 +33,7 @@ func SetupDatabase(config DatabaseConfig) (DB, error) {
 
 type DB interface {
 	GuildSettings() GuildSettingsDB
-	LikedSongs() LikedSongsDB
+	LikedTracks() LikedTracksDB
 	PlayHistory() PlayHistoriesDB
 	Tags() TagsDB
 	Voters() VotersDB
@@ -44,7 +44,7 @@ type DB interface {
 type dbImpl struct {
 	db            *sql.DB
 	guildSettings GuildSettingsDB
-	likedSongs    LikedSongsDB
+	likedTracks   LikedTracksDB
 	playHistory   PlayHistoriesDB
 	tags          TagsDB
 	voters        VotersDB
@@ -55,8 +55,8 @@ func (d *dbImpl) GuildSettings() GuildSettingsDB {
 	return d.guildSettings
 }
 
-func (d *dbImpl) LikedSongs() LikedSongsDB {
-	return d.likedSongs
+func (d *dbImpl) LikedTracks() LikedTracksDB {
+	return d.likedTracks
 }
 
 func (d *dbImpl) PlayHistory() PlayHistoriesDB {

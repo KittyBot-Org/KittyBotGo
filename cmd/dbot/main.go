@@ -51,7 +51,7 @@ func main() {
 		commands.BassBoost(b),
 		commands.ClearQueue(b),
 		commands.History(b),
-		commands.LikedSongs(b),
+		commands.LikedTracks(b),
 		commands.Loop(b),
 		commands.Next(b),
 		commands.NowPlaying(b),

@@ -42,7 +42,7 @@ func HasQueueItems(b *Bot) handler.Check[*events.ApplicationCommandInteractionCr
 	return func(e *events.ApplicationCommandInteractionCreate) bool {
 		if b.MusicPlayers.Get(*e.GuildID()).Queue.Len() == 0 {
 			if err := e.CreateMessage(discord.MessageCreate{
-				Content: "The song queue is empty.",
+				Content: "The queue is empty.",
 				Flags:   discord.MessageFlagEphemeral,
 			}); err != nil {
 				b.Logger.Error(err)
@@ -57,7 +57,7 @@ func HasHistoryItems(b *Bot) handler.Check[*events.ApplicationCommandInteraction
 	return func(ctx *events.ApplicationCommandInteractionCreate) bool {
 		if b.MusicPlayers.Get(*ctx.GuildID()).History.Len() == 0 {
 			if err := ctx.CreateMessage(discord.MessageCreate{
-				Content: "The song history is empty.",
+				Content: "The history is empty.",
 				Flags:   discord.MessageFlagEphemeral,
 			}); err != nil {
 				b.Logger.Error(err)
@@ -88,7 +88,7 @@ func IsPlaying(b *Bot) handler.Check[*events.ApplicationCommandInteractionCreate
 		if b.MusicPlayers.Get(*ctx.GuildID()).PlayingTrack() == nil {
 			if err := ctx.CreateMessage(
 				discord.MessageCreate{
-					Content: "No song is currently playing.",
+					Content: "No track is currently playing.",
 					Flags:   discord.MessageFlagEphemeral,
 				}); err != nil {
 				b.Logger.Error(err)

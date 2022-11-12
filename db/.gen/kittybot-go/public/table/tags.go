@@ -11,9 +11,9 @@ import (
 	"github.com/go-jet/jet/v2/postgres"
 )
 
-var Tag = newTagTable("public", "tag", "")
+var Tags = newTagsTable("public", "tags", "")
 
-type tagTable struct {
+type tagsTable struct {
 	postgres.Table
 
 	//Columns
@@ -28,30 +28,40 @@ type tagTable struct {
 	MutableColumns postgres.ColumnList
 }
 
-type TagTable struct {
-	tagTable
+type TagsTable struct {
+	tagsTable
 
-	EXCLUDED tagTable
+	EXCLUDED tagsTable
 }
 
-// AS creates new TagTable with assigned alias
-func (a TagTable) AS(alias string) *TagTable {
-	return newTagTable(a.SchemaName(), a.TableName(), alias)
+// AS creates new TagsTable with assigned alias
+func (a TagsTable) AS(alias string) *TagsTable {
+	return newTagsTable(a.SchemaName(), a.TableName(), alias)
 }
 
-// Schema creates new TagTable with assigned schema name
-func (a TagTable) FromSchema(schemaName string) *TagTable {
-	return newTagTable(schemaName, a.TableName(), a.Alias())
+// Schema creates new TagsTable with assigned schema name
+func (a TagsTable) FromSchema(schemaName string) *TagsTable {
+	return newTagsTable(schemaName, a.TableName(), a.Alias())
 }
 
-func newTagTable(schemaName, tableName, alias string) *TagTable {
-	return &TagTable{
-		tagTable: newTagTableImpl(schemaName, tableName, alias),
-		EXCLUDED: newTagTableImpl("", "excluded", ""),
+// WithPrefix creates new TagsTable with assigned table prefix
+func (a TagsTable) WithPrefix(prefix string) *TagsTable {
+	return newTagsTable(a.SchemaName(), prefix+a.TableName(), a.TableName())
+}
+
+// WithSuffix creates new TagsTable with assigned table suffix
+func (a TagsTable) WithSuffix(suffix string) *TagsTable {
+	return newTagsTable(a.SchemaName(), a.TableName()+suffix, a.TableName())
+}
+
+func newTagsTable(schemaName, tableName, alias string) *TagsTable {
+	return &TagsTable{
+		tagsTable: newTagsTableImpl(schemaName, tableName, alias),
+		EXCLUDED:  newTagsTableImpl("", "excluded", ""),
 	}
 }
 
-func newTagTableImpl(schemaName, tableName, alias string) tagTable {
+func newTagsTableImpl(schemaName, tableName, alias string) tagsTable {
 	var (
 		GuildIDColumn   = postgres.StringColumn("guild_id")
 		OwnerIDColumn   = postgres.StringColumn("owner_id")
@@ -63,7 +73,7 @@ func newTagTableImpl(schemaName, tableName, alias string) tagTable {
 		mutableColumns  = postgres.ColumnList{OwnerIDColumn, ContentColumn, UsesColumn, CreatedAtColumn}
 	)
 
-	return tagTable{
+	return tagsTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns

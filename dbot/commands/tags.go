@@ -20,11 +20,11 @@ func Tags(b *dbot.Bot) handler.Command {
 	return handler.Command{
 		Create: discord.SlashCommandCreate{
 			Name:        "tags",
-			Description: "lets you create/delete/edit tags",
+			Description: "Lets you create/delete/edit tags",
 			Options: []discord.ApplicationCommandOption{
 				discord.ApplicationCommandOptionSubCommand{
 					Name:        "create",
-					Description: "lets you create a tag",
+					Description: "Lets you create a tag",
 					Options: []discord.ApplicationCommandOption{
 						discord.ApplicationCommandOptionString{
 							Name:        "name",
@@ -40,7 +40,7 @@ func Tags(b *dbot.Bot) handler.Command {
 				},
 				discord.ApplicationCommandOptionSubCommand{
 					Name:        "delete",
-					Description: "lets you delete a tag",
+					Description: "Lets you delete a tag",
 					Options: []discord.ApplicationCommandOption{
 						discord.ApplicationCommandOptionString{
 							Name:        "name",
@@ -51,7 +51,7 @@ func Tags(b *dbot.Bot) handler.Command {
 				},
 				discord.ApplicationCommandOptionSubCommand{
 					Name:        "edit",
-					Description: "lets you edit a tag",
+					Description: "Lets you edit a tag",
 					Options: []discord.ApplicationCommandOption{
 						discord.ApplicationCommandOptionString{
 							Name:        "name",
@@ -67,7 +67,7 @@ func Tags(b *dbot.Bot) handler.Command {
 				},
 				discord.ApplicationCommandOptionSubCommand{
 					Name:        "info",
-					Description: "lets you view a tag's info",
+					Description: "Lets you view a tag's info",
 					Options: []discord.ApplicationCommandOption{
 						discord.ApplicationCommandOptionString{
 							Name:         "name",

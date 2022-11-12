@@ -12,7 +12,7 @@ func Next(b *dbot.Bot) handler.Command {
 	return handler.Command{
 		Create: discord.SlashCommandCreate{
 			Name:        "next",
-			Description: "Stops the song and starts the next one.",
+			Description: "Stops the track and starts the next one.",
 		},
 		Check: dbot.HasMusicPlayer(b).And(dbot.IsMemberConnectedToVoiceChannel(b)).And(dbot.HasQueueItems(b)),
 		CommandHandlers: map[string]handler.CommandHandler{
@@ -27,12 +27,12 @@ func nextHandler(b *dbot.Bot) handler.CommandHandler {
 		nextTrack := player.Queue.Pop()
 
 		if nextTrack == nil {
-			return e.CreateMessage(responses.CreateErrorf("No next song found in queue."))
+			return e.CreateMessage(responses.CreateErrorf("No next track found in queue."))
 		}
 
 		if err := player.Play(nextTrack); err != nil {
-			return e.CreateMessage(responses.CreateErrorf("Failed to play next song. Please try again."))
+			return e.CreateMessage(responses.CreateErrorf("Failed to play next track. Please try again."))
 		}
-		return e.CreateMessage(responses.CreateSuccessComponentsf("⏭ Skipped to next song.\nNow playing: %s - %s", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
+		return e.CreateMessage(responses.CreateSuccessComponentsf("⏭ Skipped to next track.\nNow playing: %s - %s", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
 	}
 }

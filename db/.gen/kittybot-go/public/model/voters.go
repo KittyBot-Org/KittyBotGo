@@ -11,9 +11,7 @@ import (
 	"time"
 )
 
-type LikedSong struct {
+type Voters struct {
 	UserID    string `sql:"primary_key"`
-	Query     string
-	Title     string `sql:"primary_key"`
-	CreatedAt time.Time
+	ExpiresAt time.Time
 }

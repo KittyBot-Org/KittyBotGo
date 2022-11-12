@@ -7,8 +7,13 @@
 
 package model
 
-type GuildSetting struct {
-	ID                        string `sql:"primary_key"`
-	ModerationLogWebhookID    string
-	ModerationLogWebhookToken string
+import (
+	"time"
+)
+
+type PlayHistories struct {
+	UserID     string `sql:"primary_key"`
+	Query      string
+	Title      string `sql:"primary_key"`
+	LastUsedAt time.Time
 }

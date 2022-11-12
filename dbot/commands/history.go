@@ -48,7 +48,7 @@ func historyHandler(b *dbot.Bot) handler.CommandHandler {
 
 		return b.Paginator.Create(e.Respond, &paginator.Paginator{
 			PageFunc: func(page int, embed *discord.EmbedBuilder) {
-				embed.SetTitlef("Currently `%d` songs are in the history:", len(tracks)).SetDescription(pages[page])
+				embed.SetTitlef("Currently `%d` tracks are in the history:", len(tracks)).SetDescription(pages[page])
 			},
 			MaxPages:        len(pages),
 			ExpiryLastUsage: true,

@@ -11,7 +11,7 @@ type LoopingType int
 
 const (
 	LoopingTypeOff LoopingType = iota
-	LoopingTypeRepeatSong
+	LoopingTypeRepeatTrack
 	LoopingTypeRepeatQueue
 )
 
@@ -19,8 +19,8 @@ func (t LoopingType) String() string {
 	switch t {
 	case LoopingTypeOff:
 		return "Off"
-	case LoopingTypeRepeatSong:
-		return "Repeat Song"
+	case LoopingTypeRepeatTrack:
+		return "Repeat Track"
 	case LoopingTypeRepeatQueue:
 		return "Repeat Queue"
 	default:

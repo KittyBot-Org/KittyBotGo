@@ -11,7 +11,7 @@ func ClearQueue(b *dbot.Bot) handler.Command {
 	return handler.Command{
 		Create: discord.SlashCommandCreate{
 			Name:        "clear-queue",
-			Description: "Removes all songs from your queue.",
+			Description: "Removes all tracks from the queue.",
 		},
 		Check: dbot.HasMusicPlayer(b).And(dbot.IsMemberConnectedToVoiceChannel(b)).And(dbot.HasQueueItems(b)),
 		CommandHandlers: map[string]handler.CommandHandler{

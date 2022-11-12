@@ -46,6 +46,16 @@ func (a ReportsTable) FromSchema(schemaName string) *ReportsTable {
 	return newReportsTable(schemaName, a.TableName(), a.Alias())
 }
 
+// WithPrefix creates new ReportsTable with assigned table prefix
+func (a ReportsTable) WithPrefix(prefix string) *ReportsTable {
+	return newReportsTable(a.SchemaName(), prefix+a.TableName(), a.TableName())
+}
+
+// WithSuffix creates new ReportsTable with assigned table suffix
+func (a ReportsTable) WithSuffix(suffix string) *ReportsTable {
+	return newReportsTable(a.SchemaName(), a.TableName()+suffix, a.TableName())
+}
+
 func newReportsTable(schemaName, tableName, alias string) *ReportsTable {
 	return &ReportsTable{
 		reportsTable: newReportsTableImpl(schemaName, tableName, alias),

@@ -12,7 +12,7 @@ func Shuffle(b *dbot.Bot) handler.Command {
 	return handler.Command{
 		Create: discord.SlashCommandCreate{
 			Name:        "shuffle",
-			Description: "Shuffles the queue of songs.",
+			Description: "Shuffles the queue.",
 		},
 		Check: dbot.HasMusicPlayer(b).And(dbot.IsMemberConnectedToVoiceChannel(b)).And(dbot.HasQueueItems(b)),
 		CommandHandlers: map[string]handler.CommandHandler{
@@ -26,7 +26,7 @@ func shuffleHandler(b *dbot.Bot) handler.CommandHandler {
 		queue := b.MusicPlayers.Get(*e.GuildID()).Queue
 
 		if queue.Len() == 0 {
-			return e.CreateMessage(responses.CreateErrorf("No songs in queue to shuffle."))
+			return e.CreateMessage(responses.CreateErrorf("No tracks in queue to shuffle."))
 		}
 		return e.CreateMessage(responses.CreateSuccessf("🔀 Shuffled the queue."))
 	}

@@ -18,7 +18,7 @@ func Seek(b *dbot.Bot) handler.Command {
 			Options: []discord.ApplicationCommandOption{
 				discord.ApplicationCommandOptionInt{
 					Name:        "position",
-					Description: "the position to seek to in seconds(default)/minutes/hours",
+					Description: "The position to seek to in seconds(default)/minutes/hours",
 					Required:    true,
 					MinValue:    json.NewPtr(0),
 				},

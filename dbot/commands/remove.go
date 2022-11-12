@@ -16,27 +16,27 @@ func Remove(b *dbot.Bot) handler.Command {
 	return handler.Command{
 		Create: discord.SlashCommandCreate{
 			Name:        "remove",
-			Description: "Removes songs from the queue.",
+			Description: "Removes tracks from the queue.",
 			Options: []discord.ApplicationCommandOption{
 				discord.ApplicationCommandOptionSubCommand{
-					Name:        "song",
-					Description: "Removes a songs from the queue.",
+					Name:        "track",
+					Description: "Removes a tracks from the queue.",
 					Options: []discord.ApplicationCommandOption{
 						discord.ApplicationCommandOptionString{
-							Name:         "song",
-							Description:  "The song to remove",
+							Name:         "track",
+							Description:  "The track to remove",
 							Required:     true,
 							Autocomplete: true,
 						},
 					},
 				},
 				discord.ApplicationCommandOptionSubCommand{
-					Name:        "user-songs",
-					Description: "Removes all songs from a user from the queue.",
+					Name:        "user-tracks",
+					Description: "Removes all tracks from a user from the queue.",
 					Options: []discord.ApplicationCommandOption{
 						discord.ApplicationCommandOptionUser{
 							Name:        "user",
-							Description: "From which user to remove the songs",
+							Description: "From which user to remove the tracks",
 							Required:    true,
 						},
 					},
@@ -45,23 +45,23 @@ func Remove(b *dbot.Bot) handler.Command {
 		},
 		Check: dbot.HasMusicPlayer(b).And(dbot.IsMemberConnectedToVoiceChannel(b)).And(dbot.HasQueueItems(b)),
 		CommandHandlers: map[string]handler.CommandHandler{
-			"song":       removeSongHandler(b),
-			"user-songs": removeUserSongsHandler(b),
+			"track":       removeTrackHandler(b),
+			"user-tracks": removeUserTracksHandler(b),
 		},
 		AutocompleteHandlers: map[string]handler.AutocompleteHandler{
-			"song": removeSongAutocompleteHandler(b),
+			"track": removeTrackAutocompleteHandler(b),
 		},
 	}
 }
 
-func removeSongHandler(b *dbot.Bot) handler.CommandHandler {
+func removeTrackHandler(b *dbot.Bot) handler.CommandHandler {
 	return func(e *events.ApplicationCommandInteractionCreate) error {
 		player := b.MusicPlayers.Get(*e.GuildID())
-		strIndex := e.SlashCommandInteractionData().String("song")
+		strIndex := e.SlashCommandInteractionData().String("track")
 		index, err := strconv.Atoi(strIndex)
 		if err != nil {
 			return e.CreateMessage(discord.MessageCreate{
-				Content: fmt.Sprintf("Invalid song index: `%d`.", index),
+				Content: fmt.Sprintf("Invalid track index: `%d`.", index),
 				Flags:   discord.MessageFlagEphemeral,
 			})
 		}
@@ -69,19 +69,19 @@ func removeSongHandler(b *dbot.Bot) handler.CommandHandler {
 		removeTrack := player.Queue.Get(index - 1)
 		if removeTrack == nil {
 			return e.CreateMessage(discord.MessageCreate{
-				Content: fmt.Sprintf("No song found with index `%d`.", index),
+				Content: fmt.Sprintf("No track found with index `%d`.", index),
 				Flags:   discord.MessageFlagEphemeral,
 			})
 		}
 
 		player.Queue.Remove(index - 1)
 		return e.CreateMessage(discord.MessageCreate{
-			Content: fmt.Sprintf("Removed song %s at index `%d` from the queue.", formatTrack(removeTrack), index),
+			Content: fmt.Sprintf("Removed track %s at index `%d` from the queue.", formatTrack(removeTrack), index),
 		})
 	}
 }
 
-func removeUserSongsHandler(b *dbot.Bot) handler.CommandHandler {
+func removeUserTracksHandler(b *dbot.Bot) handler.CommandHandler {
 	return func(e *events.ApplicationCommandInteractionCreate) error {
 		player := b.MusicPlayers.Get(*e.GuildID())
 		userID := e.SlashCommandInteractionData().Snowflake("user")
@@ -97,7 +97,7 @@ func removeUserSongsHandler(b *dbot.Bot) handler.CommandHandler {
 		if removedTracks == 0 {
 			msg = fmt.Sprintf("No track from %s found.", discord.UserMention(userID))
 		} else {
-			msg = fmt.Sprintf("Removed `%d` songs from %s.", removedTracks, discord.UserMention(userID))
+			msg = fmt.Sprintf("Removed `%d` tracks from %s.", removedTracks, discord.UserMention(userID))
 		}
 
 		return e.CreateMessage(discord.NewMessageCreateBuilder().
@@ -108,7 +108,7 @@ func removeUserSongsHandler(b *dbot.Bot) handler.CommandHandler {
 	}
 }
 
-func removeSongAutocompleteHandler(b *dbot.Bot) handler.AutocompleteHandler {
+func removeTrackAutocompleteHandler(b *dbot.Bot) handler.AutocompleteHandler {
 	return func(e *events.AutocompleteInteractionCreate) error {
 		player := b.MusicPlayers.Get(*e.GuildID())
 		if player == nil || player.Queue.Len() == 0 {
@@ -120,7 +120,7 @@ func removeSongAutocompleteHandler(b *dbot.Bot) handler.AutocompleteHandler {
 			tracks[i] = fmt.Sprintf("%d. %s", i+1, track.Info().Title)
 		}
 
-		ranks := fuzzy.RankFindFold(e.Data.String("song"), tracks)
+		ranks := fuzzy.RankFindFold(e.Data.String("track"), tracks)
 
 		choicesLen := len(ranks)
 		if choicesLen > 25 {

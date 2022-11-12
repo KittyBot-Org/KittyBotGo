@@ -30,7 +30,7 @@ func Play(b *dbot.Bot) handler.Command {
 			Options: []discord.ApplicationCommandOption{
 				discord.ApplicationCommandOptionString{
 					Name:         "query",
-					Description:  "Song name or url",
+					Description:  "Track name or url",
 					Required:     true,
 					Autocomplete: true,
 				},
@@ -110,35 +110,35 @@ func playHandler(b *dbot.Bot) handler.CommandHandler {
 		err := b.Lavalink.BestRestClient().LoadItemHandler(context.TODO(), query, lavalink.NewResultHandler(
 			func(track lavalink.AudioTrack) {
 				if err := b.DB.PlayHistory().Add(e.User().ID, query, track.Info().Title); err != nil {
-					b.Logger.Error("Failed to add song to play history: ", err)
+					b.Logger.Error("Failed to add track to play history: ", err)
 				}
 				playAndQueue(b, e.BaseInteraction, track)
 			},
 			func(playlist lavalink.AudioPlaylist) {
 				if err := b.DB.PlayHistory().Add(e.User().ID, query, playlist.Name()); err != nil {
-					b.Logger.Error("Failed to add song to play history: ", err)
+					b.Logger.Error("Failed to add track to play history: ", err)
 				}
 				playAndQueue(b, e.BaseInteraction, playlist.Tracks()...)
 			},
 			func(tracks []lavalink.AudioTrack) {
 				if err := b.DB.PlayHistory().Add(e.User().ID, query, data.String("query")); err != nil {
-					b.Logger.Error("Failed to add song to play history: ", err)
+					b.Logger.Error("Failed to add track to play history: ", err)
 				}
 				giveSearchSelection(b, e, tracks)
 			},
 			func() {
-				if _, err := e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(), responses.UpdateErrorf("No song/s found for your link/query")); err != nil {
+				if _, err := e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(), responses.UpdateErrorf("No track/s found for your link/query")); err != nil {
 					b.Logger.Error("Failed to update not found message: ", err)
 				}
 			},
 			func(ex lavalink.FriendlyException) {
-				if _, err := e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(), responses.UpdateErrorf("Failed to load song/s: %s", ex.Message)); err != nil {
+				if _, err := e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(), responses.UpdateErrorf("Failed to load track/s: %s", ex.Message)); err != nil {
 					b.Logger.Error("Failed to update error message: ", err)
 				}
 			},
 		))
 		if err != nil {
-			if _, err = e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(), responses.UpdateErrorf("Failed to lookup song. Please try again.")); err != nil {
+			if _, err = e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(), responses.UpdateErrorf("Failed to lookup track. Please try again.")); err != nil {
 				b.Logger.Error("Failed to update error message: ", err)
 			}
 		}
@@ -154,27 +154,27 @@ func playAutocompleteHandler(b *dbot.Bot) handler.AutocompleteHandler {
 			b.Logger.Error("Error adding music history entry: ", err)
 			return err
 		}
-		likedSongs, err := b.DB.LikedSongs().GetAll(e.User().ID)
+		likedTracks, err := b.DB.LikedTracks().GetAll(e.User().ID)
 		if err != nil {
 			b.Logger.Error("Failed to get music history entries: ", err)
 			return err
 		}
-		if (len(playHistory)+len(likedSongs) == 0) && query == "" {
+		if (len(playHistory)+len(likedTracks) == 0) && query == "" {
 			return e.Result(nil)
 		}
 
-		labels := make([]string, len(playHistory)+len(likedSongs))
-		unsortedResult := make(map[string]string, len(playHistory)+len(likedSongs))
+		labels := make([]string, len(playHistory)+len(likedTracks))
+		unsortedResult := make(map[string]string, len(playHistory)+len(likedTracks))
 		i := 0
 		for _, entry := range playHistory {
-			title := "🔁" + entry.Title
+			title := "🔁 " + entry.Title
 			unsortedResult[title] = entry.Query
 			labels[i] = title
 			i++
 		}
 
-		for _, entry := range likedSongs {
-			title := "❤" + entry.Title
+		for _, entry := range likedTracks {
+			title := "❤ " + entry.Title
 			unsortedResult[title] = entry.Query
 			labels[i] = title
 			i++
@@ -183,6 +183,9 @@ func playAutocompleteHandler(b *dbot.Bot) handler.AutocompleteHandler {
 		if query == "" {
 			var choices []discord.AutocompleteChoice
 			for key, value := range unsortedResult {
+				if len(choices) == 25 {
+					break
+				}
 				choices = append(choices, discord.AutocompleteChoiceString{
 					Name:  key,
 					Value: value,
@@ -197,9 +200,9 @@ func playAutocompleteHandler(b *dbot.Bot) handler.AutocompleteHandler {
 			resultLen = 24
 		}
 		result := make([]discord.AutocompleteChoice, resultLen+1)
-		queryEmoji := "🔎"
+		queryEmoji := "🔎 "
 		if urlPattern.MatchString(query) {
-			queryEmoji = "🔗"
+			queryEmoji = "🔗 "
 		}
 		result[0] = discord.AutocompleteChoiceString{
 			Name:  queryEmoji + query,
@@ -255,8 +258,8 @@ func playAndQueue(b *dbot.Bot, i discord.BaseInteraction, tracks ...lavalink.Aud
 			tracks = tracks[1:]
 		}
 		if err := player.Play(track); err != nil {
-			if _, err = b.Client.Rest().UpdateInteractionResponse(i.ApplicationID(), i.Token(), responses.UpdateErrorComponentsf("Failed to play song. Please try again.", nil)); err != nil {
-				b.Logger.Error("Error while playing song: ", err)
+			if _, err = b.Client.Rest().UpdateInteractionResponse(i.ApplicationID(), i.Token(), responses.UpdateErrorComponentsf("Failed to play track. Please try again.", nil)); err != nil {
+				b.Logger.Error("Error while playing track: ", err)
 			}
 			return
 		}
@@ -264,7 +267,7 @@ func playAndQueue(b *dbot.Bot, i discord.BaseInteraction, tracks ...lavalink.Aud
 			b.Logger.Error("Error while updating interaction message: ", err)
 		}
 	} else {
-		if _, err := b.Client.Rest().UpdateInteractionResponse(i.ApplicationID(), i.Token(), responses.UpdateErrorComponentsf("Added `%d` songs to the queue.", []any{len(tracks)}, getMusicControllerComponents(nil))); err != nil {
+		if _, err := b.Client.Rest().UpdateInteractionResponse(i.ApplicationID(), i.Token(), responses.UpdateErrorComponentsf("Added `%d` tracks to the queue.", []any{len(tracks)}, getMusicControllerComponents(nil))); err != nil {
 			b.Logger.Error("Error while updating interaction message: ", err)
 		}
 	}
@@ -294,13 +297,13 @@ func giveSearchSelection(b *dbot.Bot, e *events.ApplicationCommandInteractionCre
 			Value:       strconv.Itoa(i),
 		})
 	}
-	if _, err := e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(), responses.UpdateErrorComponentsf("Select songs to play.", []any{len(tracks)})); err != nil {
+	if _, err := e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(), responses.UpdateErrorComponentsf("Select tracks to play.", []any{len(tracks)})); err != nil {
 		b.Logger.Error("Error while updating interaction message: ", err)
 	}
 
 	if _, err := e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(),
-		responses.UpdateSuccessComponentsf("Select songs to play.", nil, discord.NewActionRow(
-			discord.NewSelectMenu("search:"+e.ID().String(), "Select songs to play.", options...).WithMaxValues(len(options)),
+		responses.UpdateSuccessComponentsf("Select tracks to play.", nil, discord.NewActionRow(
+			discord.NewSelectMenu("search:"+e.ID().String(), "Select tracks to play.", options...).WithMaxValues(len(options)),
 		)),
 	); err != nil {
 		b.Logger.Error("Error while updating interaction message: ", err)
@@ -315,7 +318,7 @@ func giveSearchSelection(b *dbot.Bot, e *events.ApplicationCommandInteractionCre
 					if e.User().ID == ne.User().ID {
 						return true
 					}
-					err := ne.CreateMessage(responses.CreateErrorf("You can't select songs for someone else."))
+					err := ne.CreateMessage(responses.CreateErrorf("You can't select tracks for someone else."))
 					if err != nil {
 						b.Logger.Error("Error while creating message: ", err)
 					}

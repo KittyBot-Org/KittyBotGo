@@ -12,7 +12,7 @@ func Previous(b *dbot.Bot) handler.Command {
 	return handler.Command{
 		Create: discord.SlashCommandCreate{
 			Name:        "previous",
-			Description: "Stops the song and starts the previous one.",
+			Description: "Stops the track and starts the previous one.",
 		},
 		Check: dbot.HasMusicPlayer(b).And(dbot.IsMemberConnectedToVoiceChannel(b)).And(dbot.HasHistoryItems(b)),
 		CommandHandlers: map[string]handler.CommandHandler{
@@ -27,12 +27,12 @@ func previousHandler(b *dbot.Bot) handler.CommandHandler {
 		previousTrack := player.History.Last()
 
 		if previousTrack == nil {
-			return e.CreateMessage(responses.CreateErrorf("No song found in history."))
+			return e.CreateMessage(responses.CreateErrorf("No track found in history."))
 		}
 
 		if err := player.Play(previousTrack); err != nil {
-			return e.CreateMessage(responses.CreateErrorf("Failed to play previous song. Please try again."))
+			return e.CreateMessage(responses.CreateErrorf("Failed to play previous track. Please try again."))
 		}
-		return e.CreateMessage(responses.CreateSuccessComponentsf("⏮ Skipped to previous song.\nNow playing: %s - %s", []any{formatTrack(previousTrack), previousTrack.Info().Length}, getMusicControllerComponents(previousTrack)))
+		return e.CreateMessage(responses.CreateSuccessComponentsf("⏮ Skipped to previous track.\nNow playing: %s - %s", []any{formatTrack(previousTrack), previousTrack.Info().Length}, getMusicControllerComponents(previousTrack)))
 	}
 }

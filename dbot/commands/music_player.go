@@ -25,13 +25,13 @@ func nextComponentHandler(b *dbot.Bot) handler.ComponentHandler {
 		}
 		nextTrack := player.Queue.Pop()
 		if nextTrack == nil {
-			return e.CreateMessage(responses.CreateErrorf("No songs in the queue."))
+			return e.CreateMessage(responses.CreateErrorf("No tracks in the queue."))
 		}
 
 		if err = player.Play(nextTrack); err != nil {
-			return e.CreateMessage(responses.CreateErrorf("Failed to play next song. Please try again."))
+			return e.CreateMessage(responses.CreateErrorf("Failed to play next track. Please try again."))
 		}
-		return e.UpdateMessage(responses.UpdateSuccessComponentsf("⏭ Skipped to next song.\nNow playing: %s - %s", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
+		return e.UpdateMessage(responses.UpdateSuccessComponentsf("⏭ Skipped to next track.\nNow playing: %s - %s", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
 	}
 }
 
@@ -82,13 +82,13 @@ func previousComponentHandler(b *dbot.Bot) handler.ComponentHandler {
 		}
 		nextTrack := player.History.Last()
 		if nextTrack == nil {
-			return e.CreateMessage(responses.CreateErrorf("No songs in the history."))
+			return e.CreateMessage(responses.CreateErrorf("No tracks in the history."))
 		}
 
 		if err = player.Play(nextTrack); err != nil {
-			return e.CreateMessage(responses.CreateErrorf("Failed to play previous song. Please try again."))
+			return e.CreateMessage(responses.CreateErrorf("Failed to play previous track. Please try again."))
 		}
-		return e.UpdateMessage(responses.UpdateSuccessComponentsf("⏮ Skipped to previous song.\nNow playing: %s - %s", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
+		return e.UpdateMessage(responses.UpdateSuccessComponentsf("⏮ Skipped to previous track.\nNow playing: %s - %s", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
 	}
 }
 
@@ -118,26 +118,26 @@ func likeComponentHandler(b *dbot.Bot) handler.ComponentHandler {
 			url = matches[trackRegex.SubexpIndex("url")]
 		}
 
-		_, err := b.DB.LikedSongs().Get(e.User().ID, title)
+		_, err := b.DB.LikedTracks().Get(e.User().ID, title)
 		if err != nil && err != qrm.ErrNoRows {
 			return err
 		}
 
 		if err == qrm.ErrNoRows {
-			if err = b.DB.LikedSongs().Add(e.User().ID, getTrackQuery(title, url), title); err != nil {
+			if err = b.DB.LikedTracks().Add(e.User().ID, getTrackQuery(title, url), title); err != nil {
 				b.Logger.Error("Error adding music history entry: ", err)
-				return e.CreateMessage(responses.CreateErrorf("Failed to add song to liked songs. Please try again."))
+				return e.CreateMessage(responses.CreateErrorf("Failed to add track to liked tracks. Please try again."))
 			}
-			res := responses.CreateSuccessf("👍 Added [`%s`](%s) to your liked songs.", title, url)
+			res := responses.CreateSuccessf("👍 Added [`%s`](%s) to your liked tracks.", title, url)
 			res.Flags = discord.MessageFlagEphemeral
 			return e.CreateMessage(res)
 
 		}
-		if err = b.DB.LikedSongs().Delete(e.User().ID, title); err != nil {
+		if err = b.DB.LikedTracks().Delete(e.User().ID, title); err != nil {
 			b.Logger.Error("Error removing music history entry: ", err)
-			return e.CreateMessage(responses.CreateErrorf("Failed to remove song from your liked songs. Please try again."))
+			return e.CreateMessage(responses.CreateErrorf("Failed to remove track from your liked tracks. Please try again."))
 		}
-		res := responses.CreateSuccessf("👎 Removed [`%s`](%s) from your liked songs.", title, url)
+		res := responses.CreateSuccessf("👎 Removed [`%s`](%s) from your liked tracks.", title, url)
 		res.Flags = discord.MessageFlagEphemeral
 		return e.CreateMessage(res)
 	}
