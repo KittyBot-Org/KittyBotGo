@@ -88,7 +88,7 @@ func previousComponentHandler(b *dbot.Bot) handler.ComponentHandler {
 		if err = player.Play(nextTrack); err != nil {
 			return e.CreateMessage(responses.CreateErrorf("Failed to play previous song. Please try again."))
 		}
-		return e.UpdateMessage(responses.UpdateSuccessComponentsf("⏮ Skipped track.\nNow playing: %s - %s", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
+		return e.UpdateMessage(responses.UpdateSuccessComponentsf("⏮ Skipped to previous song.\nNow playing: %s - %s", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
 	}
 }
 
