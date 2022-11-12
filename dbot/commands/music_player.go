@@ -31,7 +31,7 @@ func nextComponentHandler(b *dbot.Bot) handler.ComponentHandler {
 		if err = player.Play(nextTrack); err != nil {
 			return e.CreateMessage(responses.CreateErrorf("Failed to play next song. Please try again."))
 		}
-		return e.UpdateMessage(responses.UpdateSuccessComponentsf("Skipped to next song.", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
+		return e.UpdateMessage(responses.UpdateSuccessComponentsf("⏭ Skipped to next song.\nNow playing: %s - %s", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
 	}
 }
 
@@ -88,7 +88,7 @@ func previousComponentHandler(b *dbot.Bot) handler.ComponentHandler {
 		if err = player.Play(nextTrack); err != nil {
 			return e.CreateMessage(responses.CreateErrorf("Failed to play previous song. Please try again."))
 		}
-		return e.UpdateMessage(responses.UpdateSuccessComponentsf("Went back to previous song.", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
+		return e.UpdateMessage(responses.UpdateSuccessComponentsf("⏮ Skipped track.\nNow playing: %s - %s", []any{formatTrack(nextTrack), nextTrack.Info().Length}, getMusicControllerComponents(nextTrack)))
 	}
 }
 
