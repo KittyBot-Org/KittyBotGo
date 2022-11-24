@@ -66,4 +66,4 @@ jobs:
         with:
           url: 'https://watchtower.kittybot.de/v1/update'
           method: 'POST'
-          bearerToken: 'Bearer ${{ secrets.TOKEN }}'
+          customHeaders: '{"Authorization": "Bearer ${{ secrets.TOKEN }}"}'
