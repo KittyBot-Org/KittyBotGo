@@ -10,9 +10,9 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/dbot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
-	"github.com/disgoorg/disgo/json"
 	"github.com/disgoorg/disgo/rest"
 	"github.com/disgoorg/handler"
+	"github.com/disgoorg/json"
 	"github.com/disgoorg/snowflake/v2"
 )
 
@@ -133,7 +133,7 @@ func reportConfirmHandler(b *dbot.Bot) handler.ComponentHandler {
 					discord.SelectMenuComponent{
 						CustomID:    fmt.Sprintf("handler:report-action:%d", reportID),
 						Placeholder: "Select an action",
-						MinValues:   json.NewPtr(1),
+						MinValues:   json.Ptr(1),
 						MaxValues:   1,
 						Options:     selectMenuOptions,
 					},
@@ -260,7 +260,7 @@ func reportActionHandler(b *dbot.Bot) handler.ComponentHandler {
 							CustomID:    "duration",
 							Style:       discord.TextInputStyleShort,
 							Label:       "Timeout Duration",
-							MinLength:   json.NewPtr(2),
+							MinLength:   json.Ptr(2),
 							Required:    true,
 							Placeholder: "time units: s, m, h example: 1h3s",
 							Value:       "1h",
@@ -307,7 +307,7 @@ func reportActionHandler(b *dbot.Bot) handler.ComponentHandler {
 							CustomID:    "del-days",
 							Style:       discord.TextInputStyleShort,
 							Label:       "Message Delete Days",
-							MinLength:   json.NewPtr(1),
+							MinLength:   json.Ptr(1),
 							MaxLength:   1,
 							Required:    true,
 							Placeholder: "0-7",
@@ -354,7 +354,7 @@ func reportActionConfirmHandler(b *dbot.Bot) handler.ModalHandler {
 			} else {
 				until = until.Add(duration)
 				if _, err = b.Client.Rest().UpdateMember(*e.GuildID(), userID, discord.MemberUpdate{
-					CommunicationDisabledUntil: json.NewOptional(until),
+					CommunicationDisabledUntil: json.NewNullablePtr(until),
 				}, rest.WithReason(reason)); err != nil {
 					b.Logger.Errorf("Failed to update member: %s", err)
 					content = "Failed to timeout user, please reach out to a bot developer."

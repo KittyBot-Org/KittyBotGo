@@ -5,8 +5,8 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/dbot/responses"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
-	"github.com/disgoorg/disgo/json"
 	"github.com/disgoorg/handler"
+	"github.com/disgoorg/json"
 )
 
 func Volume(bot *dbot.Bot) handler.Command {
@@ -19,8 +19,8 @@ func Volume(bot *dbot.Bot) handler.Command {
 					Name:        "volume",
 					Description: "The new volume",
 					Required:    true,
-					MinValue:    json.NewPtr(0),
-					MaxValue:    json.NewPtr(100),
+					MinValue:    json.Ptr(0),
+					MaxValue:    json.Ptr(100),
 				},
 			},
 		},

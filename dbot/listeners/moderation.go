@@ -9,7 +9,7 @@ import (
 	"github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
-	"github.com/disgoorg/disgo/json"
+	"github.com/disgoorg/json"
 	"github.com/disgoorg/snowflake/v2"
 )
 
@@ -83,7 +83,7 @@ func Moderation(b *dbot.Bot) bot.EventListener {
 				},
 				Description: e.Content,
 				Fields:      fields,
-				Timestamp:   json.NewPtr(time.Now()),
+				Timestamp:   json.Ptr(time.Now()),
 			},
 		)
 		if err != nil {

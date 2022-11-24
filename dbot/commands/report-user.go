@@ -7,8 +7,8 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/dbot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
-	"github.com/disgoorg/disgo/json"
 	"github.com/disgoorg/handler"
+	"github.com/disgoorg/json"
 )
 
 func ReportUser(b *dbot.Bot) handler.Command {
@@ -81,7 +81,7 @@ func reportUserHandler(b *dbot.Bot) handler.CommandHandler {
 					IconURL: user.EffectiveAvatarURL(),
 				},
 				Description: "Reason:\n" + reason,
-				Timestamp:   json.NewPtr(e.ID().Time()),
+				Timestamp:   json.Ptr(e.ID().Time()),
 			},
 		)
 	}

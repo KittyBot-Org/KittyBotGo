@@ -8,8 +8,8 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/dbot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
-	"github.com/disgoorg/disgo/json"
 	"github.com/disgoorg/handler"
+	"github.com/disgoorg/json"
 )
 
 func Reports(b *dbot.Bot) handler.Command {
@@ -75,7 +75,7 @@ func Reports(b *dbot.Bot) handler.Command {
 					},
 				},
 			},
-			DefaultMemberPermissions: json.NewOptional(discord.PermissionKickMembers | discord.PermissionBanMembers | discord.PermissionModerateMembers),
+			DefaultMemberPermissions: json.NewNullablePtr(discord.PermissionKickMembers | discord.PermissionBanMembers | discord.PermissionModerateMembers),
 		},
 		CommandHandlers: map[string]handler.CommandHandler{
 			"view":       reportsViewHandler(b),

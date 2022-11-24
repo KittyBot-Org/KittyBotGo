@@ -5,9 +5,9 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/dbot/responses"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
-	"github.com/disgoorg/disgo/json"
 	"github.com/disgoorg/disgolink/lavalink"
 	"github.com/disgoorg/handler"
+	"github.com/disgoorg/json"
 )
 
 func Seek(b *dbot.Bot) handler.Command {
@@ -20,7 +20,7 @@ func Seek(b *dbot.Bot) handler.Command {
 					Name:        "position",
 					Description: "The position to seek to in seconds(default)/minutes/hours",
 					Required:    true,
-					MinValue:    json.NewPtr(0),
+					MinValue:    json.Ptr(0),
 				},
 				discord.ApplicationCommandOptionInt{
 					Name:        "time-unit",

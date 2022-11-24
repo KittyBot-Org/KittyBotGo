@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/KittyBot-Org/KittyBotGo/db"
-	"github.com/disgoorg/disgo/json"
+	"github.com/disgoorg/json"
 	"github.com/disgoorg/log"
 	"github.com/disgoorg/snowflake/v2"
 )

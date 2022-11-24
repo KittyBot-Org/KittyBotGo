@@ -4,8 +4,8 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/dbot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
-	"github.com/disgoorg/disgo/json"
 	"github.com/disgoorg/handler"
+	"github.com/disgoorg/json"
 	"github.com/disgoorg/snowflake/v2"
 )
 
@@ -41,7 +41,7 @@ func Settings(b *dbot.Bot) handler.Command {
 					},
 				},
 			},
-			DefaultMemberPermissions: json.NewOptional(discord.PermissionManageServer),
+			DefaultMemberPermissions: json.NewNullablePtr(discord.PermissionManageServer),
 		},
 		CommandHandlers: map[string]handler.CommandHandler{
 			"moderation/disable": settingsModerationDisableHandler(b),
@@ -102,7 +102,7 @@ func settingsModerationEnableHandler(b *dbot.Bot) handler.CommandHandler {
 			}
 		} else {
 			if _, err = b.Client.Rest().UpdateWebhook(snowflake.MustParse(settings.ModerationLogWebhookID), discord.WebhookUpdate{
-				ChannelID: json.NewPtr(data.Snowflake("channel")),
+				ChannelID: json.Ptr(data.Snowflake("channel")),
 			}); err != nil {
 				b.Logger.Errorf("Error updating webhook: %s", err)
 				return e.CreateMessage(discord.MessageCreate{
