@@ -61,11 +61,9 @@ jobs:
       - build-backend
     runs-on: ubuntu-latest
     steps:
-      - name: Log into VPS
-        uses: appleboy/ssh-action@master
+      - name: Deploy
+        uses: fjogeleit/http-request-action@v1
         with:
-          host: ${{ secrets.HOST }}
-          USERNAME: ${{ secrets.USERNAME }}
-          PORT: ${{ secrets.PORT }}
-          KEY: ${{ secrets.SSHKEY }}
-          script: ./deploy.sh
+          url: 'https://watchtower.kittybot.de/v1/update'
+          method: 'POST'
+          bearerToken: 'Bearer ${{ secrets.TOKEN }}'
