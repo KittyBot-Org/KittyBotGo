@@ -74,10 +74,10 @@ func reportConfirmHandler(b *dbot.Bot) handler.ComponentHandler {
 			})
 		}
 
-		var selectMenuOptions []discord.SelectMenuOption
+		var selectMenuOptions []discord.StringSelectMenuOption
 
 		if reportCount > 0 {
-			selectMenuOptions = append(selectMenuOptions, discord.SelectMenuOption{
+			selectMenuOptions = append(selectMenuOptions, discord.StringSelectMenuOption{
 				Label: "Show Previous Reports",
 				Value: "show-reports",
 				Emoji: &discord.ComponentEmoji{
@@ -87,7 +87,7 @@ func reportConfirmHandler(b *dbot.Bot) handler.ComponentHandler {
 		}
 
 		if report.MessageID != "0" && report.ChannelID != "0" {
-			selectMenuOptions = append(selectMenuOptions, discord.SelectMenuOption{
+			selectMenuOptions = append(selectMenuOptions, discord.StringSelectMenuOption{
 				Label: "Delete Message",
 				Value: "delete-message",
 				Emoji: &discord.ComponentEmoji{
@@ -96,7 +96,7 @@ func reportConfirmHandler(b *dbot.Bot) handler.ComponentHandler {
 			})
 		}
 
-		selectMenuOptions = append(selectMenuOptions, []discord.SelectMenuOption{
+		selectMenuOptions = append(selectMenuOptions, []discord.StringSelectMenuOption{
 			{
 				Label: "Delete Report",
 				Value: "delete-report",
@@ -130,7 +130,7 @@ func reportConfirmHandler(b *dbot.Bot) handler.ComponentHandler {
 		return e.UpdateMessage(discord.MessageUpdate{
 			Components: &[]discord.ContainerComponent{
 				discord.ActionRowComponent{
-					discord.SelectMenuComponent{
+					discord.StringSelectMenuComponent{
 						CustomID:    fmt.Sprintf("handler:report-action:%d", reportID),
 						Placeholder: "Select an action",
 						MinValues:   json.Ptr(1),
@@ -198,7 +198,7 @@ func reportActionHandler(b *dbot.Bot) handler.ComponentHandler {
 		reason := fmt.Sprintf("AutoMod action by: %s\nCaused by report #%d", e.User().Tag(), reportID)
 
 		var content string
-		value := e.SelectMenuInteractionData().Values[0]
+		value := e.StringSelectMenuInteractionData().Values[0]
 		switch value {
 		case "delete-message":
 			if err = b.Client.Rest().DeleteMessage(snowflake.MustParse(report.ChannelID), snowflake.MustParse(report.MessageID), rest.WithReason(reason)); err != nil {

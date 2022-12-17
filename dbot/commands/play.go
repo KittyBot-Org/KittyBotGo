@@ -277,7 +277,7 @@ func playAndQueue(b *dbot.Bot, i discord.BaseInteraction, tracks ...lavalink.Aud
 }
 
 func giveSearchSelection(b *dbot.Bot, e *events.ApplicationCommandInteractionCreate, tracks []lavalink.AudioTrack) {
-	var options []discord.SelectMenuOption
+	var options []discord.StringSelectMenuOption
 	for i, track := range tracks {
 		if len(options) >= 25 {
 			break
@@ -291,7 +291,7 @@ func giveSearchSelection(b *dbot.Bot, e *events.ApplicationCommandInteractionCre
 			description = description[:99] + "…"
 		}
 
-		options = append(options, discord.SelectMenuOption{
+		options = append(options, discord.StringSelectMenuOption{
 			Label:       label,
 			Description: description,
 			Value:       strconv.Itoa(i),
@@ -303,7 +303,7 @@ func giveSearchSelection(b *dbot.Bot, e *events.ApplicationCommandInteractionCre
 
 	if _, err := e.Client().Rest().UpdateInteractionResponse(e.ApplicationID(), e.Token(),
 		responses.UpdateSuccessComponentsf("Select tracks to play.", nil, discord.NewActionRow(
-			discord.NewSelectMenu("search:"+e.ID().String(), "Select tracks to play.", options...).WithMaxValues(len(options)),
+			discord.NewStringSelectMenu("search:"+e.ID().String(), "Select tracks to play.", options...).WithMaxValues(len(options)),
 		)),
 	); err != nil {
 		b.Logger.Error("Error while updating interaction message: ", err)
@@ -331,7 +331,7 @@ func giveSearchSelection(b *dbot.Bot, e *events.ApplicationCommandInteractionCre
 					return
 				}
 				var playTracks []lavalink.AudioTrack
-				for _, value := range ne.SelectMenuInteractionData().Values {
+				for _, value := range ne.StringSelectMenuInteractionData().Values {
 					index, _ := strconv.Atoi(value)
 					playTracks = append(playTracks, tracks[index])
 				}
