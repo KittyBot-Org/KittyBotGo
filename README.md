@@ -9,17 +9,3 @@
 [![Website Banner](.github/banner.png)](https://kittybot.de)
 
 Fresh Golang rewrite of the [KittyBot](https://github.com/KittyBot-Org/KittyBot) project.
-
-Optional CLI Flags:
-
-- `--sync-commands=true`: Synchronize commands with the discord.
-- `--sync-db=true`: Synchronize database.
-- `--exit-after-sync=true`: Exit after db & commands sync.
-
-```bash
-$ go install github.com/go-jet/jet/v2/cmd/jet@latest
-```
-
-```bash
-$ jet -dsn=postgresql://user:pass@localhost:5432/jetdb?sslmode=disable -schema=public -path=./db/.gen
-```

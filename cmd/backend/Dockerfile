@@ -1,19 +1,19 @@
-FROM golang:1.18-alpine AS build
+FROM golang:1.19-alpine AS build
 
-ARG VERSION=dev
+WORKDIR /build
 
-WORKDIR /tmp/app
+COPY go.mod go.sum ./
+
+RUN go mod download
 
 COPY . .
 
-RUN go mod download && \
-    go mod verify && \
-    go build -ldflags="-X 'main.version=${VERSION}'" -o backend cmd/backend/main.go
+RUN CGO_ENABLED=0 go build -o backend cmd/backend/backend.go
 
 FROM alpine
 
-WORKDIR /app
+COPY --from=build /build/backend /bin/backend
 
-COPY --from=build /tmp/app/backend /app/backend
+ENTRYPOINT ["/bin/gateway"]
 
-ENTRYPOINT ["./backend"]
+CMD ["-config", "/var/lib/backend/config.json"]
