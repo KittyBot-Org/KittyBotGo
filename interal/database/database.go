@@ -11,7 +11,6 @@ import (
 )
 
 //go:embed schema.sql
-
 var schema string
 
 type Config struct {
@@ -32,6 +31,12 @@ func New(ctx context.Context, cfg Config) (*Database, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// execute schema
+	if _, err = dbx.ExecContext(ctx, schema); err != nil {
+		return nil, err
+	}
+
 	return &Database{
 		DB: dbx,
 	}, nil

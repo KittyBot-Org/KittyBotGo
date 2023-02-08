@@ -13,10 +13,14 @@ import (
 )
 
 func New(logger log.Logger, cfg Config) (*Gateway, error) {
-	discordRest := rest.New(rest.NewClient(cfg.Token, rest.WithLogger(logger)))
-	gatewayBot, err := discordRest.GetGatewayBot()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get gateway bot: %w", err)
+	shardCount := cfg.ShardCount
+	if shardCount == 0 {
+		discordRest := rest.New(rest.NewClient(cfg.Token, rest.WithLogger(logger)))
+		gatewayBot, err := discordRest.GetGatewayBot()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get gateway bot: %w", err)
+		}
+		shardCount = gatewayBot.Shards
 	}
 
 	g := &Gateway{
@@ -24,8 +28,8 @@ func New(logger log.Logger, cfg Config) (*Gateway, error) {
 		Logger: logger,
 	}
 
-	shardIDs := make([]int, gatewayBot.Shards)
-	for i := 0; i < gatewayBot.Shards; i++ {
+	shardIDs := make([]int, shardCount)
+	for i := 0; i < shardCount; i++ {
 		shardIDs[i] = i
 	}
 
@@ -34,10 +38,17 @@ func New(logger log.Logger, cfg Config) (*Gateway, error) {
 		sharding.WithLogger(logger),
 		sharding.WithAutoScaling(true),
 		sharding.WithShardIDs(shardIDs...),
-		sharding.WithShardCount(gatewayBot.Shards),
+		sharding.WithShardCount(shardCount),
 		sharding.WithGatewayConfigOpts(
 			gateway.WithLogger(logger),
-			//gateway.WithIntents(gateway.IntentsAll),
+			gateway.WithIntents(
+				gateway.IntentGuilds,
+				gateway.IntentGuildMembers,
+				gateway.IntentGuildVoiceStates,
+				gateway.IntentGuildInvites,
+				gateway.IntentGuildModeration,
+				gateway.IntentAutoModerationExecution,
+			),
 		),
 	)
 
@@ -71,11 +82,12 @@ func (g *Gateway) Start(ctx context.Context) error {
 func (g *Gateway) OnEvent(eventType gateway.EventType, _ int, shardID int, event gateway.EventData) {
 	switch eventType {
 	case gateway.EventTypeReady:
-		ready := event.(gateway.EventReady)
-		g.Logger.Infof("Shard [%d/%d] is ready", ready.Shard[0], len(g.Discord.Shards()))
+		g.Logger.Debugf("Shard [%d/%d] is ready", shardID, len(g.Discord.Shards()))
+		return
 
 	case gateway.EventTypeResumed:
-		g.Logger.Info("Shard [%d/%d] is  resumed", shardID, len(g.Discord.Shards()))
+		g.Logger.Debugf("Shard [%d/%d] is  resumed", shardID, len(g.Discord.Shards()))
+		return
 	}
 
 	data, err := json.Marshal(event)
@@ -84,13 +96,13 @@ func (g *Gateway) OnEvent(eventType gateway.EventType, _ int, shardID int, event
 		return
 	}
 
-	if err = g.Nats.Publish(fmt.Sprintf("gateway.events.%s", eventType), data); err != nil {
+	if err = g.Nats.Publish(fmt.Sprintf("gateway.%d.events.%s", shardID, eventType), data); err != nil {
 		g.Logger.Errorf("Failed to publish event: %v", err)
 	}
 }
 
 func (g *Gateway) Close(ctx context.Context) {
 	g.Discord.Close(ctx)
-	g.Nats.Drain()
+	_ = g.Nats.Drain()
 	g.Nats.Close()
 }

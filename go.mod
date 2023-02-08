@@ -7,14 +7,13 @@ require (
 	github.com/disgoorg/disgolink/v2 v2.0.0-20230106214928-7ed92de9a445
 	github.com/disgoorg/json v1.0.0
 	github.com/disgoorg/log v1.2.0
+	github.com/disgoorg/snowflake/v2 v2.0.1
 	github.com/jackc/pgx/v5 v5.2.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/nats-io/nats.go v1.23.0
-	golang.org/x/sync v0.1.0
 )
 
 require (
-	github.com/disgoorg/snowflake/v2 v2.0.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect

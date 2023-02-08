@@ -10,7 +10,7 @@ import (
 
 	"github.com/disgoorg/log"
 
-	"github.com/KittyBot-Org/KittyBotGo/config"
+	"github.com/KittyBot-Org/KittyBotGo/interal/config"
 	"github.com/KittyBot-Org/KittyBotGo/service/gateway"
 )
 
@@ -25,6 +25,7 @@ func main() {
 	if err := config.Load(*cfgPath, &cfg); err != nil {
 		logger.Fatalf("Failed to load config: %v", err)
 	}
+	logger.SetLevel(config.ParseLogLevel(cfg.LogLevel))
 
 	gw, err := gateway.New(logger, cfg)
 	if err != nil {
