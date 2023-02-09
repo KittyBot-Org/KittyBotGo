@@ -8,11 +8,11 @@ import (
 
 	"github.com/disgoorg/disgo"
 	"github.com/disgoorg/disgo/bot"
+	"github.com/disgoorg/disgo/cache"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/gateway"
-	"github.com/disgoorg/disgo/handler"
 	"github.com/disgoorg/disgolink/v2/disgolink"
-	"github.com/disgoorg/disgolink/v2/lavalink"
-	"github.com/disgoorg/json"
 	"github.com/disgoorg/log"
 	"github.com/nats-io/nats.go"
 
@@ -25,13 +25,13 @@ func New(logger log.Logger, cfg Config) (*Bot, error) {
 		Logger: logger,
 	}
 
-	r := handler.New()
-	r.HandleCommand("/ping", b.OnPing)
-
 	discord, err := disgo.New(cfg.Token,
 		bot.WithLogger(logger),
 		bot.WithGateway(b.NewNATSGateway()),
-		bot.WithEventListeners(r),
+		bot.WithCacheConfigOpts(
+			cache.WithCaches(cache.FlagGuilds, cache.FlagMembers, cache.FlagVoiceStates),
+		),
+		bot.WithEventListeners(b),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create discord client: %w", err)
@@ -68,7 +68,7 @@ type Bot struct {
 	Nats     *nats.Conn
 }
 
-func (b *Bot) Start() error {
+func (b *Bot) Start(commands []discord.ApplicationCommandCreate) error {
 	if b.Config.DevMode {
 		b.Logger.Info("starting in dev mode")
 		for _, guildID := range b.Config.GuildIDs {
@@ -90,21 +90,29 @@ func (b *Bot) Start() error {
 			defer wg.Done()
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
-			node, err := b.Lavalink.AddNode(ctx, config)
+			_, err := b.Lavalink.AddNode(ctx, config)
 			if err != nil {
 				b.Logger.Error("failed to add node:", err)
 				return
-			}
-
-			if err = node.Update(ctx, lavalink.SessionUpdate{
-				Resuming: json.Ptr(true),
-			}); err != nil {
-				b.Logger.Error("failed to update node:", err)
 			}
 		}()
 	}
 
 	return b.Discord.OpenGateway(nil)
+}
+
+func (b *Bot) OnEvent(event bot.Event) {
+	switch e := event.(type) {
+	case *events.VoiceServerUpdate:
+		b.Logger.Debug("received voice server update")
+		if e.Endpoint == nil {
+			return
+		}
+		b.Lavalink.OnVoiceServerUpdate(context.Background(), e.GuildID, e.Token, *e.Endpoint)
+	case *events.GuildVoiceStateUpdate:
+		b.Logger.Debug("received voice state update")
+		b.Lavalink.OnVoiceStateUpdate(context.Background(), e.VoiceState.GuildID, e.VoiceState.ChannelID, e.VoiceState.SessionID)
+	}
 }
 
 func (b *Bot) NewNATSGateway() gateway.Gateway {

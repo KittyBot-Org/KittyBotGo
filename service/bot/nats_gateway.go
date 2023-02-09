@@ -20,6 +20,10 @@ func ShardIDFromContext(ctx context.Context) (int, bool) {
 	return shardID, ok
 }
 
+func ContextWithShardID(ctx context.Context, shardID int) context.Context {
+	return context.WithValue(ctx, shardIDKeyVal, shardID)
+}
+
 var _ gateway.Gateway = (*NATSGateway)(nil)
 
 type NATSGateway struct {
@@ -83,9 +87,12 @@ func (n *NATSGateway) Send(ctx context.Context, op gateway.Opcode, data gateway.
 		return fmt.Errorf("no shard id found in context")
 	}
 
-	raw, err := json.Marshal(data)
+	raw, err := json.Marshal(gateway.Message{
+		Op: op,
+		D:  data,
+	})
 	if err != nil {
-		return fmt.Errorf("failed to marshal data: %w", err)
+		return fmt.Errorf("failed to marshal message: %w", err)
 	}
 
 	return n.bot.Nats.Publish(fmt.Sprintf("gateway.%d.commands", shardID), raw)

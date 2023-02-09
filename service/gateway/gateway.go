@@ -3,6 +3,8 @@ package gateway
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/disgoorg/disgo/gateway"
 	"github.com/disgoorg/disgo/rest"
@@ -44,6 +46,7 @@ func New(logger log.Logger, cfg Config) (*Gateway, error) {
 			gateway.WithIntents(
 				gateway.IntentGuilds,
 				gateway.IntentGuildMembers,
+				gateway.IntentGuildPresences,
 				gateway.IntentGuildVoiceStates,
 				gateway.IntentGuildInvites,
 				gateway.IntentGuildModeration,
@@ -75,6 +78,22 @@ type Gateway struct {
 
 func (g *Gateway) Start(ctx context.Context) error {
 	g.Discord.Open(ctx)
+
+	if _, err := g.Nats.Subscribe("gateway.*.commands", func(msg *nats.Msg) {
+		shardID, _ := strconv.Atoi(msg.Subject[len("gateway."):strings.Index(msg.Subject, ".commands")])
+
+		var cmd gateway.Message
+		if err := json.Unmarshal(msg.Data, &cmd); err != nil {
+			g.Logger.Errorf("Failed to unmarshal command: %v", err)
+			return
+		}
+		
+		if err := g.Discord.Shard(shardID).Send(context.Background(), cmd.Op, cmd.D); err != nil {
+			g.Logger.Errorf("Failed to send command: %v", err)
+		}
+	}); err != nil {
+		return fmt.Errorf("failed to subscribe to nats: %w", err)
+	}
 
 	return nil
 }

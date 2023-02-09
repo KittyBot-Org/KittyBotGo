@@ -6,10 +6,12 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/disgoorg/disgo/handler"
 	"github.com/disgoorg/log"
 
 	"github.com/KittyBot-Org/KittyBotGo/interal/config"
 	"github.com/KittyBot-Org/KittyBotGo/service/bot"
+	"github.com/KittyBot-Org/KittyBotGo/service/bot/commands"
 )
 
 func main() {
@@ -30,7 +32,13 @@ func main() {
 		logger.Fatalf("Failed to create bot: %v", err)
 	}
 
-	if err = b.Start(); err != nil {
+	cmds := commands.New(b)
+	r := handler.New()
+	r.HandleCommand("/ping", cmds.OnPing)
+	r.HandleCommand("/play", cmds.OnPlay)
+	b.Discord.AddEventListeners(r)
+
+	if err = b.Start(commands.Commands); err != nil {
 		logger.Fatalf("Failed to start bot: %v", err)
 	}
 
