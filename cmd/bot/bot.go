@@ -6,7 +6,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/disgoorg/disgo/handler"
 	"github.com/disgoorg/log"
 
 	"github.com/KittyBot-Org/KittyBotGo/interal/config"
@@ -27,18 +26,17 @@ func main() {
 	}
 	logger.SetLevel(config.ParseLogLevel(cfg.LogLevel))
 
-	b, err := bot.New(logger, cfg)
+	b, err := bot.New(logger, *cfgPath, cfg)
 	if err != nil {
 		logger.Fatalf("Failed to create bot: %v", err)
 	}
+	defer b.Close()
 
-	cmds := commands.New(b)
-	r := handler.New()
-	r.HandleCommand("/ping", cmds.OnPing)
-	r.HandleCommand("/play", cmds.OnPlay)
-	b.Discord.AddEventListeners(r)
+	handler := commands.New(b)
 
-	if err = b.Start(commands.Commands); err != nil {
+	b.Discord.AddEventListeners(handler)
+
+	if err = b.Start(handler.Commands); err != nil {
 		logger.Fatalf("Failed to start bot: %v", err)
 	}
 

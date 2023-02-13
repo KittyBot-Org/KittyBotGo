@@ -12,60 +12,70 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/gateway"
+	"github.com/disgoorg/disgo/sharding"
 	"github.com/disgoorg/disgolink/v2/disgolink"
+	"github.com/disgoorg/disgolink/v2/lavalink"
+	"github.com/disgoorg/json"
 	"github.com/disgoorg/log"
-	"github.com/nats-io/nats.go"
+	"github.com/disgoorg/snowflake/v2"
 
+	"github.com/KittyBot-Org/KittyBotGo/interal/config"
 	"github.com/KittyBot-Org/KittyBotGo/interal/database"
 )
 
-func New(logger log.Logger, cfg Config) (*Bot, error) {
+func New(logger log.Logger, cfgPath string, cfg Config) (*Bot, error) {
 	b := &Bot{
-		Config: cfg,
-		Logger: logger,
+		CfgPath: cfgPath,
+		Config:  cfg,
+		Logger:  logger,
+		Players: map[snowflake.ID]*Player{},
 	}
 
-	discord, err := disgo.New(cfg.Token,
+	dc, err := disgo.New(cfg.Token,
 		bot.WithLogger(logger),
-		bot.WithGateway(b.NewNATSGateway()),
+		bot.WithShardManagerConfigOpts(
+			sharding.WithGatewayConfigOpts(
+				gateway.WithURL(cfg.GatewayURL),
+				gateway.WithCompress(false),
+			),
+			sharding.WithRateLimiter(sharding.NewNoopRateLimiter()),
+		),
+		//bot.WithRestClientConfigOpts(
+		//	rest.WithURL(cfg.RestURL),
+		//	rest.WithRateLimiter(rest.NewNoopRateLimiter()),
+		//),
 		bot.WithCacheConfigOpts(
 			cache.WithCaches(cache.FlagGuilds, cache.FlagMembers, cache.FlagVoiceStates),
 		),
-		bot.WithEventListeners(b),
+		bot.WithEventListenerFunc(b.OnDiscordEvent),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create discord client: %w", err)
 	}
 
-	lavalink := disgolink.New(discord.ApplicationID(), disgolink.WithLogger(logger))
+	ll := disgolink.New(dc.ApplicationID(),
+		disgolink.WithLogger(logger),
+		disgolink.WithListenerFunc(b.OnLavalinkEvent),
+	)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	db, err := database.New(ctx, cfg.Database)
 
-	conn, err := nats.Connect(cfg.Nats.URL,
-		nats.Name("gateway"),
-		nats.UserInfo(cfg.Nats.User, cfg.Nats.Password),
-		nats.MaxReconnects(-1),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to nats: %w", err)
-	}
-
-	b.Discord = discord
+	b.Discord = dc
 	b.Database = db
-	b.Lavalink = lavalink
-	b.Nats = conn
+	b.Lavalink = ll
 	return b, nil
 }
 
 type Bot struct {
+	CfgPath  string
 	Config   Config
 	Logger   log.Logger
 	Discord  bot.Client
 	Lavalink disgolink.Client
+	Players  map[snowflake.ID]*Player
 	Database *database.Database
-	Nats     *nats.Conn
 }
 
 func (b *Bot) Start(commands []discord.ApplicationCommandCreate) error {
@@ -85,23 +95,30 @@ func (b *Bot) Start(commands []discord.ApplicationCommandCreate) error {
 	var wg sync.WaitGroup
 	for i := range b.Config.Nodes {
 		wg.Add(1)
-		config := b.Config.Nodes[i]
+		cfg := b.Config.Nodes[i]
 		go func() {
 			defer wg.Done()
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
-			_, err := b.Lavalink.AddNode(ctx, config)
+			node, err := b.Lavalink.AddNode(ctx, cfg)
 			if err != nil {
 				b.Logger.Error("failed to add node:", err)
 				return
 			}
+
+			if err = node.Update(context.Background(), lavalink.SessionUpdate{
+				Resuming: json.Ptr(true),
+			}); err != nil {
+				b.Logger.Error("failed to update node:", err)
+			}
 		}()
 	}
+	wg.Wait()
 
-	return b.Discord.OpenGateway(nil)
+	return b.Discord.OpenShardManager(context.Background())
 }
 
-func (b *Bot) OnEvent(event bot.Event) {
+func (b *Bot) OnDiscordEvent(event bot.Event) {
 	switch e := event.(type) {
 	case *events.VoiceServerUpdate:
 		b.Logger.Debug("received voice server update")
@@ -110,22 +127,54 @@ func (b *Bot) OnEvent(event bot.Event) {
 		}
 		b.Lavalink.OnVoiceServerUpdate(context.Background(), e.GuildID, e.Token, *e.Endpoint)
 	case *events.GuildVoiceStateUpdate:
+		if e.VoiceState.UserID != b.Discord.ApplicationID() {
+			return
+		}
 		b.Logger.Debug("received voice state update")
 		b.Lavalink.OnVoiceStateUpdate(context.Background(), e.VoiceState.GuildID, e.VoiceState.ChannelID, e.VoiceState.SessionID)
-	}
-}
-
-func (b *Bot) NewNATSGateway() gateway.Gateway {
-	return &NATSGateway{
-		logger: b.Logger,
-		bot:    b,
+	case *events.GuildsReady:
+		b.Logger.Debug("received guilds ready")
+		b.LoadPlayers()
 	}
 }
 
 func (b *Bot) Close() {
-	_ = b.Nats.Drain()
-	b.Nats.Close()
+	b.Lavalink.ForNodes(func(node disgolink.Node) {
+		for i, cfgNode := range b.Config.Nodes {
+			if node.Config().Name == cfgNode.Name {
+				b.Config.Nodes[i].SessionID = node.SessionID()
+			}
+		}
+	})
+
+	if err := config.Save(b.CfgPath, b.Config); err != nil {
+		b.Logger.Error("failed to save config:", err)
+	}
+
 	b.Lavalink.Close()
+	b.SavePlayers()
 	b.Discord.Close(context.Background())
-	_ = b.Database.Close()
+	// _ = b.Database.Close()
+}
+
+func (b *Bot) HasPlayer(guildID snowflake.ID) bool {
+	_, ok := b.Players[guildID]
+	return ok
+}
+
+func (b *Bot) Player(guildID snowflake.ID) *Player {
+	if player, ok := b.Players[guildID]; ok {
+		return player
+	}
+
+	player := &Player{
+		Player: b.Lavalink.Player(guildID),
+		Queue:  &Queue{},
+	}
+	b.Players[guildID] = player
+	return player
+}
+
+func (b *Bot) RemovePlayer(guildID snowflake.ID) {
+	delete(b.Players, guildID)
 }

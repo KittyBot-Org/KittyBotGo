@@ -3,6 +3,8 @@ package commands
 import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/handler"
+
+	"github.com/KittyBot-Org/KittyBotGo/service/bot/res"
 )
 
 var ping = discord.SlashCommandCreate{
@@ -10,8 +12,6 @@ var ping = discord.SlashCommandCreate{
 	Description: "Ping the bot",
 }
 
-func (b *Bot) OnPing(e *handler.CommandEvent) error {
-	return e.CreateMessage(discord.MessageCreate{
-		Content: "Pong!",
-	})
+func (h *Cmds) OnPing(e *handler.CommandEvent) error {
+	return e.CreateMessage(res.Create("Pong!"))
 }

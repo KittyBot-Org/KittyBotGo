@@ -9,20 +9,11 @@ import (
 	"github.com/disgoorg/log"
 )
 
-type NATS struct {
-	URL      string `json:"url"`
-	User     string `json:"user"`
-	Password string `json:"password"`
-	Queue    string `json:"queue"`
-}
-
-func (n NATS) String() string {
-	return fmt.Sprintf("\n  URL: %s,\n  User: %s,\n  Password: %s,\n Queue: %s", n.URL, n.User, strings.Repeat("*", len(n.Password)), n.Queue)
-}
-
 func ParseLogLevel(level string) log.Level {
 	logLevel := log.LevelInfo
 	switch strings.ToLower(level) {
+	case "trace":
+		logLevel = log.LevelTrace
 	case "debug":
 		logLevel = log.LevelDebug
 	case "info":
@@ -48,4 +39,16 @@ func Load(path string, cfg any) error {
 	defer file.Close()
 
 	return json.NewDecoder(file).Decode(cfg)
+}
+
+func Save(path string, cfg any) error {
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
+	if err != nil {
+		return fmt.Errorf("failed to create config file: %w", err)
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "\t")
+	return encoder.Encode(cfg)
 }

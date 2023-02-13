@@ -1,4 +1,5 @@
 .idea/
 config.json
+players.json
 go.work
 go.work.sum
