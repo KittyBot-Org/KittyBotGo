@@ -108,6 +108,7 @@ func (b *Bot) Start(commands []discord.ApplicationCommandCreate) error {
 
 			if err = node.Update(context.Background(), lavalink.SessionUpdate{
 				Resuming: json.Ptr(true),
+				Timeout:  json.Ptr(180),
 			}); err != nil {
 				b.Logger.Error("failed to update node:", err)
 			}
