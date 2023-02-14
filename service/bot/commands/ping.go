@@ -12,6 +12,6 @@ var ping = discord.SlashCommandCreate{
 	Description: "Ping the bot",
 }
 
-func (h *Cmds) OnPing(e *handler.CommandEvent) error {
+func (c *Cmds) OnPing(e *handler.CommandEvent) error {
 	return e.CreateMessage(res.Create("Pong!"))
 }

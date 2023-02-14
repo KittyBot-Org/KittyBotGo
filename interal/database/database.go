@@ -27,7 +27,7 @@ func (c Config) String() string {
 }
 
 func New(ctx context.Context, cfg Config) (*Database, error) {
-	dbx, err := sqlx.ConnectContext(ctx, "postgres", fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s", cfg.Host, cfg.Port, cfg.Username, cfg.Password, cfg.Database, cfg.SSLMode))
+	dbx, err := sqlx.ConnectContext(ctx, "pgx", fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s", cfg.Host, cfg.Port, cfg.Username, cfg.Password, cfg.Database, cfg.SSLMode))
 	if err != nil {
 		return nil, err
 	}
@@ -38,10 +38,14 @@ func New(ctx context.Context, cfg Config) (*Database, error) {
 	}
 
 	return &Database{
-		DB: dbx,
+		dbx: dbx,
 	}, nil
 }
 
 type Database struct {
-	*sqlx.DB
+	dbx *sqlx.DB
+}
+
+func (d *Database) Close() error {
+	return d.dbx.Close()
 }

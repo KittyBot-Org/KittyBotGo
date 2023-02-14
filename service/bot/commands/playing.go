@@ -12,8 +12,8 @@ var playing = discord.SlashCommandCreate{
 	Description: "Shows the current playing song",
 }
 
-func (h *Cmds) OnPlaying(e *handler.CommandEvent) error {
-	player := h.Player(*e.GuildID())
+func (c *Cmds) OnPlaying(e *handler.CommandEvent) error {
+	player := c.Lavalink.Player(*e.GuildID())
 	if player.Track() == nil {
 		return e.CreateMessage(res.CreateError("No song is currently playing"))
 	}

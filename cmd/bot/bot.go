@@ -33,7 +33,6 @@ func main() {
 	defer b.Close()
 
 	handler := commands.New(b)
-
 	b.Discord.AddEventListeners(handler)
 
 	if err = b.Start(handler.Commands); err != nil {

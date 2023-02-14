@@ -17,6 +17,7 @@ func New(b *bot.Bot) *Cmds {
 			queue,
 			playing,
 			next,
+			shuffle,
 		},
 	}
 	cmds.HandleCommand("/ping", cmds.OnPing)
@@ -26,6 +27,7 @@ func New(b *bot.Bot) *Cmds {
 		r.HandleCommand("/queue", cmds.OnQueue)
 		r.HandleCommand("/playing", cmds.OnPlaying)
 		r.HandleCommand("/next", cmds.OnNext)
+		r.HandleCommand("/shuffle", cmds.OnShuffle)
 	})
 	return cmds
 }

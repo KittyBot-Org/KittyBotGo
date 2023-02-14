@@ -17,7 +17,6 @@ import (
 	"github.com/disgoorg/disgolink/v2/lavalink"
 	"github.com/disgoorg/json"
 	"github.com/disgoorg/log"
-	"github.com/disgoorg/snowflake/v2"
 
 	"github.com/KittyBot-Org/KittyBotGo/interal/config"
 	"github.com/KittyBot-Org/KittyBotGo/interal/database"
@@ -28,7 +27,6 @@ func New(logger log.Logger, cfgPath string, cfg Config) (*Bot, error) {
 		CfgPath: cfgPath,
 		Config:  cfg,
 		Logger:  logger,
-		Players: map[snowflake.ID]*Player{},
 	}
 
 	dc, err := disgo.New(cfg.Token,
@@ -61,6 +59,9 @@ func New(logger log.Logger, cfgPath string, cfg Config) (*Bot, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	db, err := database.New(ctx, cfg.Database)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create database: %w", err)
+	}
 
 	b.Discord = dc
 	b.Database = db
@@ -74,18 +75,17 @@ type Bot struct {
 	Logger   log.Logger
 	Discord  bot.Client
 	Lavalink disgolink.Client
-	Players  map[snowflake.ID]*Player
 	Database *database.Database
 }
 
 func (b *Bot) Start(commands []discord.ApplicationCommandCreate) error {
 	if b.Config.DevMode {
 		b.Logger.Info("starting in dev mode")
-		for _, guildID := range b.Config.GuildIDs {
-			if _, err := b.Discord.Rest().SetGuildCommands(b.Discord.ApplicationID(), guildID, commands); err != nil {
-				return fmt.Errorf("failed to update guild commands: %w", err)
-			}
-		}
+		//for _, guildID := range b.Config.GuildIDs {
+		//	if _, err := b.Discord.Rest().SetGuildCommands(b.Discord.ApplicationID(), guildID, commands); err != nil {
+		//		return fmt.Errorf("failed to update guild commands: %w", err)
+		//	}
+		//}
 	} else {
 		if _, err := b.Discord.Rest().SetGlobalCommands(b.Discord.ApplicationID(), commands); err != nil {
 			return fmt.Errorf("failed to update global commands: %w", err)
@@ -135,7 +135,7 @@ func (b *Bot) OnDiscordEvent(event bot.Event) {
 		b.Lavalink.OnVoiceStateUpdate(context.Background(), e.VoiceState.GuildID, e.VoiceState.ChannelID, e.VoiceState.SessionID)
 	case *events.GuildsReady:
 		b.Logger.Debug("received guilds ready")
-		b.LoadPlayers()
+		b.RestorePlayers()
 	}
 }
 
@@ -151,31 +151,7 @@ func (b *Bot) Close() {
 	if err := config.Save(b.CfgPath, b.Config); err != nil {
 		b.Logger.Error("failed to save config:", err)
 	}
-
 	b.Lavalink.Close()
-	b.SavePlayers()
 	b.Discord.Close(context.Background())
-	// _ = b.Database.Close()
-}
-
-func (b *Bot) HasPlayer(guildID snowflake.ID) bool {
-	_, ok := b.Players[guildID]
-	return ok
-}
-
-func (b *Bot) Player(guildID snowflake.ID) *Player {
-	if player, ok := b.Players[guildID]; ok {
-		return player
-	}
-
-	player := &Player{
-		Player: b.Lavalink.Player(guildID),
-		Queue:  &Queue{},
-	}
-	b.Players[guildID] = player
-	return player
-}
-
-func (b *Bot) RemovePlayer(guildID snowflake.ID) {
-	delete(b.Players, guildID)
+	_ = b.Database.Close()
 }

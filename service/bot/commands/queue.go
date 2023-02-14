@@ -14,15 +14,19 @@ var queue = discord.SlashCommandCreate{
 	Description: "Shows the current queue",
 }
 
-func (h *Cmds) OnQueue(e *handler.CommandEvent) error {
-	player := h.Player(*e.GuildID())
-	if len(player.Queue.Tracks) == 0 {
-		return e.CreateMessage(res.CreateError("No songs in queue"))
+func (c *Cmds) OnQueue(e *handler.CommandEvent) error {
+	tracks, err := c.Database.GetQueue(*e.GuildID())
+	if err != nil {
+		return e.CreateMessage(res.CreateErr("Failed to get queue", err))
+	}
+
+	if len(tracks) == 0 {
+		return e.CreateMessage(res.Create("The queue is empty"))
 	}
 
 	var content string
-	for i, track := range player.Queue.Tracks {
-		line := fmt.Sprintf("%d. %s\n", i+1, res.FormatTrack(track, 0))
+	for i, track := range tracks {
+		line := fmt.Sprintf("%d. %s\n", i+1, res.FormatTrack(track.Track, 0))
 		if len([]rune(content))+len([]rune(line)) > 2000 {
 			break
 		}

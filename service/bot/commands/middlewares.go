@@ -8,9 +8,14 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/service/bot/res"
 )
 
-func (h *Cmds) OnHasPlayer(next handler.Handler) handler.Handler {
+func (c *Cmds) OnHasPlayer(next handler.Handler) handler.Handler {
 	return func(e *events.InteractionCreate) {
-		if !h.HasPlayer(*e.GuildID()) {
+		ok, err := c.Database.HasPlayer(*e.GuildID())
+		if err != nil {
+			_ = e.Respond(discord.InteractionResponseTypeCreateMessage, res.CreateErr("Error checking player", err))
+			return
+		}
+		if !ok {
 			_ = e.Respond(discord.InteractionResponseTypeCreateMessage, res.CreateError("No player found"))
 			return
 		}
