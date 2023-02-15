@@ -13,18 +13,21 @@ func (b *Bot) OnLavalinkEvent(p disgolink.Player, event lavalink.Event) {
 	case lavalink.TrackStartEvent:
 
 	case lavalink.TrackEndEvent:
+		if err := b.Database.AddHistoryTracks(p.GuildID(), []lavalink.Track{e.Track}); err != nil {
+			b.Logger.Error("failed to add history tracks: ", err)
+		}
 		if !e.Reason.MayStartNext() {
 			return
 		}
-		track, err := b.Database.NextTrack(p.GuildID())
+
+		track, err := b.Database.NextQueueTrack(p.GuildID())
 		if err != nil {
-			b.Logger.Error("failed to get next track: ", err)
 			if err = player.Destroy(context.Background()); err != nil {
 				b.Logger.Error("failed to destroy player: ", err)
 			}
 			return
 		}
-		if err = player.Update(context.Background(), lavalink.WithEncodedTrack(track.Encoded)); err != nil {
+		if err = player.Update(context.Background(), lavalink.WithEncodedTrack(track.Track.Encoded)); err != nil {
 			b.Logger.Error("failed to update player: ", err)
 		}
 
@@ -37,7 +40,6 @@ func (b *Bot) OnLavalinkEvent(p disgolink.Player, event lavalink.Event) {
 }
 
 func (b *Bot) RestorePlayers() {
-	println("restoring players")
 	b.Lavalink.ForPlayers(func(player disgolink.Player) {
 		voiceState, ok := b.Discord.Caches().VoiceState(player.GuildID(), b.Discord.ApplicationID())
 		if !ok {

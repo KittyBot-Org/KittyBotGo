@@ -11,18 +11,19 @@ import (
 )
 
 type Config struct {
-	DevMode    bool            `json:"dev_mode"`
-	GuildIDs   []snowflake.ID  `json:"guild_ids"`
-	GatewayURL string          `json:"gateway_url"`
-	RestURL    string          `json:"rest_url"`
-	Token      string          `json:"token"`
-	LogLevel   string          `json:"log_level"`
-	Database   database.Config `json:"database"`
-	Nodes      Nodes           `json:"nodes"`
+	DevMode      bool            `json:"dev_mode"`
+	SyncCommands bool            `json:"sync_commands"`
+	GuildIDs     []snowflake.ID  `json:"guild_ids"`
+	GatewayURL   string          `json:"gateway_url"`
+	RestURL      string          `json:"rest_url"`
+	Token        string          `json:"token"`
+	LogLevel     string          `json:"log_level"`
+	Database     database.Config `json:"database"`
+	Nodes        Nodes           `json:"nodes"`
 }
 
 func (c Config) String() string {
-	return fmt.Sprintf("\n DevMode: %t,\n Guild IDs: %v,\n Token: %s,\n Log Level: %s,\n Database: %s\n", c.DevMode, c.GuildIDs, strings.Repeat("*", len(c.Token)), c.LogLevel, c.Database)
+	return fmt.Sprintf("\n DevMode: %t,\n Sync Commands: %t,\n Guild IDs: %v,\n Token: %s,\n Log Level: %s,\n Database: %s\n", c.DevMode, c.SyncCommands, c.GuildIDs, strings.Repeat("*", len(c.Token)), c.LogLevel, c.Database)
 }
 
 type Nodes []disgolink.NodeConfig

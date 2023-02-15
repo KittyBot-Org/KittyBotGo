@@ -79,16 +79,18 @@ type Bot struct {
 }
 
 func (b *Bot) Start(commands []discord.ApplicationCommandCreate) error {
-	if b.Config.DevMode {
-		b.Logger.Info("starting in dev mode")
-		//for _, guildID := range b.Config.GuildIDs {
-		//	if _, err := b.Discord.Rest().SetGuildCommands(b.Discord.ApplicationID(), guildID, commands); err != nil {
-		//		return fmt.Errorf("failed to update guild commands: %w", err)
-		//	}
-		//}
-	} else {
-		if _, err := b.Discord.Rest().SetGlobalCommands(b.Discord.ApplicationID(), commands); err != nil {
-			return fmt.Errorf("failed to update global commands: %w", err)
+	if b.Config.SyncCommands {
+		if b.Config.DevMode {
+			b.Logger.Info("starting in dev mode")
+			for _, guildID := range b.Config.GuildIDs {
+				if _, err := b.Discord.Rest().SetGuildCommands(b.Discord.ApplicationID(), guildID, commands); err != nil {
+					return fmt.Errorf("failed to update guild handlers: %w", err)
+				}
+			}
+		} else {
+			if _, err := b.Discord.Rest().SetGlobalCommands(b.Discord.ApplicationID(), commands); err != nil {
+				return fmt.Errorf("failed to update global handlers: %w", err)
+			}
 		}
 	}
 

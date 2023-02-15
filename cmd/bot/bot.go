@@ -10,7 +10,7 @@ import (
 
 	"github.com/KittyBot-Org/KittyBotGo/interal/config"
 	"github.com/KittyBot-Org/KittyBotGo/service/bot"
-	"github.com/KittyBot-Org/KittyBotGo/service/bot/commands"
+	"github.com/KittyBot-Org/KittyBotGo/service/bot/handlers"
 )
 
 func main() {
@@ -32,10 +32,10 @@ func main() {
 	}
 	defer b.Close()
 
-	handler := commands.New(b)
-	b.Discord.AddEventListeners(handler)
+	h := handlers.New(b)
+	b.Discord.AddEventListeners(h)
 
-	if err = b.Start(handler.Commands); err != nil {
+	if err = b.Start(h.Commands); err != nil {
 		logger.Fatalf("Failed to start bot: %v", err)
 	}
 

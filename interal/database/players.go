@@ -10,15 +10,27 @@ import (
 type QueueType int
 
 const (
-	QueueTypeDefault QueueType = iota
-	QueueTypeLoopTrack
-	QueueTypeLoopQueue
+	QueueTypeNormal QueueType = iota
+	QueueTypeRepeatTrack
+	QueueTypeRepeatQueue
 )
+
+func (q QueueType) String() string {
+	switch q {
+	case QueueTypeNormal:
+		return "Normal"
+	case QueueTypeRepeatTrack:
+		return "Repeat Track"
+	case QueueTypeRepeatQueue:
+		return "Repeat Queue"
+	}
+	return "Unknown"
+}
 
 type Player struct {
 	GuildID   snowflake.ID `db:"guild_id"`
 	Node      string       `db:"node"`
-	QueueType int          `db:"queue_type"`
+	QueueType QueueType    `db:"queue_type"`
 }
 
 func (d *Database) HasPlayer(guildID snowflake.ID) (bool, error) {
@@ -30,33 +42,21 @@ func (d *Database) HasPlayer(guildID snowflake.ID) (bool, error) {
 	return count > 0, nil
 }
 
-func (d *Database) GetPlayer(guildID snowflake.ID, node string) (*Player, []Track, error) {
+func (d *Database) GetPlayer(guildID snowflake.ID, node string) (*Player, error) {
 	var player Player
 	err := d.dbx.Get(&player, "SELECT * FROM players WHERE guild_id = $1", guildID)
 	if errors.Is(err, sql.ErrNoRows) {
-		_, err = d.dbx.Exec("INSERT INTO players (guild_id, node, queue_type) VALUES ($1, $2, $3)", guildID, node, QueueTypeDefault)
+		_, err = d.dbx.Exec("INSERT INTO players (guild_id, node, queue_type) VALUES ($1, $2, $3)", guildID, node, QueueTypeNormal)
 	}
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	var queue []Track
-	err = d.dbx.Select(queue, "SELECT * FROM queue WHERE guild_id = $1 ORDER BY id DESC", guildID)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return nil, nil, err
-	}
-
-	for i := range queue {
-		if err = queue[i].Unmarshal(); err != nil {
-			return nil, nil, err
-		}
-	}
-
-	return &player, queue, err
+	return &player, err
 }
 
 func (d *Database) UpdatePlayer(player Player) error {
-	_, err := d.dbx.Exec("UPDATE players SET queue_type = $1, node = $2 WHERE guild_id = $3", player.QueueType, player.Node, player.GuildID)
+	_, err := d.dbx.NamedExec("INSERT INTO players (guild_id, node, queue_type) VALUES (:guild_id, :node, :queue_type) ON CONFLICT (guild_id) DO UPDATE SET node = :node, queue_type = :queue_type", player)
 	return err
 }
 

@@ -1,4 +1,4 @@
-package commands
+package handlers
 
 import (
 	"github.com/disgoorg/disgo/discord"
@@ -8,9 +8,9 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/service/bot/res"
 )
 
-func (c *Cmds) OnHasPlayer(next handler.Handler) handler.Handler {
+func (h *Handlers) OnHasPlayer(next handler.Handler) handler.Handler {
 	return func(e *events.InteractionCreate) {
-		ok, err := c.Database.HasPlayer(*e.GuildID())
+		ok, err := h.Database.HasPlayer(*e.GuildID())
 		if err != nil {
 			_ = e.Respond(discord.InteractionResponseTypeCreateMessage, res.CreateErr("Error checking player", err))
 			return

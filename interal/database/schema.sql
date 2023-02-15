@@ -8,11 +8,18 @@ CREATE TABLE IF NOT EXISTS players
 
 CREATE TABLE IF NOT EXISTS queues
 (
-    id          bigserial NOT NULL,
-    guild_id    bigint    NOT NULL REFERENCES players (guild_id) ON DELETE CASCADE,
-    position    bigserial NOT NULL,
-    encoded     text      NOT NULL,
-    info        json      NOT NULL,
-    plugin_info json      NOT NULL,
+    id       bigserial NOT NULL,
+    guild_id bigint    NOT NULL REFERENCES players (guild_id) ON DELETE CASCADE,
+    position bigserial NOT NULL,
+    track    json      NOT NULL,
     CONSTRAINT queues_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS histories
+(
+    id       bigserial NOT NULL,
+    guild_id bigint    NOT NULL REFERENCES players (guild_id) ON DELETE CASCADE,
+    position bigserial NOT NULL,
+    track    json      NOT NULL,
+    CONSTRAINT histories_pkey PRIMARY KEY (id)
 );

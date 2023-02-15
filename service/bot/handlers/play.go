@@ -1,4 +1,4 @@
-package commands
+package handlers
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/handler"
 	"github.com/disgoorg/disgolink/v2/disgolink"
 	"github.com/disgoorg/disgolink/v2/lavalink"
@@ -20,45 +19,7 @@ var (
 	searchPattern = regexp.MustCompile(`^(.{2})(search|isrc):(.+)`)
 )
 
-var play = discord.SlashCommandCreate{
-	Name:        "play",
-	Description: "Play a song",
-	Options: []discord.ApplicationCommandOption{
-		discord.ApplicationCommandOptionString{
-			Name:        "query",
-			Description: "The song or search to play",
-			Required:    true,
-		},
-		discord.ApplicationCommandOptionString{
-			Name:        "source",
-			Description: "The source to search on",
-			Choices: []discord.ApplicationCommandOptionChoiceString{
-				{
-					Name:  "YouTube",
-					Value: string(lavalink.SearchTypeYouTube),
-				},
-				{
-					Name:  "YouTube Music",
-					Value: string(lavalink.SearchTypeYouTubeMusic),
-				},
-				{
-					Name:  "SoundCloud",
-					Value: string(lavalink.SearchTypeSoundCloud),
-				},
-				{
-					Name:  "Deezer",
-					Value: "dzsearch",
-				},
-				{
-					Name:  "Deezer ISRC",
-					Value: "dzisrc",
-				},
-			},
-		},
-	},
-}
-
-func (c *Cmds) OnPlay(e *handler.CommandEvent) error {
+func (h *Handlers) OnPlayerPlay(e *handler.CommandEvent) error {
 	data := e.SlashCommandInteractionData()
 	query := data.String("query")
 
@@ -70,17 +31,19 @@ func (c *Cmds) OnPlay(e *handler.CommandEvent) error {
 		}
 	}
 
-	voiceState, ok := c.Discord.Caches().VoiceState(*e.GuildID(), e.User().ID)
+	voiceState, ok := h.Discord.Caches().VoiceState(*e.GuildID(), e.User().ID)
 	if !ok {
 		return e.CreateMessage(res.CreateError("You are not in a voice channel"))
+	}
+
+	player := h.Lavalink.Player(*e.GuildID())
+	if _, err := h.Database.GetPlayer(*e.GuildID(), player.Node().Config().Name); err != nil {
+		return e.CreateMessage(res.CreateErr("Failed to get or create player", err))
 	}
 
 	if err := e.DeferCreateMessage(false); err != nil {
 		return err
 	}
-
-	player := c.Lavalink.Player(*e.GuildID())
-	_, _, _ = c.Database.GetPlayer(*e.GuildID(), player.Node().Config().Name)
 
 	go func() {
 		var loadErr error
@@ -88,13 +51,13 @@ func (c *Cmds) OnPlay(e *handler.CommandEvent) error {
 		defer cancel()
 		player.Node().LoadTracks(ctx, query, disgolink.NewResultHandler(
 			func(track lavalink.Track) {
-				loadErr = c.HandleTracks(ctx, e, *voiceState.ChannelID, track)
+				loadErr = h.HandleTracks(ctx, e, *voiceState.ChannelID, track)
 			},
 			func(playlist lavalink.Playlist) {
-				loadErr = c.HandleTracks(ctx, e, *voiceState.ChannelID, playlist.Tracks...)
+				loadErr = h.HandleTracks(ctx, e, *voiceState.ChannelID, playlist.Tracks...)
 			},
 			func(tracks []lavalink.Track) {
-				loadErr = c.HandleTracks(ctx, e, *voiceState.ChannelID, tracks[0])
+				loadErr = h.HandleTracks(ctx, e, *voiceState.ChannelID, tracks[0])
 			},
 			func() {
 				_, loadErr = e.UpdateInteractionResponse(res.UpdateError("No results found for %s", query))
@@ -104,22 +67,22 @@ func (c *Cmds) OnPlay(e *handler.CommandEvent) error {
 			},
 		))
 		if loadErr != nil {
-			c.Logger.Errorf("error loading tracks: %s", loadErr)
+			h.Logger.Errorf("error loading tracks: %s", loadErr)
 		}
 	}()
 
 	return nil
 }
 
-func (c *Cmds) HandleTracks(ctx context.Context, e *handler.CommandEvent, channelID snowflake.ID, tracks ...lavalink.Track) error {
-	_, ok := c.Discord.Caches().VoiceState(*e.GuildID(), e.ApplicationID())
+func (h *Handlers) HandleTracks(ctx context.Context, e *handler.CommandEvent, channelID snowflake.ID, tracks ...lavalink.Track) error {
+	_, ok := h.Discord.Caches().VoiceState(*e.GuildID(), e.ApplicationID())
 	if !ok {
-		if err := c.Discord.UpdateVoiceState(context.Background(), *e.GuildID(), &channelID, false, false); err != nil {
+		if err := h.Discord.UpdateVoiceState(context.Background(), *e.GuildID(), &channelID, false, false); err != nil {
 			_, err = e.UpdateInteractionResponse(res.UpdateErr("An error occurred", err))
 			return err
 		}
 	}
-	player := c.Lavalink.Player(*e.GuildID())
+	player := h.Lavalink.Player(*e.GuildID())
 	var content string
 	if player.Track() == nil {
 		track := tracks[0]
@@ -129,12 +92,12 @@ func (c *Cmds) HandleTracks(ctx context.Context, e *handler.CommandEvent, channe
 			_, err = e.UpdateInteractionResponse(res.UpdateErr("An error occurred", err))
 			return err
 		}
-		content = fmt.Sprintf("Playing %s", res.FormatTrack(track, 0))
+		content = fmt.Sprintf("▶ Playing: %s", res.FormatTrack(track, 0))
 	}
 
 	if len(tracks) > 0 {
-		content += fmt.Sprintf("Added %d tracks to the queue", len(tracks))
-		if err := c.Database.AddTracks(*e.GuildID(), tracks); err != nil {
+		content += fmt.Sprintf("\nAdded %d tracks to the queue", len(tracks))
+		if err := h.Database.AddQueueTracks(*e.GuildID(), tracks); err != nil {
 			_, err = e.UpdateInteractionResponse(res.UpdateErr("An error occurred", err))
 			return err
 		}

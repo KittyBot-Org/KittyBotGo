@@ -1,4 +1,4 @@
-package commands
+package handlers
 
 import (
 	"github.com/disgoorg/disgo/discord"
@@ -7,11 +7,11 @@ import (
 	"github.com/KittyBot-Org/KittyBotGo/service/bot/res"
 )
 
-var ping = discord.SlashCommandCreate{
+var pingCommand = discord.SlashCommandCreate{
 	Name:        "ping",
 	Description: "Ping the bot",
 }
 
-func (c *Cmds) OnPing(e *handler.CommandEvent) error {
+func (h *Handlers) OnPing(e *handler.CommandEvent) error {
 	return e.CreateMessage(res.Create("Pong!"))
 }
