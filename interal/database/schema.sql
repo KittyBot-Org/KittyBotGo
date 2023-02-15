@@ -23,3 +23,21 @@ CREATE TABLE IF NOT EXISTS histories
     track    json      NOT NULL,
     CONSTRAINT histories_pkey PRIMARY KEY (id)
 );
+
+CREATE TABLE IF NOT EXISTS playlists
+(
+    id      bigserial NOT NULL,
+    user_id bigint    NOT NULL,
+    name    varchar   NOT NULL,
+    CONSTRAINT playlists_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS playlist_tracks
+(
+    id          bigserial NOT NULL,
+    playlist_id bigint    NOT NULL REFERENCES playlists (id) ON DELETE CASCADE,
+    position    bigserial NOT NULL,
+    track       json      NOT NULL,
+    CONSTRAINT playlist_tracks_pkey PRIMARY KEY (id)
+);
+

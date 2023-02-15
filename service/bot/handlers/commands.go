@@ -16,6 +16,7 @@ func New(b *bot.Bot) *Handlers {
 			playerCommand,
 			queueCommand,
 			historyCommand,
+			playlistsCommand,
 		},
 	}
 	handlers.HandleCommand("/ping", handlers.OnPing)
