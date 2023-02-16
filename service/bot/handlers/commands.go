@@ -39,7 +39,7 @@ func New(b *bot.Bot) *Handlers {
 		r.Use(handlers.OnHasPlayer)
 		r.HandleCommand("/clear", handlers.OnQueueClear)
 		r.HandleCommand("/remove", handlers.OnQueueRemove)
-		r.HandleAutocomplete("/remove", handlers.OnQueueTrack)
+		r.HandleAutocomplete("/remove", handlers.OnQueueAutocomplete)
 		r.HandleCommand("/shuffle", handlers.OnQueueShuffle)
 		r.HandleCommand("/show", handlers.OnQueueShow)
 		r.HandleCommand("/type", handlers.OnQueueType)
@@ -48,6 +48,16 @@ func New(b *bot.Bot) *Handlers {
 		r.Use(handlers.OnHasPlayer)
 		r.HandleCommand("/clear", handlers.OnHistoryClear)
 		r.HandleCommand("/show", handlers.OnHistoryShow)
+	})
+	handlers.Route("/playlists", func(r handler.Router) {
+		r.HandleCommand("/list", handlers.OnPlaylistsList)
+		r.HandleCommand("/show", handlers.OnPlaylistShow)
+		r.HandleAutocomplete("/show", handlers.OnPlaylistAutocomplete)
+		r.HandleCommand("/create", handlers.OnPlaylistCreate)
+		r.HandleCommand("/delete", handlers.OnPlaylistDelete)
+		r.HandleAutocomplete("/delete", handlers.OnPlaylistAutocomplete)
+		//r.HandleCommand("/add", handlers.OnPlaylistsAdd)
+		//r.HandleAutocomplete("/add", handlers.OnPlaylistsPlaylist)
 	})
 
 	return handlers

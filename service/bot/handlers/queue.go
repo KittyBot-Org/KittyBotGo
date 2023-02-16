@@ -154,7 +154,7 @@ func (h *Handlers) OnQueueRemove(e *handler.CommandEvent) error {
 	return e.CreateMessage(res.Createf("Removed song from queue"))
 }
 
-func (h *Handlers) OnQueueTrack(e *handler.AutocompleteEvent) error {
+func (h *Handlers) OnQueueAutocomplete(e *handler.AutocompleteEvent) error {
 	tracks, err := h.Database.GetQueue(*e.GuildID())
 	if err != nil {
 		return e.Result(nil)
