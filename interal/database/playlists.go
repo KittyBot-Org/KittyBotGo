@@ -55,7 +55,7 @@ func (d *Database) AddTracksToPlaylist(playlistID int, tracks []lavalink.Track) 
 			Track:      track,
 		}
 	}
-	_, err := d.dbx.NamedExec("INSERT INTO playlist_tracks (playlist_id, track) VALUES (:playlist_id, :track)", tracks)
+	_, err := d.dbx.NamedExec("INSERT INTO playlist_tracks (playlist_id, track) VALUES (:playlist_id, :track)", playlistTracks)
 	return err
 }
 

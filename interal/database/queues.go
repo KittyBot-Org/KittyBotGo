@@ -7,7 +7,7 @@ import (
 
 func (d *Database) GetQueue(guildID snowflake.ID) ([]Track, error) {
 	var queue []Track
-	if err := d.dbx.Select(&queue, "SELECT * FROM queues WHERE guild_id = $1 ORDER BY position DESC", guildID); err != nil {
+	if err := d.dbx.Select(&queue, "SELECT * FROM queues WHERE guild_id = $1 ORDER BY position ASC", guildID); err != nil {
 		return nil, err
 	}
 

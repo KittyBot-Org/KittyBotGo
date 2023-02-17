@@ -83,7 +83,10 @@ func (h *Handlers) HandleTracks(ctx context.Context, e *handler.CommandEvent, ch
 		}
 	}
 	player := h.Lavalink.Player(*e.GuildID())
-	var content string
+	var (
+		content    string
+		likeButton bool
+	)
 	if player.Track() == nil {
 		track := tracks[0]
 		tracks = tracks[1:]
@@ -93,6 +96,7 @@ func (h *Handlers) HandleTracks(ctx context.Context, e *handler.CommandEvent, ch
 			return err
 		}
 		content = fmt.Sprintf("▶ Playing: %s", res.FormatTrack(track, 0))
+		likeButton = true
 	}
 
 	if len(tracks) > 0 {
@@ -103,6 +107,6 @@ func (h *Handlers) HandleTracks(ctx context.Context, e *handler.CommandEvent, ch
 		}
 	}
 
-	_, err := e.UpdateInteractionResponse(res.Update(content))
+	_, err := e.UpdateInteractionResponse(res.UpdatePlayer(content, likeButton))
 	return err
 }

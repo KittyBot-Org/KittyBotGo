@@ -3,7 +3,7 @@ module github.com/KittyBot-Org/KittyBotGo
 go 1.20
 
 require (
-	github.com/disgoorg/disgo v0.15.1-0.20230214011551-5c4a0c559b20
+	github.com/disgoorg/disgo v0.15.1
 	github.com/disgoorg/disgolink/v2 v2.0.0-20230215032805-c07ed5a37206
 	github.com/disgoorg/json v1.0.0
 	github.com/disgoorg/log v1.2.0

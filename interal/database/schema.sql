@@ -41,3 +41,11 @@ CREATE TABLE IF NOT EXISTS playlist_tracks
     CONSTRAINT playlist_tracks_pkey PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS liked_tracks
+(
+    id      bigserial NOT NULL,
+    user_id bigint    NOT NULL,
+    track   json      NOT NULL,
+    CONSTRAINT liked_tracks_pkey PRIMARY KEY (id)
+);
+

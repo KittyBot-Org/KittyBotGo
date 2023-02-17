@@ -194,9 +194,10 @@ func (h *Handlers) OnPlayerStatus(e *handler.CommandEvent) error {
 		}
 		embed.Description += fmt.Sprintf("\n\n%s / %s %s\n%s", res.FormatDuration(t1), res.FormatDuration(t2), loopString, bar)
 	}
-	return e.CreateMessage(discord.MessageCreate{
-		Embeds: []discord.Embed{embed.Build()},
-	})
+
+	create := res.CreatePlayer("", true)
+	create.Embeds = []discord.Embed{embed.Build()}
+	return e.CreateMessage(create)
 }
 
 func (h *Handlers) OnPlayerPause(e *handler.CommandEvent) error {
@@ -204,7 +205,7 @@ func (h *Handlers) OnPlayerPause(e *handler.CommandEvent) error {
 	if err := player.Update(context.Background(), lavalink.WithPaused(true)); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to pause the player", err))
 	}
-	return e.CreateMessage(res.Create("⏸ Paused the player."))
+	return e.CreateMessage(res.CreatePlayer("⏸ Paused the player.", false))
 }
 
 func (h *Handlers) OnPlayerResume(e *handler.CommandEvent) error {
@@ -212,7 +213,7 @@ func (h *Handlers) OnPlayerResume(e *handler.CommandEvent) error {
 	if err := player.Update(context.Background(), lavalink.WithPaused(false)); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to resume the player", err))
 	}
-	return e.CreateMessage(res.Create("▶ Resumed the player."))
+	return e.CreateMessage(res.CreatePlayer("▶ Resumed the player.", false))
 }
 
 func (h *Handlers) OnPlayerStop(e *handler.CommandEvent) error {
@@ -245,7 +246,7 @@ func (h *Handlers) OnPlayerNext(e *handler.CommandEvent) error {
 	if err = player.Update(context.Background(), lavalink.WithTrack(track.Track)); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to play next song", err))
 	}
-	return e.CreateMessage(res.Createf("▶ Playing: %s", res.FormatTrack(track.Track, 0)))
+	return e.CreateMessage(res.CreatePlayerf("▶ Playing: %s", true, res.FormatTrack(track.Track, 0)))
 }
 
 func (h *Handlers) OnPlayerPrevious(e *handler.CommandEvent) error {
@@ -261,7 +262,7 @@ func (h *Handlers) OnPlayerPrevious(e *handler.CommandEvent) error {
 	if err = player.Update(context.Background(), lavalink.WithTrack(track.Track)); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to play previous song", err))
 	}
-	return e.CreateMessage(res.Createf("▶ Playing: %s", res.FormatTrack(track.Track, 0)))
+	return e.CreateMessage(res.CreatePlayerf("▶ Playing: %s", true, res.FormatTrack(track.Track, 0)))
 }
 
 func (h *Handlers) OnPlayerVolume(e *handler.CommandEvent) error {
@@ -271,7 +272,7 @@ func (h *Handlers) OnPlayerVolume(e *handler.CommandEvent) error {
 	if err := player.Update(context.Background(), lavalink.WithVolume(volume)); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to set the volume", err))
 	}
-	return e.CreateMessage(res.Createf("🔊 Set the volume to %d%%.", volume))
+	return e.CreateMessage(res.CreatePlayerf("🔊 Set the volume to %d%%.", false, volume))
 }
 
 func (h *Handlers) OnPlayerBassBoost(e *handler.CommandEvent) error {
@@ -284,5 +285,5 @@ func (h *Handlers) OnPlayerBassBoost(e *handler.CommandEvent) error {
 	if err := player.Update(context.Background(), lavalink.WithFilters(filters)); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to set bass boost: %s", err))
 	}
-	return e.CreateMessage(res.Createf("🔊 Set bass boost to %s.", level))
+	return e.CreateMessage(res.CreatePlayerf("🔊 Set bass boost to %s.", false, level))
 }
