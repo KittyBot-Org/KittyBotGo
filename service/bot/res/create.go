@@ -6,9 +6,19 @@ import (
 	"github.com/disgoorg/disgo/discord"
 )
 
+const (
+	PrimaryColor = 0x5c5fea
+	DangerColor  = 0xd43535
+)
+
 func Create(content string) discord.MessageCreate {
 	return discord.MessageCreate{
-		Content: content,
+		Embeds: []discord.Embed{
+			{
+				Description: content,
+				Color:       PrimaryColor,
+			},
+		},
 	}
 }
 
@@ -22,7 +32,12 @@ func CreateErr(message string, err error, a ...any) discord.MessageCreate {
 
 func CreateError(message string, a ...any) discord.MessageCreate {
 	return discord.MessageCreate{
-		Content: fmt.Sprintf(message, a...),
-		Flags:   discord.MessageFlagEphemeral,
+		Embeds: []discord.Embed{
+			{
+				Description: fmt.Sprintf(message, a...),
+				Color:       DangerColor,
+			},
+		},
+		Flags: discord.MessageFlagEphemeral,
 	}
 }

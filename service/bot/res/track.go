@@ -26,3 +26,11 @@ func FormatDuration(duration lavalink.Duration) string {
 	}
 	return fmt.Sprintf("%02d:%02d", duration.Minutes(), duration.SecondsPart())
 }
+
+func Trim(s string, length int) string {
+	r := []rune(s)
+	if len(r) > length {
+		return string(r[:length-1]) + "…"
+	}
+	return s
+}

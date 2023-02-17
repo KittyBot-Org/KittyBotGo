@@ -49,3 +49,14 @@ CREATE TABLE IF NOT EXISTS liked_tracks
     CONSTRAINT liked_tracks_pkey PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS play_histories
+(
+    id        bigserial NOT NULL,
+    user_id   bigint    NOT NULL,
+    played_at timestamp NOT NULL,
+    track     jsonb     NOT NULL,
+    CONSTRAINT play_histories_pkey PRIMARY KEY (id),
+    CONSTRAINT play_histories_user_id_track_key UNIQUE (user_id, track)
+);
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;

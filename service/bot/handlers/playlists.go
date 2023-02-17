@@ -7,9 +7,7 @@ import (
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/handler"
-	"github.com/disgoorg/disgolink/v2/disgolink"
 	"github.com/disgoorg/disgolink/v2/lavalink"
-	"github.com/lithammer/fuzzysearch/fuzzy"
 
 	"github.com/KittyBot-Org/KittyBotGo/service/bot/res"
 )
@@ -240,7 +238,7 @@ func (h *Handlers) OnPlaylistPlay(e *handler.CommandEvent) error {
 			tracks[i] = dbTracks[i].Track
 		}
 
-		content += fmt.Sprintf("\nAdded %d tracks to the queue from playlist `%s`", len(tracks), playlist.Name)
+		content += fmt.Sprintf("\nAdded %d songs to the queue from playlist `%s`", len(tracks), playlist.Name)
 		if err = h.Database.AddQueueTracks(*e.GuildID(), tracks); err != nil {
 			return e.CreateMessage(res.CreateErr("An error occurred", err))
 		}
@@ -254,10 +252,10 @@ func (h *Handlers) OnPlaylistAdd(e *handler.CommandEvent) error {
 	playlistID := data.Int("playlist")
 	query := data.String("query")
 
-	if source, ok := data.OptString("source"); ok {
-		query = lavalink.SearchType(source).Apply(query)
-	} else {
-		if !urlPattern.MatchString(query) && !searchPattern.MatchString(query) {
+	if !urlPattern.MatchString(query) && !searchPattern.MatchString(query) {
+		if source, ok := data.OptString("source"); ok {
+			query = lavalink.SearchType(source).Apply(query)
+		} else {
 			query = lavalink.SearchTypeYouTube.Apply(query)
 		}
 	}
@@ -267,76 +265,87 @@ func (h *Handlers) OnPlaylistAdd(e *handler.CommandEvent) error {
 	}
 
 	go func() {
-		var loadErr error
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		h.Lavalink.BestNode().LoadTracks(ctx, query, disgolink.NewResultHandler(
-			func(track lavalink.Track) {
-				loadErr = h.handlePlaylistTracks(e, playlistID, track)
-			},
-			func(playlist lavalink.Playlist) {
-				loadErr = h.handlePlaylistTracks(e, playlistID, playlist.Tracks...)
-			},
-			func(tracks []lavalink.Track) {
-				loadErr = h.handlePlaylistTracks(e, playlistID, tracks[0])
-			},
-			func() {
-				_, loadErr = e.UpdateInteractionResponse(res.UpdateError("No results found for %s", query))
-			},
-			func(err error) {
-				_, loadErr = e.UpdateInteractionResponse(res.UpdateErr("An error occurred", err))
-			},
-		))
-		if loadErr != nil {
-			h.Logger.Errorf("error loading tracks: %s", loadErr)
+		result, err := h.Lavalink.BestNode().Rest().LoadTracks(ctx, query)
+		if err != nil {
+			_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to load song", err))
+			return
 		}
+		if result.LoadType == lavalink.LoadTypeLoadFailed {
+			_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to like song", err))
+		} else if result.LoadType == lavalink.LoadTypeNoMatches || len(result.Tracks) == 0 {
+			_, err = e.UpdateInteractionResponse(res.UpdateError("Failed to like song: No matches found."))
+		}
+		if err != nil {
+			h.Logger.Errorf("error loading songs: %s", err)
+			return
+		}
+		tracks := result.Tracks
+		if result.LoadType == lavalink.LoadTypeSearchResult {
+			tracks = tracks[:1]
+		}
+
+		if err = h.Database.AddTracksToPlaylist(playlistID, tracks); err != nil {
+			_, _ = e.UpdateInteractionResponse(res.UpdateErr("Failed to add song to playlist", err))
+			return
+		}
+		_, _ = e.UpdateInteractionResponse(res.Updatef("Added `%d` songs to playlist", len(tracks)))
 	}()
 
 	return nil
 }
 
-func (h *Handlers) handlePlaylistTracks(e *handler.CommandEvent, playlistID int, tracks ...lavalink.Track) error {
-	if err := h.Database.AddTracksToPlaylist(playlistID, tracks); err != nil {
-		_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to add track to playlist", err))
-		return err
+func (h *Handlers) OnPlaylistRemove(e *handler.CommandEvent) error {
+	trackID := e.SlashCommandInteractionData().Int("song")
+
+	if err := h.Database.RemoveTrackFromPlaylist(trackID); err != nil {
+		return e.CreateMessage(res.CreateErr("Failed to remove song from playlist", err))
 	}
 
-	if len(tracks) == 1 {
-		_, err := e.UpdateInteractionResponse(res.Updatef("Added track to playlist: %s", res.FormatTrack(tracks[0], 0)))
-		return err
-	}
-
-	_, err := e.UpdateInteractionResponse(res.Updatef("Added `%d` tracks to playlist", len(tracks)))
-	return err
+	return e.CreateMessage(res.Create("Removed song from playlist"))
 }
 
-func (h *Handlers) OnPlaylistAutocomplete(e *handler.AutocompleteEvent) error {
-	playlists, err := h.Database.GetPlaylists(e.User().ID)
+func (h *Handlers) OnPlaylistRemoveAutocomplete(e *handler.AutocompleteEvent) error {
+	option, ok := e.Data.Option("playlist")
+	if ok && option.Focused {
+		return h.OnPlaylistAutocomplete(e)
+	}
+
+	option, ok = e.Data.Option("song")
+	if !ok || !option.Focused {
+		return e.Result(nil)
+	}
+
+	playlistID := e.Data.Int("playlist")
+	track := e.Data.String("song")
+
+	tracks, err := h.Database.SearchPlaylistTracks(playlistID, track, 25)
 	if err != nil {
 		return e.Result(nil)
 	}
 
-	playlistValues := make(map[string]int, len(playlists))
-	playlistNames := make([]string, len(playlists))
-	for i, playlist := range playlists {
-		name := trim(playlist.Name, 100)
-		playlistValues[name] = playlist.ID
-		playlistNames[i] = name
+	choices := make([]discord.AutocompleteChoice, len(tracks))
+	for i, track := range tracks {
+		choices[i] = discord.AutocompleteChoiceInt{
+			Name:  res.Trim(track.Track.Info.Title, 100),
+			Value: track.ID,
+		}
+	}
+	return e.Result(choices)
+}
+
+func (h *Handlers) OnPlaylistAutocomplete(e *handler.AutocompleteEvent) error {
+	playlists, err := h.Database.SearchPlaylists(e.User().ID, e.Data.String("track"), 25)
+	if err != nil {
+		return e.Result(nil)
 	}
 
-	ranks := fuzzy.RankFindFold(e.Data.String("track"), playlistNames)
-	choicesLen := len(ranks)
-	if choicesLen > 25 {
-		choicesLen = 25
-	}
-	choices := make([]discord.AutocompleteChoice, choicesLen)
-	for i, rank := range ranks {
-		if i >= 25 {
-			break
-		}
+	choices := make([]discord.AutocompleteChoice, len(playlists))
+	for i, playlist := range playlists {
 		choices[i] = discord.AutocompleteChoiceInt{
-			Name:  rank.Target,
-			Value: playlistValues[rank.Target],
+			Name:  res.Trim(playlist.Name, 100),
+			Value: playlist.ID,
 		}
 	}
 	return e.Result(choices)

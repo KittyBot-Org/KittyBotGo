@@ -7,7 +7,6 @@ import (
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/handler"
-	"github.com/lithammer/fuzzysearch/fuzzy"
 
 	"github.com/KittyBot-Org/KittyBotGo/interal/database"
 	"github.com/KittyBot-Org/KittyBotGo/service/bot/res"
@@ -23,11 +22,11 @@ var queueCommand = discord.SlashCommandCreate{
 		},
 		discord.ApplicationCommandOptionSubCommand{
 			Name:        "remove",
-			Description: "Removes a track from the queue",
+			Description: "Removes a song from the queue",
 			Options: []discord.ApplicationCommandOption{
 				discord.ApplicationCommandOptionInt{
-					Name:         "track",
-					Description:  "The track to remove",
+					Name:         "song",
+					Description:  "The song to remove",
 					Required:     true,
 					Autocomplete: true,
 				},
@@ -141,7 +140,7 @@ func (h *Handlers) OnQueueClear(e *handler.CommandEvent) error {
 
 func (h *Handlers) OnQueueRemove(e *handler.CommandEvent) error {
 	data := e.SlashCommandInteractionData()
-	trackID := data.Int("track")
+	trackID := data.Int("song")
 
 	err := h.Database.RemoveQueueTrack(trackID)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -155,41 +154,17 @@ func (h *Handlers) OnQueueRemove(e *handler.CommandEvent) error {
 }
 
 func (h *Handlers) OnQueueAutocomplete(e *handler.AutocompleteEvent) error {
-	tracks, err := h.Database.GetQueue(*e.GuildID())
+	tracks, err := h.Database.SearchQueue(*e.GuildID(), e.Data.String("song"), 25)
 	if err != nil {
 		return e.Result(nil)
 	}
 
-	trackValues := make(map[string]int, len(tracks))
-	trackNames := make([]string, len(tracks))
+	choices := make([]discord.AutocompleteChoice, len(tracks))
 	for i, track := range tracks {
-		name := trim(fmt.Sprintf("%d. %s - %s", i+1, track.Track.Info.Title, track.Track.Info.Author), 100)
-		trackValues[name] = track.ID
-		trackNames[i] = name
-	}
-
-	ranks := fuzzy.RankFindFold(e.Data.String("track"), trackNames)
-	choicesLen := len(ranks)
-	if choicesLen > 25 {
-		choicesLen = 25
-	}
-	choices := make([]discord.AutocompleteChoice, choicesLen)
-	for i, rank := range ranks {
-		if i >= 25 {
-			break
-		}
 		choices[i] = discord.AutocompleteChoiceInt{
-			Name:  rank.Target,
-			Value: trackValues[rank.Target],
+			Name:  res.Trim(fmt.Sprintf("%d. %s", i+1, track.Track.Info.Title), 100),
+			Value: track.ID,
 		}
 	}
 	return e.Result(choices)
-}
-
-func trim(s string, length int) string {
-	r := []rune(s)
-	if len(r) > length {
-		return string(r[:length-1]) + "…"
-	}
-	return s
 }

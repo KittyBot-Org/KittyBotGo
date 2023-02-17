@@ -9,7 +9,12 @@ import (
 
 func Update(content string) discord.MessageUpdate {
 	return discord.MessageUpdate{
-		Content: &content,
+		Embeds: &[]discord.Embed{
+			{
+				Description: content,
+				Color:       PrimaryColor,
+			},
+		},
 	}
 }
 
@@ -23,7 +28,12 @@ func UpdateErr(message string, err error, a ...any) discord.MessageUpdate {
 
 func UpdateError(message string, a ...any) discord.MessageUpdate {
 	return discord.MessageUpdate{
-		Content: json.Ptr(fmt.Sprintf(message, a...)),
-		Flags:   json.Ptr(discord.MessageFlagEphemeral),
+		Embeds: &[]discord.Embed{
+			{
+				Description: fmt.Sprintf(message, a...),
+				Color:       DangerColor,
+			},
+		},
+		Flags: json.Ptr(discord.MessageFlagEphemeral),
 	}
 }

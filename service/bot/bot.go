@@ -75,7 +75,7 @@ type Bot struct {
 	Logger   log.Logger
 	Discord  bot.Client
 	Lavalink disgolink.Client
-	Database *database.Database
+	Database *database.DB
 }
 
 func (b *Bot) Start(commands []discord.ApplicationCommandCreate) error {

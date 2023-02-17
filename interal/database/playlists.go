@@ -18,13 +18,19 @@ type PlaylistTrack struct {
 	Track      lavalink.Track `db:"track"`
 }
 
-func (d *Database) GetPlaylists(userID snowflake.ID) ([]Playlist, error) {
+func (d *DB) GetPlaylists(userID snowflake.ID) ([]Playlist, error) {
 	var playlists []Playlist
 	err := d.dbx.Select(&playlists, "SELECT * FROM playlists WHERE user_id = $1", userID)
 	return playlists, err
 }
 
-func (d *Database) GetPlaylist(playlistID int) (Playlist, []PlaylistTrack, error) {
+func (d *DB) SearchPlaylists(userID snowflake.ID, query string, limit int) ([]Playlist, error) {
+	var playlists []Playlist
+	err := d.dbx.Select(&playlists, "SELECT * FROM playlists WHERE user_id = $1 ORDER BY name <->> $2 ASC LIMIT $3", userID, query, limit)
+	return playlists, err
+}
+
+func (d *DB) GetPlaylist(playlistID int) (Playlist, []PlaylistTrack, error) {
 	var playlist Playlist
 	err := d.dbx.Get(&playlist, "SELECT * FROM playlists WHERE id = $1", playlistID)
 	if err != nil {
@@ -36,18 +42,18 @@ func (d *Database) GetPlaylist(playlistID int) (Playlist, []PlaylistTrack, error
 	return playlist, tracks, err
 }
 
-func (d *Database) CreatePlaylist(userID snowflake.ID, name string) (Playlist, error) {
+func (d *DB) CreatePlaylist(userID snowflake.ID, name string) (Playlist, error) {
 	var playlist Playlist
 	err := d.dbx.Get(&playlist, "INSERT INTO playlists (name, user_id) VALUES ($1, $2) RETURNING *", name, userID)
 	return playlist, err
 }
 
-func (d *Database) DeletePlaylist(playlistID int, userID snowflake.ID) error {
+func (d *DB) DeletePlaylist(playlistID int, userID snowflake.ID) error {
 	_, err := d.dbx.Exec("DELETE FROM playlists WHERE id = $1 AND user_id = $2", playlistID, userID)
 	return err
 }
 
-func (d *Database) AddTracksToPlaylist(playlistID int, tracks []lavalink.Track) error {
+func (d *DB) AddTracksToPlaylist(playlistID int, tracks []lavalink.Track) error {
 	playlistTracks := make([]PlaylistTrack, len(tracks))
 	for i, track := range tracks {
 		playlistTracks[i] = PlaylistTrack{
@@ -59,7 +65,13 @@ func (d *Database) AddTracksToPlaylist(playlistID int, tracks []lavalink.Track) 
 	return err
 }
 
-func (d *Database) RemoveTracksFromPlaylist(trackIDs []int) error {
-	_, err := d.dbx.NamedExec("DELETE FROM playlist_tracks WHERE id = :id", trackIDs)
+func (d *DB) SearchPlaylistTracks(playlistID int, query string, limit int) ([]PlaylistTrack, error) {
+	var tracks []PlaylistTrack
+	err := d.dbx.Select(&tracks, "SELECT * FROM playlist_tracks WHERE playlist_id = $1 ORDER BY track -> 'info' ->> 'title' <->> $2 ASC LIMIT $3", playlistID, query, limit)
+	return tracks, err
+}
+
+func (d *DB) RemoveTrackFromPlaylist(trackID int) error {
+	_, err := d.dbx.Exec("DELETE FROM playlist_tracks WHERE id = $1", trackID)
 	return err
 }

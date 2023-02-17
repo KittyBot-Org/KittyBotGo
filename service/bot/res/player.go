@@ -23,7 +23,12 @@ func playerComponents(likeButton bool) []discord.ContainerComponent {
 
 func CreatePlayer(content string, likeButton bool) discord.MessageCreate {
 	return discord.MessageCreate{
-		Content:    content,
+		Embeds: []discord.Embed{
+			{
+				Description: content,
+				Color:       PrimaryColor,
+			},
+		},
 		Components: playerComponents(likeButton),
 	}
 }
@@ -35,7 +40,12 @@ func CreatePlayerf(format string, likeButton bool, a ...any) discord.MessageCrea
 func UpdatePlayer(content string, likeButton bool) discord.MessageUpdate {
 	components := playerComponents(likeButton)
 	return discord.MessageUpdate{
-		Content:    &content,
+		Embeds: &[]discord.Embed{
+			{
+				Description: content,
+				Color:       PrimaryColor,
+			},
+		},
 		Components: &components,
 	}
 }

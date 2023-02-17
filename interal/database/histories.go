@@ -5,7 +5,7 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 )
 
-func (d *Database) GetHistory(guildID snowflake.ID) ([]Track, error) {
+func (d *DB) GetHistory(guildID snowflake.ID) ([]Track, error) {
 	var history []Track
 	if err := d.dbx.Select(&history, "SELECT * FROM histories WHERE guild_id = $1 ORDER BY position DESC", guildID); err != nil {
 		return nil, err
@@ -14,7 +14,7 @@ func (d *Database) GetHistory(guildID snowflake.ID) ([]Track, error) {
 	return history, nil
 }
 
-func (d *Database) AddHistoryTracks(guildID snowflake.ID, tracks []lavalink.Track) error {
+func (d *DB) AddHistoryTracks(guildID snowflake.ID, tracks []lavalink.Track) error {
 	dbTracks := make([]Track, len(tracks))
 	for i, track := range tracks {
 		dbTracks[i] = Track{
@@ -27,7 +27,7 @@ func (d *Database) AddHistoryTracks(guildID snowflake.ID, tracks []lavalink.Trac
 	return err
 }
 
-func (d *Database) PreviousHistoryTrack(guildID snowflake.ID) (*Track, error) {
+func (d *DB) PreviousHistoryTrack(guildID snowflake.ID) (*Track, error) {
 	var track Track
 	err := d.dbx.Get(&track, "DELETE FROM histories WHERE position = (SELECT MAX(position) from histories WHERE guild_id = $1) RETURNING *", guildID)
 	if err != nil {
@@ -37,12 +37,12 @@ func (d *Database) PreviousHistoryTrack(guildID snowflake.ID) (*Track, error) {
 	return &track, nil
 }
 
-func (d *Database) RemoveHistoryTrack(trackID int) error {
+func (d *DB) RemoveHistoryTrack(trackID int) error {
 	_, err := d.dbx.Exec("DELETE FROM histories WHERE id = $1", trackID)
 	return err
 }
 
-func (d *Database) ClearHistory(guildID snowflake.ID) error {
+func (d *DB) ClearHistory(guildID snowflake.ID) error {
 	_, err := d.dbx.Exec("DELETE FROM histories WHERE guild_id = $1", guildID)
 	return err
 }

@@ -33,7 +33,7 @@ type Player struct {
 	QueueType QueueType    `db:"queue_type"`
 }
 
-func (d *Database) HasPlayer(guildID snowflake.ID) (bool, error) {
+func (d *DB) HasPlayer(guildID snowflake.ID) (bool, error) {
 	var count int
 	err := d.dbx.Get(&count, "SELECT COUNT(*) FROM players WHERE guild_id = $1", guildID)
 	if err != nil {
@@ -42,7 +42,7 @@ func (d *Database) HasPlayer(guildID snowflake.ID) (bool, error) {
 	return count > 0, nil
 }
 
-func (d *Database) GetPlayer(guildID snowflake.ID, node string) (*Player, error) {
+func (d *DB) GetPlayer(guildID snowflake.ID, node string) (*Player, error) {
 	var player Player
 	err := d.dbx.Get(&player, "SELECT * FROM players WHERE guild_id = $1", guildID)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -55,12 +55,12 @@ func (d *Database) GetPlayer(guildID snowflake.ID, node string) (*Player, error)
 	return &player, err
 }
 
-func (d *Database) UpdatePlayer(player Player) error {
+func (d *DB) UpdatePlayer(player Player) error {
 	_, err := d.dbx.NamedExec("INSERT INTO players (guild_id, node, queue_type) VALUES (:guild_id, :node, :queue_type) ON CONFLICT (guild_id) DO UPDATE SET node = :node, queue_type = :queue_type", player)
 	return err
 }
 
-func (d *Database) DeletePlayer(guildID snowflake.ID) error {
+func (d *DB) DeletePlayer(guildID snowflake.ID) error {
 	_, err := d.dbx.Exec("DELETE FROM players WHERE guild_id = $1", guildID)
 	return err
 }

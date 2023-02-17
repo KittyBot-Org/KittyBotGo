@@ -10,7 +10,6 @@ require (
 	github.com/disgoorg/snowflake/v2 v2.0.1
 	github.com/jackc/pgx/v5 v5.3.0
 	github.com/jmoiron/sqlx v1.3.5
-	github.com/lithammer/fuzzysearch v1.1.5
 )
 
 require (
