@@ -12,6 +12,7 @@ require (
 	github.com/disgoorg/snowflake/v2 v2.0.1
 	github.com/disgoorg/source-plugins v1.3.1-0.20221009162536-28cea64ea737
 	github.com/disgoorg/utils/paginator v0.0.0-20220811191046-2474e390fa3b
+	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-jet/jet/v2 v2.9.0
 	github.com/gorilla/mux v1.8.0
 	github.com/lib/pq v1.10.7

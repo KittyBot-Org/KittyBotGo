@@ -3,18 +3,22 @@ package main
 import (
 	"context"
 	"flag"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/disgoorg/log"
+	"github.com/disgoorg/snowflake/v2"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	_ "github.com/lib/pq"
 
 	"github.com/KittyBot-Org/KittyBotGo/config"
 	"github.com/KittyBot-Org/KittyBotGo/db"
 	"github.com/KittyBot-Org/KittyBotGo/dbot"
 	"github.com/KittyBot-Org/KittyBotGo/dbot/commands"
 	"github.com/KittyBot-Org/KittyBotGo/dbot/listeners"
-	"github.com/disgoorg/log"
-	"github.com/disgoorg/snowflake/v2"
-	_ "github.com/lib/pq"
 )
 
 var (
@@ -34,6 +38,15 @@ func init() {
 func main() {
 	logger := log.New(log.Ldate | log.Ltime | log.Lshortfile)
 	logger.Info("Starting discord dbot version: ", version)
+
+	go func() {
+		r := chi.NewRouter()
+		r.Use(middleware.Logger)
+		r.Use(middleware.Recoverer)
+		r.Use(middleware.Heartbeat("/ping"))
+		r.Mount("/debug", middleware.Profiler())
+		log.Error(http.ListenAndServe("0.0.0.0:6060", r))
+	}()
 
 	var cfg dbot.Config
 	if err := config.LoadConfig(&cfg); err != nil {
