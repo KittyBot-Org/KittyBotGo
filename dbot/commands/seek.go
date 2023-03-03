@@ -1,13 +1,14 @@
 package commands
 
 import (
-	"github.com/KittyBot-Org/KittyBotGo/dbot"
-	"github.com/KittyBot-Org/KittyBotGo/dbot/responses"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgolink/lavalink"
 	"github.com/disgoorg/handler"
 	"github.com/disgoorg/json"
+
+	"github.com/KittyBot-Org/KittyBotGo/dbot"
+	"github.com/KittyBot-Org/KittyBotGo/dbot/responses"
 )
 
 func Seek(b *dbot.Bot) handler.Command {

@@ -6,8 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/KittyBot-Org/KittyBotGo/dbot"
-	"github.com/KittyBot-Org/KittyBotGo/dbot/responses"
 	"github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
@@ -16,6 +14,9 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 	source_plugins "github.com/disgoorg/source-plugins"
 	"github.com/lithammer/fuzzysearch/fuzzy"
+
+	"github.com/KittyBot-Org/KittyBotGo/dbot"
+	"github.com/KittyBot-Org/KittyBotGo/dbot/responses"
 )
 
 var urlPattern = regexp.MustCompile("^https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]?")

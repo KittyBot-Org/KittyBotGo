@@ -1,8 +1,9 @@
 package metrics
 
 import (
-	"github.com/KittyBot-Org/KittyBotGo/dbot"
 	"github.com/disgoorg/log"
+
+	"github.com/KittyBot-Org/KittyBotGo/dbot"
 
 	"net/http"
 

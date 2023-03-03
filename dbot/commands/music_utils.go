@@ -3,12 +3,13 @@ package commands
 import (
 	"fmt"
 
-	"github.com/KittyBot-Org/KittyBotGo/dbot"
-	"github.com/KittyBot-Org/KittyBotGo/dbot/responses"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgolink/lavalink"
 	source_plugins "github.com/disgoorg/source-plugins"
+
+	"github.com/KittyBot-Org/KittyBotGo/dbot"
+	"github.com/KittyBot-Org/KittyBotGo/dbot/responses"
 )
 
 func getMusicControllerComponents(track lavalink.AudioTrack) discord.ContainerComponent {

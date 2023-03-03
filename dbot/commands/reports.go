@@ -4,12 +4,13 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/KittyBot-Org/KittyBotGo/db/.gen/kittybot-go/public/model"
-	"github.com/KittyBot-Org/KittyBotGo/dbot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/handler"
 	"github.com/disgoorg/json"
+
+	"github.com/KittyBot-Org/KittyBotGo/db/.gen/kittybot-go/public/model"
+	"github.com/KittyBot-Org/KittyBotGo/dbot"
 )
 
 func Reports(b *dbot.Bot) handler.Command {

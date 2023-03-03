@@ -3,13 +3,14 @@ package commands
 import (
 	"fmt"
 
-	"github.com/KittyBot-Org/KittyBotGo/dbot"
-	"github.com/KittyBot-Org/KittyBotGo/dbot/responses"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/handler"
 	"github.com/disgoorg/utils/paginator"
 	"github.com/lithammer/fuzzysearch/fuzzy"
+
+	"github.com/KittyBot-Org/KittyBotGo/dbot"
+	"github.com/KittyBot-Org/KittyBotGo/dbot/responses"
 )
 
 func LikedTracks(b *dbot.Bot) handler.Command {

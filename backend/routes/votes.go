@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	backend2 "github.com/KittyBot-Org/KittyBotGo/backend"
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/gorilla/mux"
+
+	backend2 "github.com/KittyBot-Org/KittyBotGo/backend"
 )
 
 type voteAddPayload struct {

@@ -3,10 +3,11 @@ package commands
 import (
 	"fmt"
 
-	"github.com/KittyBot-Org/KittyBotGo/dbot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/handler"
+
+	"github.com/KittyBot-Org/KittyBotGo/dbot"
 )
 
 func Loop(b *dbot.Bot) handler.Command {

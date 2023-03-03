@@ -1,10 +1,11 @@
 package listeners
 
 import (
-	"github.com/KittyBot-Org/KittyBotGo/dbot"
 	"github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
+
+	"github.com/KittyBot-Org/KittyBotGo/dbot"
 )
 
 func Music(b *dbot.Bot) bot.EventListener {

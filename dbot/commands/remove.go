@@ -5,11 +5,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/KittyBot-Org/KittyBotGo/dbot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/handler"
 	"github.com/lithammer/fuzzysearch/fuzzy"
+
+	"github.com/KittyBot-Org/KittyBotGo/dbot"
 )
 
 func Remove(b *dbot.Bot) handler.Command {

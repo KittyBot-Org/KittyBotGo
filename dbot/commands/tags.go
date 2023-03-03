@@ -5,8 +5,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/KittyBot-Org/KittyBotGo/dbot"
-	"github.com/KittyBot-Org/KittyBotGo/dbot/responses"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/handler"
@@ -14,6 +12,9 @@ import (
 	"github.com/go-jet/jet/v2/qrm"
 	"github.com/lib/pq"
 	"github.com/lithammer/fuzzysearch/fuzzy"
+
+	"github.com/KittyBot-Org/KittyBotGo/dbot"
+	"github.com/KittyBot-Org/KittyBotGo/dbot/responses"
 )
 
 func Tags(b *dbot.Bot) handler.Command {

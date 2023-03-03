@@ -3,10 +3,11 @@ package db
 import (
 	"database/sql"
 
-	. "github.com/KittyBot-Org/KittyBotGo/db/.gen/kittybot-go/public/model"
-	"github.com/KittyBot-Org/KittyBotGo/db/.gen/kittybot-go/public/table"
 	"github.com/disgoorg/snowflake/v2"
 	. "github.com/go-jet/jet/v2/postgres"
+
+	. "github.com/KittyBot-Org/KittyBotGo/db/.gen/kittybot-go/public/model"
+	"github.com/KittyBot-Org/KittyBotGo/db/.gen/kittybot-go/public/table"
 )
 
 type GuildSettingsDB interface {

@@ -7,13 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/KittyBot-Org/KittyBotGo/dbot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/rest"
 	"github.com/disgoorg/handler"
 	"github.com/disgoorg/json"
 	"github.com/disgoorg/snowflake/v2"
+
+	"github.com/KittyBot-Org/KittyBotGo/dbot"
 )
 
 func ReportAction(b *dbot.Bot) handler.Component {

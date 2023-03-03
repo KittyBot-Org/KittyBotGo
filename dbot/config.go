@@ -1,8 +1,9 @@
 package dbot
 
 import (
-	"github.com/KittyBot-Org/KittyBotGo/config"
 	"github.com/disgoorg/disgolink/lavalink"
+
+	"github.com/KittyBot-Org/KittyBotGo/config"
 )
 
 type Config struct {

@@ -1,10 +1,11 @@
 package commands
 
 import (
-	"github.com/KittyBot-Org/KittyBotGo/dbot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/handler"
+
+	"github.com/KittyBot-Org/KittyBotGo/dbot"
 )
 
 func ClearQueue(b *dbot.Bot) handler.Command {

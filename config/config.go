@@ -4,10 +4,11 @@ import (
 	"errors"
 	"os"
 
-	"github.com/KittyBot-Org/KittyBotGo/db"
 	"github.com/disgoorg/json"
 	"github.com/disgoorg/log"
 	"github.com/disgoorg/snowflake/v2"
+
+	"github.com/KittyBot-Org/KittyBotGo/db"
 )
 
 func LoadConfig(v interface{}) error {

@@ -5,12 +5,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/KittyBot-Org/KittyBotGo/db/.gen/kittybot-go/public/model"
-	"github.com/KittyBot-Org/KittyBotGo/dbot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/handler"
 	"github.com/disgoorg/snowflake/v2"
+
+	"github.com/KittyBot-Org/KittyBotGo/db/.gen/kittybot-go/public/model"
+	"github.com/KittyBot-Org/KittyBotGo/dbot"
 )
 
 func Report(b *dbot.Bot) handler.Command {

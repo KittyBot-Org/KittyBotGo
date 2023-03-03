@@ -6,12 +6,13 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/disgoorg/log"
+	_ "github.com/lib/pq"
+
 	backend2 "github.com/KittyBot-Org/KittyBotGo/backend"
 	"github.com/KittyBot-Org/KittyBotGo/backend/routes"
 	"github.com/KittyBot-Org/KittyBotGo/config"
 	"github.com/KittyBot-Org/KittyBotGo/db"
-	"github.com/disgoorg/log"
-	_ "github.com/lib/pq"
 )
 
 var (

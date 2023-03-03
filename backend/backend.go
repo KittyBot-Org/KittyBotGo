@@ -4,8 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/KittyBot-Org/KittyBotGo/db"
 	"github.com/disgoorg/handler"
+
+	"github.com/KittyBot-Org/KittyBotGo/db"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/rest"

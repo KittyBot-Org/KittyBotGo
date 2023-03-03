@@ -3,8 +3,9 @@ package backend
 import (
 	"time"
 
-	"github.com/KittyBot-Org/KittyBotGo/config"
 	"github.com/disgoorg/snowflake/v2"
+
+	"github.com/KittyBot-Org/KittyBotGo/config"
 )
 
 type Config struct {

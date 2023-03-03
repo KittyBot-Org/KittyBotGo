@@ -3,11 +3,12 @@ package commands
 import (
 	"fmt"
 
-	"github.com/KittyBot-Org/KittyBotGo/dbot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/handler"
 	"github.com/disgoorg/utils/paginator"
+
+	"github.com/KittyBot-Org/KittyBotGo/dbot"
 )
 
 func Queue(b *dbot.Bot) handler.Command {

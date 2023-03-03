@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/KittyBot-Org/KittyBotGo/dbot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/handler"
 	"github.com/disgoorg/json"
+
+	"github.com/KittyBot-Org/KittyBotGo/dbot"
 )
 
 func ReportUser(b *dbot.Bot) handler.Command {
