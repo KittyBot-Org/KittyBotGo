@@ -84,14 +84,14 @@ func playHandler(b *dbot.Bot) handler.CommandHandler {
 	return func(e *events.ApplicationCommandInteractionCreate) error {
 		data := e.SlashCommandInteractionData()
 
-		voiceState, ok := b.Client.Caches().VoiceStates().Get(*e.GuildID(), e.User().ID)
+		voiceState, ok := b.Client.Caches().VoiceState(*e.GuildID(), e.User().ID)
 		if !ok || voiceState.ChannelID == nil {
 			return e.CreateMessage(responses.CreateErrorf("You must be in a voice channel to use this command."))
 		}
 
-		channel, _ := e.Client().Caches().Channels().GetGuildAudioChannel(*voiceState.ChannelID)
-		selfMember, _ := e.Client().Caches().GetSelfMember(*e.GuildID())
-		if perms := b.Client.Caches().GetMemberPermissionsInChannel(channel, selfMember); perms.Missing(discord.PermissionVoiceConnect) {
+		channel, _ := e.Client().Caches().GuildAudioChannel(*voiceState.ChannelID)
+		selfMember, _ := e.Client().Caches().SelfMember(*e.GuildID())
+		if perms := b.Client.Caches().MemberPermissionsInChannel(channel, selfMember); perms.Missing(discord.PermissionVoiceConnect) {
 			return e.CreateMessage(responses.CreateErrorf("It seems like I don't have permissions to join your voice channel."))
 		}
 
@@ -112,13 +112,13 @@ func playHandler(b *dbot.Bot) handler.CommandHandler {
 				if err := b.DB.PlayHistory().Add(e.User().ID, query, track.Info().Title); err != nil {
 					b.Logger.Error("Failed to add track to play history: ", err)
 				}
-				playAndQueue(b, e.BaseInteraction, track)
+				playAndQueue(b, e, track)
 			},
 			func(playlist lavalink.AudioPlaylist) {
 				if err := b.DB.PlayHistory().Add(e.User().ID, query, playlist.Name()); err != nil {
 					b.Logger.Error("Failed to add track to play history: ", err)
 				}
-				playAndQueue(b, e.BaseInteraction, playlist.Tracks()...)
+				playAndQueue(b, e, playlist.Tracks()...)
 			},
 			func(tracks []lavalink.AudioTrack) {
 				if err := b.DB.PlayHistory().Add(e.User().ID, query, data.String("query")); err != nil {
@@ -221,14 +221,14 @@ func playAutocompleteHandler(b *dbot.Bot) handler.AutocompleteHandler {
 	}
 }
 
-func playAndQueue(b *dbot.Bot, i discord.BaseInteraction, tracks ...lavalink.AudioTrack) {
+func playAndQueue(b *dbot.Bot, i discord.Interaction, tracks ...lavalink.AudioTrack) {
 	player := b.MusicPlayers.Get(*i.GuildID())
 	if player == nil {
 		player = b.MusicPlayers.New(*i.GuildID(), dbot.PlayerTypeMusic, dbot.LoopingTypeOff)
 		b.MusicPlayers.Add(player)
 	}
 	var voiceChannelID snowflake.ID
-	if voiceState, ok := b.Client.Caches().VoiceStates().Get(*i.GuildID(), i.User().ID); !ok || voiceState.ChannelID == nil {
+	if voiceState, ok := b.Client.Caches().VoiceState(*i.GuildID(), i.User().ID); !ok || voiceState.ChannelID == nil {
 		if _, err := b.Client.Rest().UpdateInteractionResponse(i.ApplicationID(), i.Token(), responses.UpdateErrorComponentsf("You need to be in a voice channel.", nil)); err != nil {
 			b.Logger.Error("Failed to update error message: ", err)
 		}
@@ -237,8 +237,8 @@ func playAndQueue(b *dbot.Bot, i discord.BaseInteraction, tracks ...lavalink.Aud
 		voiceChannelID = *voiceState.ChannelID
 	}
 
-	if voiceState, ok := b.Client.Caches().VoiceStates().Get(*i.GuildID(), b.Client.ID()); !ok || voiceState.ChannelID == nil || *voiceState.ChannelID != voiceChannelID {
-		if err := b.Client.Connect(context.TODO(), *i.GuildID(), voiceChannelID); err != nil {
+	if voiceState, ok := b.Client.Caches().VoiceState(*i.GuildID(), b.Client.ID()); !ok || voiceState.ChannelID == nil || *voiceState.ChannelID != voiceChannelID {
+		if err := b.Client.UpdateVoiceState(context.TODO(), *i.GuildID(), &voiceChannelID, false, false); err != nil {
 			if _, err = b.Client.Rest().UpdateInteractionResponse(i.ApplicationID(), i.Token(), responses.UpdateErrorComponentsf("Failed to connect to your voice channel. Please try again.", nil)); err != nil {
 				b.Logger.Error("Failed to update error message: ", err)
 			}
@@ -335,7 +335,7 @@ func giveSearchSelection(b *dbot.Bot, e *events.ApplicationCommandInteractionCre
 					index, _ := strconv.Atoi(value)
 					playTracks = append(playTracks, tracks[index])
 				}
-				playAndQueue(b, e.BaseInteraction, playTracks...)
+				playAndQueue(b, e, playTracks...)
 				return
 			},
 			func() {

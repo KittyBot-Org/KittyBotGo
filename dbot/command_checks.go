@@ -70,7 +70,7 @@ func HasHistoryItems(b *Bot) handler.Check[*events.ApplicationCommandInteraction
 
 func IsMemberConnectedToVoiceChannel(b *Bot) handler.Check[*events.ApplicationCommandInteractionCreate] {
 	return func(ctx *events.ApplicationCommandInteractionCreate) bool {
-		if voiceState, ok := ctx.Client().Caches().VoiceStates().Get(*ctx.GuildID(), ctx.User().ID); !ok || voiceState.ChannelID == nil {
+		if voiceState, ok := ctx.Client().Caches().VoiceState(*ctx.GuildID(), ctx.User().ID); !ok || voiceState.ChannelID == nil {
 			if err := ctx.CreateMessage(discord.MessageCreate{
 				Content: "You need to be connected to a voice channel to play music.",
 				Flags:   discord.MessageFlagEphemeral,

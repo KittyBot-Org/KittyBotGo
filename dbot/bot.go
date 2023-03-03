@@ -3,7 +3,6 @@ package dbot
 import (
 	"context"
 
-	"github.com/KittyBot-Org/KittyBotGo/db"
 	"github.com/disgoorg/disgo"
 	"github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgo/cache"
@@ -15,6 +14,8 @@ import (
 	"github.com/disgoorg/log"
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/disgoorg/utils/paginator"
+
+	"github.com/KittyBot-Org/KittyBotGo/db"
 )
 
 func New(logger log.Logger, config Config, version string) *Bot {
@@ -46,7 +47,7 @@ func (b *Bot) SetupBot(listeners ...bot.EventListener) (err error) {
 		bot.WithLogger(b.Logger),
 		bot.WithGatewayConfigOpts(gateway.WithIntents(gateway.IntentGuilds, gateway.IntentGuildVoiceStates, gateway.IntentMessageContent, gateway.IntentAutoModerationExecution)),
 		bot.WithCacheConfigOpts(
-			cache.WithCacheFlags(cache.FlagVoiceStates, cache.FlagMembers, cache.FlagChannels, cache.FlagGuilds, cache.FlagRoles),
+			cache.WithCaches(cache.FlagVoiceStates, cache.FlagMembers, cache.FlagChannels, cache.FlagGuilds, cache.FlagRoles),
 			cache.WithMemberCachePolicy(func(member discord.Member) bool {
 				return member.User.ID == b.Client.ID()
 			}),

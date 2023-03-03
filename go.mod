@@ -3,7 +3,7 @@ module github.com/KittyBot-Org/KittyBotGo
 go 1.18
 
 require (
-	github.com/disgoorg/disgo v0.14.1-0.20221217000909-728480f0d5fc
+	github.com/disgoorg/disgo v0.15.2
 	github.com/disgoorg/disgolink/disgolink v1.7.4
 	github.com/disgoorg/disgolink/lavalink v1.7.3
 	github.com/disgoorg/handler v0.3.0
@@ -37,10 +37,11 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/sasha-s/go-csync v0.0.0-20210812194225-61421b77c44b // indirect
-	github.com/stretchr/testify v1.8.1 // indirect
-	golang.org/x/exp v0.0.0-20221114191408-850992195362 // indirect
-	golang.org/x/sys v0.2.0 // indirect
-	golang.org/x/text v0.4.0 // indirect
+	github.com/stretchr/testify v1.8.2 // indirect
+	golang.org/x/crypto v0.6.0 // indirect
+	golang.org/x/exp v0.0.0-20230224173230-c95f2b4c22f2 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

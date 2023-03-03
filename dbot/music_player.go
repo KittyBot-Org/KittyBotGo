@@ -84,7 +84,7 @@ func (p *MusicPlayer) PlanDisconnect() {
 
 	<-ctx.Done()
 	if ctx.Err() == context.DeadlineExceeded {
-		if err := p.Bot.Client.Disconnect(context.TODO(), p.GuildID()); err != nil {
+		if err := p.Bot.Client.UpdateVoiceState(context.TODO(), p.GuildID(), nil, false, false); err != nil {
 			p.Bot.Logger.Error("Failed to disconnect from voice channel: ", err)
 		}
 	}

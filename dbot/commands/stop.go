@@ -36,7 +36,7 @@ func stopHandler(b *dbot.Bot) handler.CommandHandler {
 			}
 			return err
 		}
-		if err := b.Client.Disconnect(context.TODO(), *e.GuildID()); err != nil {
+		if err := b.Client.UpdateVoiceState(context.TODO(), *e.GuildID(), nil, false, false); err != nil {
 			b.Logger.Error("Failed to disconnect dbot: ", err)
 			err = e.CreateMessage(discord.MessageCreate{
 				Content: "Failed to disconnect from voice channel. Please try again.",

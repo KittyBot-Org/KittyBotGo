@@ -5,7 +5,6 @@ import (
 	"github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
-	"github.com/disgoorg/snowflake/v2"
 )
 
 func Music(b *dbot.Bot) bot.EventListener {
@@ -22,10 +21,13 @@ func Music(b *dbot.Bot) bot.EventListener {
 			return
 		}
 		if e.VoiceState.ChannelID == nil && e.OldVoiceState.ChannelID != nil {
-			botVoiceState, ok := b.Client.Caches().VoiceStates().Get(e.VoiceState.GuildID, e.Client().ID())
+			botVoiceState, ok := b.Client.Caches().VoiceState(e.VoiceState.GuildID, e.Client().ID())
 			if ok && botVoiceState.ChannelID != nil && *botVoiceState.ChannelID == *e.OldVoiceState.ChannelID {
-				voiceStates := e.Client().Caches().VoiceStates().FindAll(func(groupID snowflake.ID, voiceState discord.VoiceState) bool {
-					return voiceState.ChannelID != nil && *voiceState.ChannelID == *botVoiceState.ChannelID
+				var voiceStates []discord.VoiceState
+				e.Client().Caches().VoiceStatesForEach(e.VoiceState.GuildID, func(voiceState discord.VoiceState) {
+					if voiceState.ChannelID != nil && *voiceState.ChannelID == *botVoiceState.ChannelID {
+						voiceStates = append(voiceStates, voiceState)
+					}
 				})
 				if len(voiceStates) == 0 {
 					go player.PlanDisconnect()
