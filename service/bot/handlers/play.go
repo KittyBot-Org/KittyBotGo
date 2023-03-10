@@ -96,7 +96,7 @@ func (h *Handlers) OnPlayerPlay(e *handler.CommandEvent) error {
 		var loadErr error
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		player.Node().LoadTracks(ctx, query, disgolink.NewResultHandler(
+		player.Node().LoadTracksHandler(ctx, query, disgolink.NewResultHandler(
 			func(track lavalink.Track) {
 				loadErr = h.handleTracks(ctx, e, *voiceState.ChannelID, track)
 			},
