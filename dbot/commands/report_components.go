@@ -202,6 +202,12 @@ func reportActionHandler(b *dbot.Bot) handler.ComponentHandler {
 		value := e.StringSelectMenuInteractionData().Values[0]
 		switch value {
 		case "delete-message":
+			if e.Member().Permissions.Missing(discord.PermissionManageMessages) {
+				return e.CreateMessage(discord.MessageCreate{
+					Content: "You need the `Manage Messages` permission to use this action.",
+					Flags:   discord.MessageFlagEphemeral,
+				})
+			}
 			if err = b.Client.Rest().DeleteMessage(snowflake.MustParse(report.ChannelID), snowflake.MustParse(report.MessageID), rest.WithReason(reason)); err != nil {
 				b.Logger.Errorf("Failed to delete message: %s", err)
 				content = "Failed to delete message, please reach out to a bot developer."
@@ -252,6 +258,12 @@ func reportActionHandler(b *dbot.Bot) handler.ComponentHandler {
 			}
 
 		case "timeout":
+			if e.Member().Permissions.Missing(discord.PermissionModerateMembers) {
+				return e.CreateMessage(discord.MessageCreate{
+					Content: "You need the `Moderate Members` permission to use this action.",
+					Flags:   discord.MessageFlagEphemeral,
+				})
+			}
 			return e.CreateModal(discord.ModalCreate{
 				CustomID: fmt.Sprintf("handler:report-action-confirm:timeout:%s", report.UserID),
 				Title:    "Timeout User",
@@ -281,6 +293,12 @@ func reportActionHandler(b *dbot.Bot) handler.ComponentHandler {
 			})
 
 		case "kick":
+			if e.Member().Permissions.Missing(discord.PermissionKickMembers) {
+				return e.CreateMessage(discord.MessageCreate{
+					Content: "You need the `Kick Members` permission to use this action.",
+					Flags:   discord.MessageFlagEphemeral,
+				})
+			}
 			return e.CreateModal(discord.ModalCreate{
 				CustomID: fmt.Sprintf("handler:report-action-confirm:kick:%s", report.UserID),
 				Title:    "Kick User",
@@ -299,6 +317,12 @@ func reportActionHandler(b *dbot.Bot) handler.ComponentHandler {
 			})
 
 		case "ban":
+			if e.Member().Permissions.Missing(discord.PermissionBanMembers) {
+				return e.CreateMessage(discord.MessageCreate{
+					Content: "You need the `Ban Members` permission to use this action.",
+					Flags:   discord.MessageFlagEphemeral,
+				})
+			}
 			return e.CreateModal(discord.ModalCreate{
 				CustomID: fmt.Sprintf("handler:report-action-confirm:ban:%s", report.UserID),
 				Title:    "Ban User",
