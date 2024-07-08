@@ -1,4 +1,4 @@
-package handlers
+package commands
 
 import (
 	"github.com/disgoorg/disgo/discord"
@@ -12,6 +12,6 @@ var pingCommand = discord.SlashCommandCreate{
 	Description: "Ping the bot",
 }
 
-func (h *Handlers) OnPing(e *handler.CommandEvent) error {
+func (c *commands) OnPing(_ discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
 	return e.CreateMessage(res.Create("Pong!"))
 }

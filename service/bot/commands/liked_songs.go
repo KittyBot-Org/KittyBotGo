@@ -1,14 +1,15 @@
-package handlers
+package commands
 
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"regexp"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/handler"
-	"github.com/disgoorg/disgolink/v2/lavalink"
+	"github.com/disgoorg/disgolink/v3/lavalink"
 
 	"github.com/KittyBot-Org/KittyBotGo/service/bot/res"
 )
@@ -62,7 +63,7 @@ func findTrackURL(content string) string {
 	return allMatches[0][trackRegex.SubexpIndex("url")]
 }
 
-func (h *Handlers) OnLikedSongsAddButton(e *handler.ComponentEvent) error {
+func (c *commands) OnLikedSongsAddButton(e *handler.ComponentEvent) error {
 	url := findTrackURL(e.Message.Content)
 	if url == "" {
 		for _, embed := range e.Message.Embeds {
@@ -76,32 +77,52 @@ func (h *Handlers) OnLikedSongsAddButton(e *handler.ComponentEvent) error {
 		return e.CreateMessage(res.CreateError("Failed to find a song URL."))
 	}
 
-	likedTrack, err := h.Database.FindLikedTrack(e.User().ID, url)
-	if err != nil && err != sql.ErrNoRows {
+	likedTrack, err := c.Database.FindLikedTrack(e.User().ID, url)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return e.CreateMessage(res.CreateErr("Failed to like song", err))
 	}
 
-	if err == sql.ErrNoRows {
-		result, err := h.Lavalink.BestNode().Rest().LoadTracks(context.Background(), url)
-		if err != nil {
-			return e.CreateMessage(res.CreateErr("Failed to like song", err))
-		}
-		if result.LoadType == lavalink.LoadTypeLoadFailed {
-			return e.CreateMessage(res.CreateErr("Failed to like song", err))
-		} else if result.LoadType == lavalink.LoadTypeNoMatches || len(result.Tracks) == 0 {
-			return e.CreateMessage(res.CreateError("Failed to like song: No matches found."))
+	if errors.Is(err, sql.ErrNoRows) {
+		if err = e.DeferCreateMessage(true); err != nil {
+			return err
 		}
 
-		track := result.Tracks[0]
-		if err = h.Database.AddLikedTrack(e.User().ID, track); err != nil {
-			return e.CreateMessage(res.CreateError("Failed to add song to your liked songs. Please try again."))
+		result, err := c.Lavalink.BestNode().Rest().LoadTracks(context.Background(), url)
+		if err != nil {
+			_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to like song", err))
+			return err
 		}
-		create := res.Createf("❤ Added %s to your liked songs.", res.FormatTrack(track, 0))
-		create.Flags = discord.MessageFlagEphemeral
-		return e.CreateMessage(create)
+
+		var track lavalink.Track
+		switch d := result.Data.(type) {
+		case lavalink.Exception:
+			_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to like song", err))
+			return err
+		case lavalink.Empty:
+			_, err = e.UpdateInteractionResponse(res.UpdateError("Failed to like song: No matches found."))
+			return err
+		case lavalink.Track:
+			track = d
+		case lavalink.Search:
+			if len(d) == 0 {
+				_, err = e.UpdateInteractionResponse(res.UpdateError("Failed to like song: No matches found."))
+				return err
+			}
+			track = d[0]
+		case lavalink.Playlist:
+			_, err = e.UpdateInteractionResponse(res.UpdateError("Failed to like song: Playlists are not supported."))
+			return err
+		}
+
+		if err = c.Database.AddLikedTrack(e.User().ID, track); err != nil {
+			_, err = e.UpdateInteractionResponse(res.UpdateError("Failed to add song to your liked songs. Please try again."))
+			return err
+		}
+		_, err = e.UpdateInteractionResponse(res.Updatef("❤ Added %s to your liked songs.", res.FormatTrack(track, 0)))
+		return err
 	}
 
-	if err = h.Database.RemoveLikedTrack(likedTrack.ID); err != nil {
+	if err = c.Database.RemoveLikedTrack(likedTrack.ID); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to remove song from your liked songs", err))
 	}
 
@@ -110,8 +131,8 @@ func (h *Handlers) OnLikedSongsAddButton(e *handler.ComponentEvent) error {
 	return e.CreateMessage(create)
 }
 
-func (h *Handlers) OnLikedSongsShow(e *handler.CommandEvent) error {
-	likedTracks, err := h.Database.GetLikedTracks(e.User().ID)
+func (c *commands) OnLikedSongsShow(_ discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
+	likedTracks, err := c.Database.GetLikedTracks(e.User().ID)
 	if err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to get liked songs", err))
 	}
@@ -131,21 +152,21 @@ func (h *Handlers) OnLikedSongsShow(e *handler.CommandEvent) error {
 	return e.CreateMessage(res.Create(content))
 }
 
-func (h *Handlers) OnLikedSongsRemove(e *handler.CommandEvent) error {
-	trackID := e.SlashCommandInteractionData().Int("song")
+func (c *commands) OnLikedSongsRemove(data discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
+	trackID := data.Int("song")
 
-	if err := h.Database.RemoveLikedTrack(trackID); err != nil {
+	if err := c.Database.RemoveLikedTrack(trackID); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to remove song from your liked songs", err))
 	}
 
 	return e.CreateMessage(res.Create("Removed song from your liked songs."))
 }
 
-func (h *Handlers) OnLikedSongsAutocomplete(e *handler.AutocompleteEvent) error {
+func (c *commands) OnLikedSongsAutocomplete(e *handler.AutocompleteEvent) error {
 	query := e.Data.String("song")
-	likedTracks, err := h.Database.SearchLikedTracks(e.User().ID, query, 25)
+	likedTracks, err := c.Database.SearchLikedTracks(e.User().ID, query, 25)
 	if err != nil {
-		return e.Result(nil)
+		return e.AutocompleteResult(nil)
 	}
 
 	choices := make([]discord.AutocompleteChoice, len(likedTracks))
@@ -155,11 +176,11 @@ func (h *Handlers) OnLikedSongsAutocomplete(e *handler.AutocompleteEvent) error 
 			Value: track.ID,
 		}
 	}
-	return e.Result(choices)
+	return e.AutocompleteResult(choices)
 }
 
-func (h *Handlers) OnLikedSongsClear(e *handler.CommandEvent) error {
-	if err := h.Database.ClearLikedTracks(e.User().ID); err != nil {
+func (c *commands) OnLikedSongsClear(_ discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
+	if err := c.Database.ClearLikedTracks(e.User().ID); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to clear liked songs", err))
 	}
 	return e.CreateMessage(res.Create("Cleared liked songs."))

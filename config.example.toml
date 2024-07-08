@@ -1,0 +1,27 @@
+[log]
+level = 'info'
+format = 'text'
+add_source = true
+no_color = false
+
+[bot]
+dev_mode = false
+sync_commands = true
+guild_ids = [123456789]
+# gateway_url = 'ws://localhost:7878'
+# rest_url = 'http://lcaolhost:7979/api/v10'
+token = '...'
+
+[database]
+host = 'localhost'
+port = 5432
+username = 'kittybotgo'
+password = '...'
+database = 'kittybotgo'
+ssl_mode = 'disable'
+
+[[nodes]]
+name = 'node1'
+address = 'localhost:2333'
+password = '...'
+secure = false

@@ -2,7 +2,10 @@ package bot
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
+	"log/slog"
+	"slices"
 	"sync"
 	"time"
 
@@ -10,40 +13,55 @@ import (
 	"github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgo/cache"
 	"github.com/disgoorg/disgo/discord"
-	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/gateway"
+	"github.com/disgoorg/disgo/handler"
+	"github.com/disgoorg/disgo/rest"
 	"github.com/disgoorg/disgo/sharding"
-	"github.com/disgoorg/disgolink/v2/disgolink"
-	"github.com/disgoorg/disgolink/v2/lavalink"
-	"github.com/disgoorg/json"
-	"github.com/disgoorg/log"
+	"github.com/disgoorg/disgolink/v3/disgolink"
+	"github.com/topi314/tint"
 
-	"github.com/KittyBot-Org/KittyBotGo/interal/config"
-	"github.com/KittyBot-Org/KittyBotGo/interal/database"
+	"github.com/KittyBot-Org/KittyBotGo/service/bot/db"
 )
 
-func New(logger log.Logger, cfgPath string, cfg Config) (*Bot, error) {
+//go:embed sql/schema.sql
+var schema string
+
+func New(cfg Config, version string, commit string) (*Bot, error) {
 	b := &Bot{
-		CfgPath: cfgPath,
 		Config:  cfg,
-		Logger:  logger,
+		Version: version,
+		Commit:  commit,
 	}
 
-	dc, err := disgo.New(cfg.Token,
-		bot.WithLogger(logger),
-		bot.WithShardManagerConfigOpts(
-			sharding.WithGatewayConfigOpts(
-				gateway.WithURL(cfg.GatewayURL),
+	gatewayConfigOpts := []gateway.ConfigOpt{
+		gateway.WithIntents(gateway.IntentGuilds, gateway.IntentGuildVoiceStates),
+	}
+	shardManagerConfigOpts := []sharding.ConfigOpt{
+		sharding.WithGatewayConfigOpts(gatewayConfigOpts...),
+	}
+	if cfg.Bot.GatewayURL != "" {
+		shardManagerConfigOpts = []sharding.ConfigOpt{
+			sharding.WithGatewayConfigOpts(append(gatewayConfigOpts,
+				gateway.WithURL(cfg.Bot.GatewayURL),
 				gateway.WithCompress(false),
-			),
+			)...),
 			sharding.WithRateLimiter(sharding.NewNoopRateLimiter()),
-		),
-		//bot.WithRestClientConfigOpts(
-		//	rest.WithURL(cfg.RestURL),
-		//	rest.WithRateLimiter(rest.NewNoopRateLimiter()),
-		//),
+		}
+	}
+
+	var restClientConfigOpts []rest.ConfigOpt
+	if cfg.Bot.RestURL != "" {
+		restClientConfigOpts = []rest.ConfigOpt{
+			rest.WithURL(cfg.Bot.RestURL),
+			rest.WithRateLimiter(rest.NewNoopRateLimiter()),
+		}
+	}
+
+	d, err := disgo.New(cfg.Bot.Token,
+		bot.WithShardManagerConfigOpts(shardManagerConfigOpts...),
+		bot.WithRestClientConfigOpts(restClientConfigOpts...),
 		bot.WithCacheConfigOpts(
-			cache.WithCaches(cache.FlagGuilds, cache.FlagMembers, cache.FlagVoiceStates),
+			cache.WithCaches(cache.FlagGuilds, cache.FlagVoiceStates),
 		),
 		bot.WithEventListenerFunc(b.OnDiscordEvent),
 	)
@@ -51,47 +69,46 @@ func New(logger log.Logger, cfgPath string, cfg Config) (*Bot, error) {
 		return nil, fmt.Errorf("failed to create discord client: %w", err)
 	}
 
-	ll := disgolink.New(dc.ApplicationID(),
-		disgolink.WithLogger(logger),
+	lavalink := disgolink.New(d.ApplicationID(),
 		disgolink.WithListenerFunc(b.OnLavalinkEvent),
 	)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	db, err := database.New(ctx, cfg.Database)
+	database, err := db.New(cfg.Database, schema)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create database: %w", err)
 	}
 
-	b.Discord = dc
-	b.Database = db
-	b.Lavalink = ll
+	b.Discord = d
+	b.Database = database
+	b.Lavalink = lavalink
 	return b, nil
 }
 
 type Bot struct {
-	CfgPath  string
 	Config   Config
-	Logger   log.Logger
+	Version  string
+	Commit   string
 	Discord  bot.Client
 	Lavalink disgolink.Client
-	Database *database.DB
+	Database *db.DB
 }
 
 func (b *Bot) Start(commands []discord.ApplicationCommandCreate) error {
-	if b.Config.SyncCommands {
-		if b.Config.DevMode {
-			b.Logger.Info("starting in dev mode")
-			for _, guildID := range b.Config.GuildIDs {
-				if _, err := b.Discord.Rest().SetGuildCommands(b.Discord.ApplicationID(), guildID, commands); err != nil {
-					return fmt.Errorf("failed to update guild handlers: %w", err)
-				}
-			}
-		} else {
-			if _, err := b.Discord.Rest().SetGlobalCommands(b.Discord.ApplicationID(), commands); err != nil {
-				return fmt.Errorf("failed to update global handlers: %w", err)
-			}
+	if b.Config.Bot.SyncCommands {
+		if err := handler.SyncCommands(b.Discord, commands, b.Config.Bot.GuildIDs); err != nil {
+			slog.Error("failed to sync commands", tint.Err(err))
 		}
+	}
+
+	b.ConnectLavalinkNodes()
+
+	return b.Discord.OpenShardManager(context.Background())
+}
+
+func (b *Bot) ConnectLavalinkNodes() {
+	nodes, err := b.Database.GetLavalinkNodes(context.Background())
+	if err != nil {
+		slog.Error("failed to get lavalink node session ids", tint.Err(err))
 	}
 
 	var wg sync.WaitGroup
@@ -100,60 +117,45 @@ func (b *Bot) Start(commands []discord.ApplicationCommandCreate) error {
 		cfg := b.Config.Nodes[i]
 		go func() {
 			defer wg.Done()
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
-			node, err := b.Lavalink.AddNode(ctx, cfg)
-			if err != nil {
-				b.Logger.Error("failed to add node:", err)
-				return
+
+			nodeIndex := slices.IndexFunc(nodes, func(node db.LavalinkNode) bool {
+				return node.Name == cfg.Name
+			})
+
+			var sessionID string
+			if nodeIndex > -1 {
+				sessionID = nodes[nodeIndex].SessionID
 			}
 
-			if err = node.Update(context.Background(), lavalink.SessionUpdate{
-				Resuming: json.Ptr(true),
-				Timeout:  json.Ptr(180),
-			}); err != nil {
-				b.Logger.Error("failed to update node:", err)
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			if _, err = b.Lavalink.AddNode(ctx, cfg.ToLavalink(sessionID)); err != nil {
+				slog.Error("failed to add node", tint.Err(err))
 			}
+			slog.Info("connected to lavalink node", slog.String("name", cfg.Name))
 		}()
 	}
 	wg.Wait()
-
-	return b.Discord.OpenShardManager(context.Background())
-}
-
-func (b *Bot) OnDiscordEvent(event bot.Event) {
-	switch e := event.(type) {
-	case *events.VoiceServerUpdate:
-		b.Logger.Debug("received voice server update")
-		if e.Endpoint == nil {
-			return
-		}
-		b.Lavalink.OnVoiceServerUpdate(context.Background(), e.GuildID, e.Token, *e.Endpoint)
-	case *events.GuildVoiceStateUpdate:
-		if e.VoiceState.UserID != b.Discord.ApplicationID() {
-			return
-		}
-		b.Logger.Debug("received voice state update")
-		b.Lavalink.OnVoiceStateUpdate(context.Background(), e.VoiceState.GuildID, e.VoiceState.ChannelID, e.VoiceState.SessionID)
-	case *events.GuildsReady:
-		b.Logger.Debug("received guilds ready")
-		b.RestorePlayers()
-	}
 }
 
 func (b *Bot) Close() {
-	b.Lavalink.ForNodes(func(node disgolink.Node) {
-		for i, cfgNode := range b.Config.Nodes {
-			if node.Config().Name == cfgNode.Name {
-				b.Config.Nodes[i].SessionID = node.SessionID()
+	if b.Lavalink != nil {
+		var nodes []db.LavalinkNode
+		b.Lavalink.ForNodes(func(node disgolink.Node) {
+			nodes = append(nodes, db.LavalinkNode{
+				Name:      node.Config().Name,
+				SessionID: node.SessionID(),
+			})
+		})
+
+		if len(nodes) > 0 {
+			if err := b.Database.AddLavalinkNodes(context.Background(), nodes); err != nil {
+				slog.Error("failed to set lavalink node session ids", tint.Err(err))
 			}
 		}
-	})
-
-	if err := config.Save(b.CfgPath, b.Config); err != nil {
-		b.Logger.Error("failed to save config:", err)
+		b.Lavalink.Close()
 	}
-	b.Lavalink.Close()
+
 	b.Discord.Close(context.Background())
 	_ = b.Database.Close()
 }

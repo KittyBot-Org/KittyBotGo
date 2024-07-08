@@ -2,45 +2,54 @@ package main
 
 import (
 	"flag"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/disgoorg/log"
+	"github.com/topi314/tint"
 
-	"github.com/KittyBot-Org/KittyBotGo/interal/config"
+	"github.com/KittyBot-Org/KittyBotGo/internal/config"
+	"github.com/KittyBot-Org/KittyBotGo/internal/log"
 	"github.com/KittyBot-Org/KittyBotGo/service/bot"
-	"github.com/KittyBot-Org/KittyBotGo/service/bot/handlers"
+	"github.com/KittyBot-Org/KittyBotGo/service/bot/commands"
+)
+
+var (
+	Version = "dev"
+	Commit  = "unknown"
 )
 
 func main() {
-	cfgPath := flag.String("config", "config.json", "path to config.json")
+	cfgPath := flag.String("config", "config.toml", "path to config file")
 	flag.Parse()
 
-	logger := log.New(log.Ldate | log.Ltime | log.Lshortfile)
-	logger.Infof("Bot is starting... (config path:%s)", *cfgPath)
+	slog.Info("Bot is starting...", slog.String("config", *cfgPath))
 
 	var cfg bot.Config
 	if err := config.Load(*cfgPath, &cfg); err != nil {
-		logger.Fatalf("Failed to load config: %v", err)
+		slog.Error("failed to load config", tint.Err(err))
+		return
 	}
-	logger.SetLevel(config.ParseLogLevel(cfg.LogLevel))
 
-	b, err := bot.New(logger, *cfgPath, cfg)
+	slog.Info("Config loaded", slog.String("config", cfg.String()))
+	log.Setup(cfg.Log)
+
+	b, err := bot.New(cfg, Version, Commit)
 	if err != nil {
-		logger.Fatalf("Failed to create bot: %v", err)
+		slog.Error("Failed to create bot: %v", err)
 	}
 	defer b.Close()
 
-	h := handlers.New(b)
-	b.Discord.AddEventListeners(h)
+	b.Discord.AddEventListeners(commands.New(b))
 
-	if err = b.Start(h.Commands); err != nil {
-		logger.Fatalf("Failed to start bot: %v", err)
+	if err = b.Start(commands.Commands); err != nil {
+		slog.Error("Failed to start bot: %v", err)
+		return
 	}
 
-	logger.Info("Bot is running. Press CTRL-C to exit.")
+	slog.Info("Bot is running. Press CTRL-C to exit.")
 	s := make(chan os.Signal, 1)
-	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
+	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM)
 	<-s
 }

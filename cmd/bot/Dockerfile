@@ -1,4 +1,4 @@
-FROM golang:1.20-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.22-alpine AS build
 
 WORKDIR /build
 
@@ -8,7 +8,18 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 go build -o bot cmd/bot/bot.go
+ARG TARGETOS
+ARG TARGETARCH
+ARG VERSION
+ARG COMMIT
+
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg \
+    CGO_ENABLED=0 \
+    GOOS=$TARGETOS \
+    GOARCH=$TARGETARCH \
+    go build -ldflags="-X 'main.Version=$VERSION' -X 'main.Commit=$COMMIT'" -o bot github.com/KittyBot-Org/KittyBotGo/cmd/bot
+
 
 FROM alpine
 
@@ -16,4 +27,4 @@ COPY --from=build /build/bot /bin/bot
 
 ENTRYPOINT ["/bin/bot"]
 
-CMD ["-config", "/var/lib/bot/config.json"]
+CMD ["-config", "/var/lib/bot/config.yoml"]

@@ -1,18 +1,17 @@
-package handlers
+package commands
 
 import (
-	"context"
-	"database/sql"
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/handler"
-	"github.com/disgoorg/disgolink/v2/lavalink"
+	"github.com/disgoorg/disgolink/v3/lavalink"
 	"github.com/disgoorg/json"
+	"github.com/disgoorg/lavaqueue-plugin"
 
-	"github.com/KittyBot-Org/KittyBotGo/interal/database"
 	"github.com/KittyBot-Org/KittyBotGo/service/bot/res"
 )
 
@@ -193,12 +192,14 @@ var playerCommand = discord.SlashCommandCreate{
 	},
 }
 
-func (h *Handlers) OnPlayerStatus(e *handler.CommandEvent) error {
-	player := h.Lavalink.Player(*e.GuildID())
-	dbPlayer, _ := h.Database.GetPlayer(*e.GuildID(), player.Node().Config().Name)
-	tracks, _ := h.Database.GetQueue(*e.GuildID())
-	track := player.Track()
+func (c *commands) OnPlayerStatus(_ discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
+	player := c.Lavalink.Player(*e.GuildID())
+	queue, err := lavaqueue.GetQueue(e.Ctx, player.Node(), *e.GuildID())
+	if err != nil {
+		return e.CreateMessage(res.CreateErr("Failed to get queue", err))
+	}
 
+	track := player.Track()
 	if track == nil {
 		return e.CreateMessage(res.CreateError("There is no song playing right now."))
 	}
@@ -209,7 +210,7 @@ func (h *Handlers) OnPlayerStatus(e *handler.CommandEvent) error {
 		SetDescription(res.FormatTrack(*track, player.Position())).
 		AddField("Author:", track.Info.Author, true).
 		AddField("Volume:", fmt.Sprintf("%d%%", player.Volume()), true).
-		SetFooterText(fmt.Sprintf("Songs in queue: %d", len(tracks)))
+		SetFooterText(fmt.Sprintf("Songs in queue: %d", len(queue.Tracks)))
 
 	if track.Info.ArtworkURL != nil {
 		embed.SetThumbnail(*track.Info.ArtworkURL)
@@ -222,9 +223,9 @@ func (h *Handlers) OnPlayerStatus(e *handler.CommandEvent) error {
 		p := int(float64(t1) / float64(t2) * 10)
 		bar[p] = "🔘"
 		loopString := ""
-		if dbPlayer.QueueType == database.QueueTypeRepeatTrack {
+		if queue.Type == lavaqueue.QueueTypeRepeatTrack {
 			loopString = "🔂"
-		} else if dbPlayer.QueueType == database.QueueTypeRepeatQueue {
+		} else if queue.Type == lavaqueue.QueueTypeRepeatQueue {
 			loopString = "🔁"
 		}
 		embed.Description += fmt.Sprintf("\n\n%s / %s %s\n%s", res.FormatDuration(t1), res.FormatDuration(t2), loopString, bar)
@@ -235,97 +236,88 @@ func (h *Handlers) OnPlayerStatus(e *handler.CommandEvent) error {
 	return e.CreateMessage(create)
 }
 
-func (h *Handlers) OnPlayerPause(e *handler.CommandEvent) error {
-	player := h.Lavalink.Player(*e.GuildID())
-	if err := player.Update(context.Background(), lavalink.WithPaused(true)); err != nil {
+func (c *commands) OnPlayerPause(_ discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
+	player := c.Lavalink.Player(*e.GuildID())
+	if err := player.Update(e.Ctx, lavalink.WithPaused(true)); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to pause the player", err))
 	}
 	return e.CreateMessage(res.CreatePlayer("⏸ Paused the player.", false))
 }
 
-func (h *Handlers) OnPlayerResume(e *handler.CommandEvent) error {
-	player := h.Lavalink.Player(*e.GuildID())
-	if err := player.Update(context.Background(), lavalink.WithPaused(false)); err != nil {
+func (c *commands) OnPlayerResume(_ discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
+	player := c.Lavalink.Player(*e.GuildID())
+	if err := player.Update(e.Ctx, lavalink.WithPaused(false)); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to resume the player", err))
 	}
 	return e.CreateMessage(res.CreatePlayer("▶ Resumed the player.", false))
 }
 
-func (h *Handlers) OnPlayerStop(e *handler.CommandEvent) error {
-	player := h.Lavalink.Player(*e.GuildID())
-	if err := player.Destroy(context.Background()); err != nil {
+func (c *commands) OnPlayerStop(_ discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
+	player := c.Lavalink.Player(*e.GuildID())
+	if err := player.Destroy(e.Ctx); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to stop the player", err))
 	}
 
-	if err := h.Database.DeletePlayer(*e.GuildID()); err != nil {
-		return e.CreateMessage(res.CreateErr("Failed to delete the player from the database", err))
-	}
-
-	if err := h.Discord.UpdateVoiceState(context.Background(), *e.GuildID(), nil, false, false); err != nil {
+	if err := c.Discord.UpdateVoiceState(e.Ctx, *e.GuildID(), nil, false, false); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to disconnect from the voice channel", err))
 	}
 
 	return e.CreateMessage(res.Create("⏹ Stopped the player."))
 }
 
-func (h *Handlers) OnPlayerNext(e *handler.CommandEvent) error {
-	player := h.Lavalink.Player(*e.GuildID())
-	track, err := h.Database.NextQueueTrack(*e.GuildID())
-	if errors.Is(err, sql.ErrNoRows) {
-		return e.CreateMessage(res.CreateError("No more songs in queue"))
-	}
+func (c *commands) OnPlayerNext(_ discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
+	player := c.Lavalink.Player(*e.GuildID())
+	track, err := lavaqueue.QueueNextTrack(e.Ctx, player.Node(), *e.GuildID())
 	if err != nil {
-		return e.CreateMessage(res.CreateErr("Failed to get next song", err))
+		var eErr *lavalink.Error
+		if errors.As(err, &eErr) && eErr.Status == http.StatusNotFound {
+			return e.CreateMessage(res.CreateError("No more songs in queue"))
+		}
+		return e.CreateMessage(res.CreateErr("Failed to skip to the next song", err))
 	}
 
-	if err = player.Update(context.Background(), lavalink.WithTrack(track.Track)); err != nil {
-		return e.CreateMessage(res.CreateErr("Failed to play next song", err))
-	}
-	return e.CreateMessage(res.CreatePlayerf("▶ Playing: %s", true, res.FormatTrack(track.Track, 0)))
+	return e.CreateMessage(res.CreatePlayerf("▶ Playing: %s", true, res.FormatTrack(*track, 0)))
 }
 
-func (h *Handlers) OnPlayerPrevious(e *handler.CommandEvent) error {
-	player := h.Lavalink.Player(*e.GuildID())
-	track, err := h.Database.PreviousHistoryTrack(*e.GuildID())
-	if errors.Is(err, sql.ErrNoRows) {
-		return e.CreateMessage(res.CreateError("No more songs in queue"))
-	}
+func (c *commands) OnPlayerPrevious(_ discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
+	player := c.Lavalink.Player(*e.GuildID())
+	track, err := lavaqueue.QueuePreviousTrack(e.Ctx, player.Node(), *e.GuildID())
 	if err != nil {
-		return e.CreateMessage(res.CreateErr("Failed to get previous song", err))
+		var eErr *lavalink.Error
+		if errors.As(err, &eErr) && eErr.Status == http.StatusNotFound {
+			return e.CreateMessage(res.CreateError("No songs in history"))
+		}
+		return e.CreateMessage(res.CreateErr("Failed to skip to the next song", err))
 	}
 
-	if err = player.Update(context.Background(), lavalink.WithTrack(track.Track)); err != nil {
-		return e.CreateMessage(res.CreateErr("Failed to play previous song", err))
-	}
-	return e.CreateMessage(res.CreatePlayerf("▶ Playing: %s", true, res.FormatTrack(track.Track, 0)))
+	return e.CreateMessage(res.CreatePlayerf("▶ Playing: %s", true, res.FormatTrack(*track, 0)))
 }
 
-func (h *Handlers) OnPlayerVolume(e *handler.CommandEvent) error {
-	player := h.Lavalink.Player(*e.GuildID())
-	volume := e.SlashCommandInteractionData().Int("volume")
+func (c *commands) OnPlayerVolume(data discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
+	player := c.Lavalink.Player(*e.GuildID())
+	volume := data.Int("volume")
 
-	if err := player.Update(context.Background(), lavalink.WithVolume(volume)); err != nil {
+	if err := player.Update(e.Ctx, lavalink.WithVolume(volume)); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to set the volume", err))
 	}
 	return e.CreateMessage(res.CreatePlayerf("🔊 Set the volume to %d%%.", false, volume))
 }
 
-func (h *Handlers) OnPlayerBassBoost(e *handler.CommandEvent) error {
-	player := h.Lavalink.Player(*e.GuildID())
-	level := e.SlashCommandInteractionData().String("level")
+func (c *commands) OnPlayerBassBoost(data discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
+	player := c.Lavalink.Player(*e.GuildID())
+	level := data.String("level")
 
 	filters := player.Filters()
 	filters.Equalizer = bassBoostLevels[level]
 
-	if err := player.Update(context.Background(), lavalink.WithFilters(filters)); err != nil {
+	if err := player.Update(e.Ctx, lavalink.WithFilters(filters)); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to set bass boost: %s", err))
 	}
 	return e.CreateMessage(res.CreatePlayerf("🔊 Set bass boost to %s.", false, level))
 }
 
-func (h *Handlers) OnPlayerSeek(e *handler.CommandEvent) error {
-	player := h.Lavalink.Player(*e.GuildID())
-	data := e.SlashCommandInteractionData()
+func (c *commands) OnPlayerSeek(data discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
+	player := c.Lavalink.Player(*e.GuildID())
 	position := data.Int("position")
 	duration, ok := data.OptInt("time-unit")
 	if !ok {
@@ -333,69 +325,61 @@ func (h *Handlers) OnPlayerSeek(e *handler.CommandEvent) error {
 	}
 
 	newPos := lavalink.Duration(position * duration)
-	if err := player.Update(context.Background(), lavalink.WithPosition(newPos)); err != nil {
+	if err := player.Update(e.Ctx, lavalink.WithPosition(newPos)); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to seek to %d", err))
 	}
-	return e.CreateMessage(res.CreatePlayerf("⏩ Seeked to %d.", false, res.FormatDuration(newPos)))
+	return e.CreateMessage(res.CreatePlayerf("⏩ Seeked to %s.", false, res.FormatDuration(newPos)))
 }
 
-func (h *Handlers) OnPlayerPreviousButton(e *handler.ComponentEvent) error {
-	player := h.Lavalink.Player(*e.GuildID())
-	track, err := h.Database.PreviousHistoryTrack(*e.GuildID())
-	if errors.Is(err, sql.ErrNoRows) {
-		return e.CreateMessage(res.CreateError("No songs in history"))
-	}
+func (c *commands) OnPlayerNextButton(e *handler.ComponentEvent) error {
+	player := c.Lavalink.Player(*e.GuildID())
+	track, err := lavaqueue.QueueNextTrack(e.Ctx, player.Node(), *e.GuildID())
 	if err != nil {
-		return e.CreateMessage(res.CreateErr("Failed to get previous song", err))
+		var eErr *lavalink.Error
+		if errors.As(err, &eErr) && eErr.Status == http.StatusNotFound {
+			return e.CreateMessage(res.CreateError("No more songs in queue"))
+		}
+		return e.CreateMessage(res.CreateErr("Failed to skip to the next song", err))
 	}
 
-	if err = player.Update(context.Background(), lavalink.WithTrack(track.Track)); err != nil {
-		return e.CreateMessage(res.CreateErr("Failed to play previous song", err))
-	}
-	return e.CreateMessage(res.CreatePlayerf("▶ Playing: %s", true, res.FormatTrack(track.Track, 0)))
+	return e.UpdateMessage(res.UpdatePlayerf("▶ Playing: %s", true, res.FormatTrack(*track, 0)))
 }
 
-func (h *Handlers) OnPlayerPlayPauseButton(e *handler.ComponentEvent) error {
-	player := h.Lavalink.Player(*e.GuildID())
+func (c *commands) OnPlayerPreviousButton(e *handler.ComponentEvent) error {
+	player := c.Lavalink.Player(*e.GuildID())
+	track, err := lavaqueue.QueuePreviousTrack(e.Ctx, player.Node(), *e.GuildID())
+	if err != nil {
+		var eErr *lavalink.Error
+		if errors.As(err, &eErr) && eErr.Status == http.StatusNotFound {
+			return e.CreateMessage(res.CreateError("No songs in history"))
+		}
+		return e.CreateMessage(res.CreateErr("Failed to skip to the next song", err))
+	}
+
+	return e.UpdateMessage(res.UpdatePlayerf("▶ Playing: %s", true, res.FormatTrack(*track, 0)))
+}
+
+func (c *commands) OnPlayerPlayPauseButton(e *handler.ComponentEvent) error {
+	player := c.Lavalink.Player(*e.GuildID())
 	paused := !player.Paused()
-	if err := player.Update(context.Background(), lavalink.WithPaused(paused)); err != nil {
+	if err := player.Update(e.Ctx, lavalink.WithPaused(paused)); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to pause the player", err))
 	}
 	if paused {
-		return e.CreateMessage(res.CreatePlayer("⏸ Paused the player.", false))
+		return e.UpdateMessage(res.UpdatePlayerf("⏸ Paused the player.", false))
 	}
-	return e.CreateMessage(res.CreatePlayer("▶ Resumed the player.", false))
+	return e.UpdateMessage(res.UpdatePlayerf("▶ Resumed the player.", false))
 }
 
-func (h *Handlers) OnPlayerNextButton(e *handler.ComponentEvent) error {
-	player := h.Lavalink.Player(*e.GuildID())
-	track, err := h.Database.NextQueueTrack(*e.GuildID())
-	if errors.Is(err, sql.ErrNoRows) {
-		return e.CreateMessage(res.CreateError("No more songs in queue"))
-	}
-	if err != nil {
-		return e.CreateMessage(res.CreateErr("Failed to get next song", err))
-	}
-
-	if err = player.Update(context.Background(), lavalink.WithTrack(track.Track)); err != nil {
-		return e.CreateMessage(res.CreateErr("Failed to play next song", err))
-	}
-	return e.CreateMessage(res.CreatePlayerf("▶ Playing: %s", true, res.FormatTrack(track.Track, 0)))
-}
-
-func (h *Handlers) OnPlayerStopButton(e *handler.ComponentEvent) error {
-	player := h.Lavalink.Player(*e.GuildID())
-	if err := player.Destroy(context.Background()); err != nil {
+func (c *commands) OnPlayerStopButton(e *handler.ComponentEvent) error {
+	player := c.Lavalink.Player(*e.GuildID())
+	if err := player.Destroy(e.Ctx); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to stop the player", err))
 	}
 
-	if err := h.Database.DeletePlayer(*e.GuildID()); err != nil {
-		return e.CreateMessage(res.CreateErr("Failed to delete the player from the database", err))
-	}
-
-	if err := h.Discord.UpdateVoiceState(context.Background(), *e.GuildID(), nil, false, false); err != nil {
+	if err := c.Discord.UpdateVoiceState(e.Ctx, *e.GuildID(), nil, false, false); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to disconnect from the voice channel", err))
 	}
 
-	return e.CreateMessage(res.Create("⏹ Stopped the player."))
+	return e.UpdateMessage(res.Update("⏹ Stopped the player."))
 }

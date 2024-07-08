@@ -4,34 +4,79 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/disgoorg/disgolink/v2/disgolink"
+	"github.com/disgoorg/disgolink/v3/disgolink"
 	"github.com/disgoorg/snowflake/v2"
 
-	"github.com/KittyBot-Org/KittyBotGo/interal/database"
+	"github.com/KittyBot-Org/KittyBotGo/internal/log"
+	"github.com/KittyBot-Org/KittyBotGo/service/bot/db"
 )
 
 type Config struct {
-	DevMode      bool            `json:"dev_mode"`
-	SyncCommands bool            `json:"sync_commands"`
-	GuildIDs     []snowflake.ID  `json:"guild_ids"`
-	GatewayURL   string          `json:"gateway_url"`
-	RestURL      string          `json:"rest_url"`
-	Token        string          `json:"token"`
-	LogLevel     string          `json:"log_level"`
-	Database     database.Config `json:"database"`
-	Nodes        Nodes           `json:"nodes"`
+	Log      log.Config `toml:"log"`
+	Bot      BotConfig  `toml:"bot"`
+	Database db.Config  `json:"database"`
+	Nodes    Nodes      `json:"nodes"`
 }
 
 func (c Config) String() string {
-	return fmt.Sprintf("\n DevMode: %t,\n Sync Commands: %t,\n Guild IDs: %v,\n Token: %s,\n Log Level: %s,\n Database: %s\n", c.DevMode, c.SyncCommands, c.GuildIDs, strings.Repeat("*", len(c.Token)), c.LogLevel, c.Database)
+	return fmt.Sprintf("\n Log: %v\n Bot: %s\n Database: %s\n Nodes: %s\n",
+		c.Log,
+		c.Bot,
+		c.Database,
+		c.Nodes,
+	)
 }
 
-type Nodes []disgolink.NodeConfig
+type BotConfig struct {
+	SyncCommands bool           `toml:"sync_commands"`
+	GuildIDs     []snowflake.ID `toml:"guild_ids"`
+	GatewayURL   string         `toml:"gateway_url"`
+	RestURL      string         `toml:"rest_url"`
+	Token        string         `toml:"token"`
+}
+
+func (c BotConfig) String() string {
+	return fmt.Sprintf("\n  SyncCommands: %t\n  GuildIDs: %v\n  GatewayURL: %s\n  RestURL: %s\n  Token: %s\n",
+		c.SyncCommands,
+		c.GuildIDs,
+		c.GatewayURL,
+		c.RestURL,
+		strings.Repeat("*", len(c.Token)),
+	)
+}
+
+type NodeConfig struct {
+	Name     string `toml:"name"`
+	Address  string `toml:"address"`
+	Password string `toml:"password"`
+	Secure   bool   `toml:"secure"`
+}
+
+func (n NodeConfig) String() string {
+	return fmt.Sprintf("\n  Name: %s\n  Address: %s\n  Password: %s\n  Secure: %t\n",
+		n.Name,
+		n.Address,
+		strings.Repeat("*", len(n.Password)),
+		n.Secure,
+	)
+}
+
+func (n NodeConfig) ToLavalink(sessionID string) disgolink.NodeConfig {
+	return disgolink.NodeConfig{
+		Name:      n.Name,
+		Address:   n.Address,
+		Password:  n.Password,
+		Secure:    n.Secure,
+		SessionID: sessionID,
+	}
+}
+
+type Nodes []NodeConfig
 
 func (n Nodes) String() string {
-	s := ""
+	var s string
 	for _, node := range n {
-		s += fmt.Sprintf("\n  Name: %s,\n  Address: %s,\n  Password: %s,\n  Secure: %t,\n  Session ID: %s\n", node.Name, node.Address, strings.Repeat("*", len(node.Password)), node.Secure, node.SessionID)
+		s += node.String()
 	}
 	return s
 }

@@ -1,13 +1,13 @@
-package handlers
+package commands
 
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/handler"
-	"github.com/disgoorg/disgolink/v2/lavalink"
+	"github.com/disgoorg/disgolink/v3/lavalink"
+	"github.com/disgoorg/lavaqueue-plugin"
 
 	"github.com/KittyBot-Org/KittyBotGo/service/bot/res"
 )
@@ -131,8 +131,8 @@ var playlistsCommand = discord.SlashCommandCreate{
 	},
 }
 
-func (h *Handlers) OnPlaylistsList(e *handler.CommandEvent) error {
-	playlists, err := h.Database.GetPlaylists(e.User().ID)
+func (c *commands) OnPlaylistsList(data discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
+	playlists, err := c.Database.GetPlaylists(e.User().ID)
 	if err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to get playlists", err))
 	}
@@ -149,9 +149,8 @@ func (h *Handlers) OnPlaylistsList(e *handler.CommandEvent) error {
 	return e.CreateMessage(res.Create(content))
 }
 
-func (h *Handlers) OnPlaylistCreate(e *handler.CommandEvent) error {
-	data := e.SlashCommandInteractionData()
-	playlist, err := h.Database.CreatePlaylist(e.User().ID, data.String("name"))
+func (c *commands) OnPlaylistCreate(data discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
+	playlist, err := c.Database.CreatePlaylist(e.User().ID, data.String("name"))
 	if err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to create playlist", err))
 	}
@@ -159,18 +158,16 @@ func (h *Handlers) OnPlaylistCreate(e *handler.CommandEvent) error {
 	return e.CreateMessage(res.Create(fmt.Sprintf("Created playlist: `%s`", playlist.Name)))
 }
 
-func (h *Handlers) OnPlaylistDelete(e *handler.CommandEvent) error {
-	data := e.SlashCommandInteractionData()
-	if err := h.Database.DeletePlaylist(data.Int("playlist"), e.User().ID); err != nil {
+func (c *commands) OnPlaylistDelete(data discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
+	if err := c.Database.DeletePlaylist(data.Int("playlist"), e.User().ID); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to delete playlist", err))
 	}
 
 	return e.CreateMessage(res.Create(fmt.Sprintf("Deleted playlist")))
 }
 
-func (h *Handlers) OnPlaylistShow(e *handler.CommandEvent) error {
-	data := e.SlashCommandInteractionData()
-	playlist, tracks, err := h.Database.GetPlaylist(data.Int("playlist"))
+func (c *commands) OnPlaylistShow(data discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
+	playlist, tracks, err := c.Database.GetPlaylist(data.Int("playlist"))
 	if err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to get playlist", err))
 	}
@@ -191,15 +188,13 @@ func (h *Handlers) OnPlaylistShow(e *handler.CommandEvent) error {
 	return e.CreateMessage(res.Create(content))
 }
 
-func (h *Handlers) OnPlaylistPlay(e *handler.CommandEvent) error {
-	data := e.SlashCommandInteractionData()
-
-	voiceState, ok := h.Discord.Caches().VoiceState(*e.GuildID(), e.User().ID)
+func (c *commands) OnPlaylistPlay(data discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
+	voiceState, ok := c.Discord.Caches().VoiceState(*e.GuildID(), e.User().ID)
 	if !ok {
 		return e.CreateMessage(res.CreateError("You are not in a voice channel"))
 	}
 
-	playlist, dbTracks, err := h.Database.GetPlaylist(data.Int("playlist"))
+	playlist, dbTracks, err := c.Database.GetPlaylist(data.Int("playlist"))
 	if err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to get playlist", err))
 	}
@@ -208,47 +203,45 @@ func (h *Handlers) OnPlaylistPlay(e *handler.CommandEvent) error {
 		return e.CreateMessage(res.CreateError("Playlist is empty"))
 	}
 
-	_, ok = h.Discord.Caches().VoiceState(*e.GuildID(), e.ApplicationID())
+	_, ok = c.Discord.Caches().VoiceState(*e.GuildID(), e.ApplicationID())
 	if !ok {
-		if err = h.Discord.UpdateVoiceState(context.Background(), *e.GuildID(), voiceState.ChannelID, false, false); err != nil {
-			_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to join channel", err))
-			return err
+		if err = c.Discord.UpdateVoiceState(context.Background(), *e.GuildID(), voiceState.ChannelID, false, false); err != nil {
+			return e.CreateMessage(res.CreateErr("Failed to join channel", err))
 		}
 	}
 
-	player := h.Lavalink.Player(*e.GuildID())
-	if _, err = h.Database.GetPlayer(*e.GuildID(), player.Node().Config().Name); err != nil {
-		return e.CreateMessage(res.CreateErr("Failed to get or create player", err))
-	}
-
-	var content string
-	if player.Track() == nil {
-		track := dbTracks[0]
-		dbTracks = dbTracks[1:]
-
-		if err = player.Update(context.Background(), lavalink.WithTrack(track.Track)); err != nil {
-			return e.CreateMessage(res.CreateErr("An error occurred", err))
+	queueTracks := make([]lavaqueue.QueueTrack, len(dbTracks))
+	for i, track := range dbTracks {
+		queueTracks[i] = lavaqueue.QueueTrack{
+			Encoded:  track.Track.Encoded,
+			UserData: nil, // TODO: Add user data
 		}
-		content = fmt.Sprintf("▶ Playing: %s from playlist `%s`", res.FormatTrack(track.Track, 0), playlist.Name)
 	}
 
+	player := c.Lavalink.Player(*e.GuildID())
+	track, err := lavaqueue.AddQueueTracks(e.Ctx, player.Node(), *e.GuildID(), queueTracks)
+	if err != nil {
+		return e.CreateMessage(res.CreateErr("An error occurred playing the song", err))
+	}
+
+	var (
+		content     string
+		likeButton  bool
+		tracksCount = len(dbTracks)
+	)
+	if track != nil {
+		content = fmt.Sprintf("▶ Playing: %s from playlist `%s`", res.FormatTrack(*track, 0), playlist.Name)
+		likeButton = true
+		tracksCount--
+	}
 	if len(dbTracks) > 0 {
-		tracks := make([]lavalink.Track, len(dbTracks))
-		for i := range dbTracks {
-			tracks[i] = dbTracks[i].Track
-		}
-
-		content += fmt.Sprintf("\nAdded %d songs to the queue from playlist `%s`", len(tracks), playlist.Name)
-		if err = h.Database.AddQueueTracks(*e.GuildID(), tracks); err != nil {
-			return e.CreateMessage(res.CreateErr("An error occurred", err))
-		}
+		content += fmt.Sprintf("\nAdded %d songs to the queue from playlist `%s`", tracksCount, playlist.Name)
 	}
 
-	return e.CreateMessage(res.Create(content))
+	return e.CreateMessage(res.CreatePlayer(content, likeButton))
 }
 
-func (h *Handlers) OnPlaylistAdd(e *handler.CommandEvent) error {
-	data := e.SlashCommandInteractionData()
+func (c *commands) OnPlaylistAdd(data discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
 	playlistID := data.Int("playlist")
 	query := data.String("query")
 
@@ -264,65 +257,67 @@ func (h *Handlers) OnPlaylistAdd(e *handler.CommandEvent) error {
 		return err
 	}
 
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		result, err := h.Lavalink.BestNode().Rest().LoadTracks(ctx, query)
-		if err != nil {
-			_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to load song", err))
-			return
-		}
-		if result.LoadType == lavalink.LoadTypeLoadFailed {
-			_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to like song", err))
-		} else if result.LoadType == lavalink.LoadTypeNoMatches || len(result.Tracks) == 0 {
-			_, err = e.UpdateInteractionResponse(res.UpdateError("Failed to like song: No matches found."))
-		}
-		if err != nil {
-			h.Logger.Errorf("error loading songs: %s", err)
-			return
-		}
-		tracks := result.Tracks
-		if result.LoadType == lavalink.LoadTypeSearchResult {
-			tracks = tracks[:1]
-		}
+	result, err := c.Lavalink.BestNode().Rest().LoadTracks(context.Background(), query)
+	if err != nil {
+		_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to load song", err))
+		return err
+	}
 
-		if err = h.Database.AddTracksToPlaylist(playlistID, tracks); err != nil {
-			_, _ = e.UpdateInteractionResponse(res.UpdateErr("Failed to add song to playlist", err))
-			return
+	var tracks []lavalink.Track
+	switch d := result.Data.(type) {
+	case lavalink.Exception:
+		_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to find song", err))
+		return err
+	case lavalink.Empty:
+		_, err = e.UpdateInteractionResponse(res.UpdateError("Failed to find song: No matches found."))
+		return err
+	case lavalink.Track:
+		tracks = append(tracks, d)
+	case lavalink.Search:
+		if len(d) == 0 {
+			_, err = e.UpdateInteractionResponse(res.UpdateError("Failed to find song: No matches found."))
+			return err
 		}
-		_, _ = e.UpdateInteractionResponse(res.Updatef("Added `%d` songs to playlist", len(tracks)))
-	}()
+		tracks = d[:1]
+	case lavalink.Playlist:
+		tracks = d.Tracks
+	}
 
-	return nil
+	if err = c.Database.AddTracksToPlaylist(playlistID, tracks); err != nil {
+		_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to add song to playlist", err))
+		return err
+	}
+	_, err = e.UpdateInteractionResponse(res.Updatef("Added `%d` songs to playlist", len(tracks)))
+	return err
 }
 
-func (h *Handlers) OnPlaylistRemove(e *handler.CommandEvent) error {
-	trackID := e.SlashCommandInteractionData().Int("song")
+func (c *commands) OnPlaylistRemove(data discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
+	trackID := data.Int("song")
 
-	if err := h.Database.RemoveTrackFromPlaylist(trackID); err != nil {
+	if err := c.Database.RemoveTrackFromPlaylist(trackID); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to remove song from playlist", err))
 	}
 
 	return e.CreateMessage(res.Create("Removed song from playlist"))
 }
 
-func (h *Handlers) OnPlaylistRemoveAutocomplete(e *handler.AutocompleteEvent) error {
+func (c *commands) OnPlaylistRemoveAutocomplete(e *handler.AutocompleteEvent) error {
 	option, ok := e.Data.Option("playlist")
 	if ok && option.Focused {
-		return h.OnPlaylistAutocomplete(e)
+		return c.OnPlaylistAutocomplete(e)
 	}
 
 	option, ok = e.Data.Option("song")
 	if !ok || !option.Focused {
-		return e.Result(nil)
+		return e.AutocompleteResult(nil)
 	}
 
 	playlistID := e.Data.Int("playlist")
 	track := e.Data.String("song")
 
-	tracks, err := h.Database.SearchPlaylistTracks(playlistID, track, 25)
+	tracks, err := c.Database.SearchPlaylistTracks(playlistID, track, 25)
 	if err != nil {
-		return e.Result(nil)
+		return e.AutocompleteResult(nil)
 	}
 
 	choices := make([]discord.AutocompleteChoice, len(tracks))
@@ -332,13 +327,13 @@ func (h *Handlers) OnPlaylistRemoveAutocomplete(e *handler.AutocompleteEvent) er
 			Value: track.ID,
 		}
 	}
-	return e.Result(choices)
+	return e.AutocompleteResult(choices)
 }
 
-func (h *Handlers) OnPlaylistAutocomplete(e *handler.AutocompleteEvent) error {
-	playlists, err := h.Database.SearchPlaylists(e.User().ID, e.Data.String("track"), 25)
+func (c *commands) OnPlaylistAutocomplete(e *handler.AutocompleteEvent) error {
+	playlists, err := c.Database.SearchPlaylists(e.User().ID, e.Data.String("track"), 25)
 	if err != nil {
-		return e.Result(nil)
+		return e.AutocompleteResult(nil)
 	}
 
 	choices := make([]discord.AutocompleteChoice, len(playlists))
@@ -348,5 +343,5 @@ func (h *Handlers) OnPlaylistAutocomplete(e *handler.AutocompleteEvent) error {
 			Value: playlist.ID,
 		}
 	}
-	return e.Result(choices)
+	return e.AutocompleteResult(choices)
 }
