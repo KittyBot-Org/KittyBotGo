@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.22-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS build
 
 WORKDIR /build
 
@@ -18,7 +18,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 \
     GOOS=$TARGETOS \
     GOARCH=$TARGETARCH \
-    go build -ldflags="-X 'main.Version=$VERSION' -X 'main.Commit=$COMMIT'" -o bot github.com/KittyBot-Org/KittyBotGo/cmd/bot
+    go build -ldflags="-X 'main.Version=$VERSION' -X 'main.Commit=$COMMIT'" -o bot github.com/kittybot-org/kittybotgo/cmd/bot
 
 
 FROM alpine

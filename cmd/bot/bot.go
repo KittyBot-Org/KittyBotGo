@@ -9,10 +9,10 @@ import (
 
 	"github.com/topi314/tint"
 
-	"github.com/KittyBot-Org/KittyBotGo/internal/config"
-	"github.com/KittyBot-Org/KittyBotGo/internal/log"
-	"github.com/KittyBot-Org/KittyBotGo/service/bot"
-	"github.com/KittyBot-Org/KittyBotGo/service/bot/commands"
+	"github.com/kittybot-org/kittybotgo/internal/config"
+	"github.com/kittybot-org/kittybotgo/internal/log"
+	"github.com/kittybot-org/kittybotgo/service/bot"
+	"github.com/kittybot-org/kittybotgo/service/bot/commands"
 )
 
 var (

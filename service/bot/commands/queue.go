@@ -5,11 +5,11 @@ import (
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/handler"
-	"github.com/disgoorg/disgolink/v3/lavalink"
+	"github.com/disgoorg/disgolink/v4/lavalink"
 	"github.com/disgoorg/lavaqueue-plugin"
 	"go.gopad.dev/fuzzysearch/fuzzy"
 
-	"github.com/KittyBot-Org/KittyBotGo/service/bot/res"
+	"github.com/kittybot-org/kittybotgo/service/bot/res"
 )
 
 var queueCommand = discord.SlashCommandCreate{
@@ -70,7 +70,7 @@ var queueCommand = discord.SlashCommandCreate{
 
 func (c *commands) OnQueueShow(data discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
 	player := c.Lavalink.ExistingPlayer(*e.GuildID())
-	queue, err := lavaqueue.GetQueue(e.Ctx, player.Node(), *e.GuildID())
+	queue, err := lavaqueue.GetQueue(e.Ctx, player.Node, *e.GuildID())
 	if err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to get queue", err))
 	}
@@ -95,7 +95,7 @@ func (c *commands) OnQueueType(data discord.SlashCommandInteractionData, e *hand
 	player := c.Lavalink.Player(*e.GuildID())
 	queueType := lavaqueue.QueueType(data.String("type"))
 
-	if _, err := lavaqueue.UpdateQueue(e.Ctx, player.Node(), *e.GuildID(), lavaqueue.QueueUpdate{
+	if _, err := lavaqueue.UpdateQueue(e.Ctx, player.Node, *e.GuildID(), lavaqueue.QueueUpdate{
 		Type: &queueType,
 	}); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to update player", err))
@@ -117,7 +117,7 @@ func (c *commands) OnQueueType(data discord.SlashCommandInteractionData, e *hand
 
 func (c *commands) OnQueueShuffle(_ discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
 	player := c.Lavalink.Player(*e.GuildID())
-	if err := lavaqueue.ShuffleQueue(e.Ctx, player.Node(), *e.GuildID()); err != nil {
+	if err := lavaqueue.ShuffleQueue(e.Ctx, player.Node, *e.GuildID()); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to shuffle queue", err))
 	}
 
@@ -126,7 +126,7 @@ func (c *commands) OnQueueShuffle(_ discord.SlashCommandInteractionData, e *hand
 
 func (c *commands) OnQueueClear(_ discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
 	player := c.Lavalink.Player(*e.GuildID())
-	if err := lavaqueue.ClearQueue(e.Ctx, player.Node(), *e.GuildID()); err != nil {
+	if err := lavaqueue.ClearQueue(e.Ctx, player.Node, *e.GuildID()); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to clear queue", err))
 	}
 
@@ -137,7 +137,7 @@ func (c *commands) OnQueueRemove(data discord.SlashCommandInteractionData, e *ha
 	trackID := data.Int("song")
 
 	player := c.Lavalink.Player(*e.GuildID())
-	if err := lavaqueue.RemoveQueueTrack(e.Ctx, player.Node(), *e.GuildID(), trackID); err != nil {
+	if err := lavaqueue.RemoveQueueTrack(e.Ctx, player.Node, *e.GuildID(), trackID); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to remove song", err))
 	}
 
@@ -152,7 +152,7 @@ func (t Track) FilterValue() string {
 
 func (c *commands) OnQueueAutocomplete(e *handler.AutocompleteEvent) error {
 	player := c.Lavalink.ExistingPlayer(*e.GuildID())
-	queue, err := lavaqueue.GetQueue(e.Ctx, player.Node(), *e.GuildID())
+	queue, err := lavaqueue.GetQueue(e.Ctx, player.Node, *e.GuildID())
 	if err != nil {
 		return e.AutocompleteResult(nil)
 	}

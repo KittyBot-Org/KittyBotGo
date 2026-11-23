@@ -6,19 +6,17 @@ import (
 	"github.com/disgoorg/disgo/discord"
 )
 
-func playerComponents(likeButton bool) []discord.ContainerComponent {
-	actionRow := discord.ActionRowComponent{
+func playerComponents(likeButton bool) []discord.LayoutComponent {
+	buttons := []discord.InteractiveComponent{
 		discord.NewPrimaryButton("", "/player/previous").WithEmoji(discord.ComponentEmoji{Name: "⏮"}),
 		discord.NewPrimaryButton("", "/player/pause_play").WithEmoji(discord.ComponentEmoji{Name: "⏯"}),
 		discord.NewPrimaryButton("", "/player/next").WithEmoji(discord.ComponentEmoji{Name: "⏭"}),
 		discord.NewPrimaryButton("", "/player/stop").WithEmoji(discord.ComponentEmoji{Name: "⏹"}),
 	}
-
 	if likeButton {
-		actionRow = append(actionRow, discord.NewPrimaryButton("", "/liked-songs/add").WithEmoji(discord.ComponentEmoji{Name: "❤"}))
+		buttons = append(buttons, discord.NewPrimaryButton("", "/liked-songs/add").WithEmoji(discord.ComponentEmoji{Name: "❤"}))
 	}
-
-	return []discord.ContainerComponent{actionRow}
+	return []discord.LayoutComponent{discord.ActionRowComponent{Components: buttons}}
 }
 
 func CreatePlayer(content string, likeButton bool) discord.MessageCreate {

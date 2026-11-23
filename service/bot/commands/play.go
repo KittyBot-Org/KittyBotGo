@@ -11,13 +11,15 @@ import (
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/handler"
-	"github.com/disgoorg/disgolink/v3/disgolink"
-	"github.com/disgoorg/disgolink/v3/lavalink"
+	"github.com/disgoorg/disgolink/v4/disgolink"
+	"github.com/disgoorg/disgolink/v4/lavalink"
+	"github.com/disgoorg/json"
 	"github.com/disgoorg/lavaqueue-plugin"
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/topi314/tint"
 
-	"github.com/KittyBot-Org/KittyBotGo/service/bot/res"
+	"github.com/kittybot-org/kittybotgo/service/bot"
+	"github.com/kittybot-org/kittybotgo/service/bot/res"
 )
 
 var (
@@ -47,9 +49,20 @@ func (c *commands) OnPlayerPlay(data discord.SlashCommandInteractionData, e *han
 		}
 	}
 
-	voiceState, ok := c.Discord.Caches().VoiceState(*e.GuildID(), e.User().ID)
+	voiceState, ok := c.Discord.Caches.VoiceState(*e.GuildID(), e.User().ID)
 	if !ok {
 		return e.CreateMessage(res.CreateError("You are not in a voice channel"))
+	}
+
+	channel, _ := c.Discord.Caches.Channel(*voiceState.ChannelID)
+	selfMember, err := c.Discord.Rest.GetMember(*e.GuildID(), c.Discord.ID())
+	if err != nil {
+		return e.CreateMessage(res.CreateErr("Failed to get current member", err))
+	}
+
+	perms := c.Discord.Caches.MemberPermissionsInChannel(channel, *selfMember)
+	if !perms.Has(discord.PermissionConnect) || !perms.Has(discord.PermissionSpeak) {
+		return e.CreateMessage(res.CreateError("I don't have permission to join or speak in the channel"))
 	}
 
 	player := c.Lavalink.Player(*e.GuildID())
@@ -91,7 +104,7 @@ func (c *commands) OnPlayerPlay(data discord.SlashCommandInteractionData, e *han
 	}
 
 	var loadErr error
-	player.Node().LoadTracksHandler(e.Ctx, query, disgolink.NewResultHandler(
+	player.Node.Rest.LoadTracksHandler(e.Ctx, query, disgolink.NewTrackLoadingResultHandler(
 		func(track lavalink.Track) {
 			loadErr = c.handleTracks(e, *voiceState.ChannelID, track)
 		},
@@ -113,7 +126,7 @@ func (c *commands) OnPlayerPlay(data discord.SlashCommandInteractionData, e *han
 }
 
 func (c *commands) handleTracks(e *handler.CommandEvent, channelID snowflake.ID, tracks ...lavalink.Track) error {
-	_, ok := c.Discord.Caches().VoiceState(*e.GuildID(), e.ApplicationID())
+	_, ok := c.Discord.Caches.VoiceState(*e.GuildID(), e.ApplicationID())
 	if !ok {
 		if err := c.Discord.UpdateVoiceState(context.Background(), *e.GuildID(), &channelID, false, false); err != nil {
 			_, err = e.UpdateInteractionResponse(res.UpdateErr("An error occurred", err))
@@ -121,16 +134,20 @@ func (c *commands) handleTracks(e *handler.CommandEvent, channelID snowflake.ID,
 		}
 	}
 
+	userData, _ := json.Marshal(bot.UserData{
+		Requester: e.User().ID,
+	})
+
 	queueTracks := make([]lavaqueue.QueueTrack, len(tracks))
 	for i, track := range tracks {
 		queueTracks[i] = lavaqueue.QueueTrack{
 			Encoded:  track.Encoded,
-			UserData: nil, // TODO: Add user data
+			UserData: userData,
 		}
 	}
 
 	player := c.Lavalink.Player(*e.GuildID())
-	track, err := lavaqueue.AddQueueTracks(e.Ctx, player.Node(), *e.GuildID(), queueTracks)
+	track, err := lavaqueue.AddQueueTracks(e.Ctx, player.Node, *e.GuildID(), queueTracks)
 	if err != nil {
 		_, err = e.UpdateInteractionResponse(res.UpdateErr("An error occurred playing the song", err))
 		return err

@@ -1,0 +1,9 @@
+-- Copy music rows from the live Go database into the Java database.
+-- Run this once, after KittyBotGo has created the new tables and before it is the only bot writing them.
+--
+--   pg_dump --data-only --inserts \
+--     -t lavalink_nodes -t playlists -t playlist_tracks -t liked_tracks -t play_histories \
+--     "$GO_DATABASE_URL" | psql "$JAVA_DATABASE_URL"
+--
+-- Those tables do not exist on the Java side, so the dumped ids can be inserted as they are.
+-- Take a snapshot of both databases first.

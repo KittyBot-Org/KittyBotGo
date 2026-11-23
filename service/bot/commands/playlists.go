@@ -6,10 +6,10 @@ import (
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/handler"
-	"github.com/disgoorg/disgolink/v3/lavalink"
+	"github.com/disgoorg/disgolink/v4/lavalink"
 	"github.com/disgoorg/lavaqueue-plugin"
 
-	"github.com/KittyBot-Org/KittyBotGo/service/bot/res"
+	"github.com/kittybot-org/kittybotgo/service/bot/res"
 )
 
 var playlistsCommand = discord.SlashCommandCreate{
@@ -189,7 +189,7 @@ func (c *commands) OnPlaylistShow(data discord.SlashCommandInteractionData, e *h
 }
 
 func (c *commands) OnPlaylistPlay(data discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
-	voiceState, ok := c.Discord.Caches().VoiceState(*e.GuildID(), e.User().ID)
+	voiceState, ok := c.Discord.Caches.VoiceState(*e.GuildID(), e.User().ID)
 	if !ok {
 		return e.CreateMessage(res.CreateError("You are not in a voice channel"))
 	}
@@ -203,7 +203,7 @@ func (c *commands) OnPlaylistPlay(data discord.SlashCommandInteractionData, e *h
 		return e.CreateMessage(res.CreateError("Playlist is empty"))
 	}
 
-	_, ok = c.Discord.Caches().VoiceState(*e.GuildID(), e.ApplicationID())
+	_, ok = c.Discord.Caches.VoiceState(*e.GuildID(), e.ApplicationID())
 	if !ok {
 		if err = c.Discord.UpdateVoiceState(context.Background(), *e.GuildID(), voiceState.ChannelID, false, false); err != nil {
 			return e.CreateMessage(res.CreateErr("Failed to join channel", err))
@@ -219,7 +219,7 @@ func (c *commands) OnPlaylistPlay(data discord.SlashCommandInteractionData, e *h
 	}
 
 	player := c.Lavalink.Player(*e.GuildID())
-	track, err := lavaqueue.AddQueueTracks(e.Ctx, player.Node(), *e.GuildID(), queueTracks)
+	track, err := lavaqueue.AddQueueTracks(e.Ctx, player.Node, *e.GuildID(), queueTracks)
 	if err != nil {
 		return e.CreateMessage(res.CreateErr("An error occurred playing the song", err))
 	}
@@ -257,7 +257,7 @@ func (c *commands) OnPlaylistAdd(data discord.SlashCommandInteractionData, e *ha
 		return err
 	}
 
-	result, err := c.Lavalink.BestNode().Rest().LoadTracks(context.Background(), query)
+	result, err := c.Lavalink.BestNode().Rest.LoadTracks(context.Background(), query)
 	if err != nil {
 		_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to load song", err))
 		return err

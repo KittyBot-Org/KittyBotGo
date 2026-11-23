@@ -4,25 +4,27 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/disgoorg/disgolink/v3/disgolink"
+	"github.com/disgoorg/disgolink/v4/disgolink"
 	"github.com/disgoorg/snowflake/v2"
 
-	"github.com/KittyBot-Org/KittyBotGo/internal/log"
-	"github.com/KittyBot-Org/KittyBotGo/service/bot/db"
+	"github.com/kittybot-org/kittybotgo/internal/log"
+	"github.com/kittybot-org/kittybotgo/service/bot/db"
 )
 
 type Config struct {
-	Log      log.Config `toml:"log"`
-	Bot      BotConfig  `toml:"bot"`
-	Database db.Config  `json:"database"`
-	Nodes    Nodes      `json:"nodes"`
+	Log       log.Config      `toml:"log"`
+	Bot       BotConfig       `toml:"bot"`
+	Database  db.Config       `toml:"database"`
+	Dashboard DashboardConfig `toml:"dashboard"`
+	Nodes     Nodes           `toml:"nodes"`
 }
 
 func (c Config) String() string {
-	return fmt.Sprintf("\n Log: %v\n Bot: %s\n Database: %s\n Nodes: %s\n",
+	return fmt.Sprintf("\n Log: %v\n Bot: %s\n Database: %s\n Dashboard: %s\n Nodes: %s\n",
 		c.Log,
 		c.Bot,
 		c.Database,
+		c.Dashboard,
 		c.Nodes,
 	)
 }
@@ -33,15 +35,42 @@ type BotConfig struct {
 	GatewayURL   string         `toml:"gateway_url"`
 	RestURL      string         `toml:"rest_url"`
 	Token        string         `toml:"token"`
+	Secret       string         `toml:"secret"`
+	DevIDs       []snowflake.ID `toml:"dev_ids"`
 }
 
 func (c BotConfig) String() string {
-	return fmt.Sprintf("\n  SyncCommands: %t\n  GuildIDs: %v\n  GatewayURL: %s\n  RestURL: %s\n  Token: %s\n",
+	return fmt.Sprintf("\n  SyncCommands: %t\n  GuildIDs: %v\n  GatewayURL: %s\n  RestURL: %s\n  Token: %s\n  Secret: %s\n  DevIDs: %v\n",
 		c.SyncCommands,
 		c.GuildIDs,
 		c.GatewayURL,
 		c.RestURL,
 		strings.Repeat("*", len(c.Token)),
+		strings.Repeat("*", len(c.Secret)),
+		c.DevIDs,
+	)
+}
+
+type DashboardConfig struct {
+	Host          string `toml:"host"`
+	Port          int    `toml:"port"`
+	OriginURL     string `toml:"origin_url"`
+	RedirectURL   string `toml:"redirect_url"`
+	SigningKey    string `toml:"signing_key"`
+	HastebinURL   string `toml:"hastebin_url"`
+	SupportInvite string `toml:"support_invite"`
+	BotInviteURL  string `toml:"bot_invite_url"`
+	PrivacyURL    string `toml:"privacy_url"`
+	VoteURL       string `toml:"vote_url"`
+}
+
+func (c DashboardConfig) String() string {
+	return fmt.Sprintf("\n  Host: %s\n  Port: %d\n  OriginURL: %s\n  RedirectURL: %s\n  SigningKey: %s\n",
+		c.Host,
+		c.Port,
+		c.OriginURL,
+		c.RedirectURL,
+		strings.Repeat("*", len(c.SigningKey)),
 	)
 }
 

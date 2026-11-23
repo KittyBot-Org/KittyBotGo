@@ -9,9 +9,9 @@ import (
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/handler"
-	"github.com/disgoorg/disgolink/v3/lavalink"
+	"github.com/disgoorg/disgolink/v4/lavalink"
 
-	"github.com/KittyBot-Org/KittyBotGo/service/bot/res"
+	"github.com/kittybot-org/kittybotgo/service/bot/res"
 )
 
 var trackRegex = regexp.MustCompile(`\[\x60(.+)\x60]\(<(?P<url>.+)?>\)`)
@@ -87,7 +87,7 @@ func (c *commands) OnLikedSongsAddButton(e *handler.ComponentEvent) error {
 			return err
 		}
 
-		result, err := c.Lavalink.BestNode().Rest().LoadTracks(context.Background(), url)
+		result, err := c.Lavalink.BestNode().Rest.LoadTracks(context.Background(), url)
 		if err != nil {
 			_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to like song", err))
 			return err

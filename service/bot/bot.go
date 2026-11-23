@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"net/http"
+
 	"github.com/disgoorg/disgo"
 	"github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgo/cache"
@@ -17,24 +19,37 @@ import (
 	"github.com/disgoorg/disgo/handler"
 	"github.com/disgoorg/disgo/rest"
 	"github.com/disgoorg/disgo/sharding"
-	"github.com/disgoorg/disgolink/v3/disgolink"
+	"github.com/disgoorg/disgolink/v4/disgolink"
+	"github.com/disgoorg/lavaqueue-plugin"
+	"github.com/disgoorg/snowflake/v2"
 	"github.com/topi314/tint"
 
-	"github.com/KittyBot-Org/KittyBotGo/service/bot/db"
+	"github.com/kittybot-org/kittybotgo/service/bot/db"
 )
 
 //go:embed sql/schema.sql
 var schema string
 
 func New(cfg Config, version string, commit string) (*Bot, error) {
+	ctx, cancel := context.WithCancel(context.Background())
 	b := &Bot{
 		Config:  cfg,
 		Version: version,
 		Commit:  commit,
+		ctx:     ctx,
+		cancel:  cancel,
+		invites: map[snowflake.ID]map[string]int{},
+		used:    map[snowflake.ID]map[snowflake.ID]string{},
+		states:  map[string]time.Time{},
 	}
 
 	gatewayConfigOpts := []gateway.ConfigOpt{
-		gateway.WithIntents(gateway.IntentGuilds, gateway.IntentGuildVoiceStates),
+		gateway.WithIntents(
+			gateway.IntentGuilds,
+			gateway.IntentGuildVoiceStates,
+			gateway.IntentGuildMembers,
+			gateway.IntentGuildInvites,
+		),
 	}
 	shardManagerConfigOpts := []sharding.ConfigOpt{
 		sharding.WithGatewayConfigOpts(gatewayConfigOpts...),
@@ -43,15 +58,14 @@ func New(cfg Config, version string, commit string) (*Bot, error) {
 		shardManagerConfigOpts = []sharding.ConfigOpt{
 			sharding.WithGatewayConfigOpts(append(gatewayConfigOpts,
 				gateway.WithURL(cfg.Bot.GatewayURL),
-				gateway.WithCompress(false),
+				gateway.WithCompression(gateway.CompressionNone),
 			)...),
-			sharding.WithRateLimiter(sharding.NewNoopRateLimiter()),
 		}
 	}
 
-	var restClientConfigOpts []rest.ConfigOpt
+	var restClientConfigOpts []rest.ClientConfigOpt
 	if cfg.Bot.RestURL != "" {
-		restClientConfigOpts = []rest.ConfigOpt{
+		restClientConfigOpts = []rest.ClientConfigOpt{
 			rest.WithURL(cfg.Bot.RestURL),
 			rest.WithRateLimiter(rest.NewNoopRateLimiter()),
 		}
@@ -61,7 +75,7 @@ func New(cfg Config, version string, commit string) (*Bot, error) {
 		bot.WithShardManagerConfigOpts(shardManagerConfigOpts...),
 		bot.WithRestClientConfigOpts(restClientConfigOpts...),
 		bot.WithCacheConfigOpts(
-			cache.WithCaches(cache.FlagGuilds, cache.FlagVoiceStates),
+			cache.WithCaches(cache.FlagGuilds, cache.FlagVoiceStates, cache.FlagChannels),
 		),
 		bot.WithEventListenerFunc(b.OnDiscordEvent),
 	)
@@ -69,7 +83,8 @@ func New(cfg Config, version string, commit string) (*Bot, error) {
 		return nil, fmt.Errorf("failed to create discord client: %w", err)
 	}
 
-	lavalink := disgolink.New(d.ApplicationID(),
+	lavalink := disgolink.New(d.ApplicationID,
+		disgolink.WithPlugins(lavaqueue.New()),
 		disgolink.WithListenerFunc(b.OnLavalinkEvent),
 	)
 
@@ -85,12 +100,24 @@ func New(cfg Config, version string, commit string) (*Bot, error) {
 }
 
 type Bot struct {
-	Config   Config
-	Version  string
-	Commit   string
-	Discord  bot.Client
-	Lavalink disgolink.Client
-	Database *db.DB
+	Config     Config
+	Version    string
+	Commit     string
+	Started    time.Time
+	Discord    *bot.Client
+	Lavalink   *disgolink.Client
+	Database   *db.DB
+	ctx        context.Context
+	cancel     context.CancelFunc
+	httpServer *http.Server
+
+	inviteMu sync.Mutex
+	invites  map[snowflake.ID]map[string]int
+	usedMu   sync.Mutex
+	used     map[snowflake.ID]map[snowflake.ID]string
+
+	stateMu sync.Mutex
+	states  map[string]time.Time
 }
 
 func (b *Bot) Start(commands []discord.ApplicationCommandCreate) error {
@@ -100,7 +127,10 @@ func (b *Bot) Start(commands []discord.ApplicationCommandCreate) error {
 		}
 	}
 
+	b.Started = time.Now()
 	b.ConnectLavalinkNodes()
+	go b.scheduleNotifications()
+	b.startDashboard()
 
 	return b.Discord.OpenShardManager(context.Background())
 }
@@ -139,14 +169,22 @@ func (b *Bot) ConnectLavalinkNodes() {
 }
 
 func (b *Bot) Close() {
+	if b.cancel != nil {
+		b.cancel()
+	}
+	if b.httpServer != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		_ = b.httpServer.Shutdown(ctx)
+	}
 	if b.Lavalink != nil {
 		var nodes []db.LavalinkNode
-		b.Lavalink.ForNodes(func(node disgolink.Node) {
+		for node := range b.Lavalink.Nodes() {
 			nodes = append(nodes, db.LavalinkNode{
-				Name:      node.Config().Name,
-				SessionID: node.SessionID(),
+				Name:      node.Config.Name,
+				SessionID: node.Config.SessionID,
 			})
-		})
+		}
 
 		if len(nodes) > 0 {
 			if err := b.Database.AddLavalinkNodes(context.Background(), nodes); err != nil {
