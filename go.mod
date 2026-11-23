@@ -1,6 +1,6 @@
 module github.com/kittybot-org/kittybotgo
 
-go 1.26.0
+go 1.27.4
 
 require (
 	github.com/disgoorg/disgo v0.20.1-0.20261116223422-05fe0f6826ff

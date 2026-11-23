@@ -1,3 +1,6 @@
-.github/
+.git
+.github
+**/*.md
+**/*_test.go
 config.toml
-example.config.toml
+config.example.toml
