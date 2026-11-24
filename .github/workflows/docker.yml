@@ -57,13 +57,15 @@ jobs:
   deploy:
     needs:
       - build
-    if: secrets.DEPLOY_URL != ''
     runs-on: ubuntu-latest
+    env:
+      DEPLOY_URL: ${{ secrets.DEPLOY_URL }}
     steps:
       - name: Deploy
+        if: env.DEPLOY_URL != ''
         uses: fjogeleit/http-request-action@v2
         with:
-          url: ${{ secrets.DEPLOY_URL }}
+          url: ${{ env.DEPLOY_URL }}
           method: "POST"
           timeout: 60000
           customHeaders: '{"Authorization": "Bearer ${{ secrets.DEPLOY_TOKEN }}"}'
