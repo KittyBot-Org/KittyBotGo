@@ -19,6 +19,7 @@ import (
 	"github.com/topi314/tint"
 
 	"github.com/kittybot-org/kittybotgo/service/bot"
+	"github.com/kittybot-org/kittybotgo/service/bot/db/dbsqlc"
 	"github.com/kittybot-org/kittybotgo/service/bot/res"
 )
 
@@ -73,34 +74,38 @@ func (c *commands) OnPlayerPlay(data discord.SlashCommandInteractionData, e *han
 
 	switch loadType {
 	case "liked_track":
-		track, err := c.Database.GetLikedTrack(id)
+		row, err := c.Database.GetLikedTrack(e.Ctx, int64(id))
 		if err != nil {
 			_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to get liked song", err))
 			return err
 		}
-		return c.handleTracks(e, *voiceState.ChannelID, track.Track)
+		track, err := decodeTrack(row.Track)
+		if err != nil {
+			_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to get liked song", err))
+			return err
+		}
+		return c.handleTracks(e, *voiceState.ChannelID, track)
 
 	case "playlist":
-		_, playlistTracks, err := c.Database.GetPlaylist(id)
+		_, playlistTracks, err := c.Database.LoadPlaylist(e.Ctx, int64(id))
 		if err != nil {
 			_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to get playlist", err))
 			return err
 		}
-
-		tracks := make([]lavalink.Track, len(playlistTracks))
-		for i, track := range playlistTracks {
-			tracks[i] = track.Track
-		}
-		return c.handleTracks(e, *voiceState.ChannelID, tracks...)
+		return c.handleTracks(e, *voiceState.ChannelID, playlistTracks...)
 
 	case "play_history":
-		track, err := c.Database.GetPlayHistoryTrack(id)
+		row, err := c.Database.GetPlayHistoryTrack(e.Ctx, int64(id))
 		if err != nil {
 			_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to get play history song", err))
 			return err
 		}
-
-		return c.handleTracks(e, *voiceState.ChannelID, track.Track)
+		track, err := decodeTrack(row.Track)
+		if err != nil {
+			_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to get play history song", err))
+			return err
+		}
+		return c.handleTracks(e, *voiceState.ChannelID, track)
 	}
 
 	var loadErr error
@@ -168,7 +173,7 @@ func (c *commands) handleTracks(e *handler.CommandEvent, channelID snowflake.ID,
 	}
 
 	go func() {
-		if err := c.Database.AddPlayHistoryTracks(e.User().ID, tracks); err != nil {
+		if err := c.Database.AddPlayHistoryTracks(context.Background(), int64(e.User().ID), tracks); err != nil {
 			slog.Error("error adding play history songs", tint.Err(err))
 		}
 	}()
@@ -185,7 +190,11 @@ func (c *commands) OnPlayerPlayAutocomplete(e *handler.AutocompleteEvent) error 
 		limit = 25
 	}
 
-	tracks, err := c.Database.SearchPlay(e.User().ID, query, limit)
+	tracks, err := c.Database.SearchPlay(e.Ctx, dbsqlc.SearchPlayParams{
+		UserID:      int64(e.User().ID),
+		Query:       query,
+		ResultLimit: int32(limit),
+	})
 	if err != nil {
 		slog.Error("error searching play", tint.Err(err))
 		return e.AutocompleteResult(nil)
@@ -211,10 +220,21 @@ func (c *commands) OnPlayerPlayAutocomplete(e *handler.AutocompleteEvent) error 
 		}
 
 		choices = append(choices, discord.AutocompleteChoiceString{
-			Name:  res.Trim(prefix+track.Name, 100),
+			Name:  res.Trim(prefix+playName(track.Name), 100),
 			Value: fmt.Sprintf("%s:%d", track.Type, track.ID),
 		})
 	}
 
 	return e.AutocompleteResult(choices)
+}
+
+func playName(value any) string {
+	switch typed := value.(type) {
+	case string:
+		return typed
+	case []byte:
+		return string(typed)
+	default:
+		return fmt.Sprint(typed)
+	}
 }

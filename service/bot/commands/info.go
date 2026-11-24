@@ -71,11 +71,11 @@ func (c *commands) OnInfoUptime(_ discord.SlashCommandInteractionData, e *handle
 }
 
 func (c *commands) OnInfoVote(_ discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
-	expiry, err := c.Database.VoteExpiry(e.Ctx, e.User().ID)
-	if err != nil || time.Now().After(expiry) {
+	expiry, err := c.Database.VoteExpiry(e.Ctx, int64(e.User().ID))
+	if err != nil || !expiry.Valid || time.Now().After(expiry.Time) {
 		return e.CreateMessage(res.Createf("You have no active vote. %s", c.Config.Dashboard.VoteURL))
 	}
-	return e.CreateMessage(res.Createf("Your vote lasts until %s", expiry.Format(time.RFC822)))
+	return e.CreateMessage(res.Createf("Your vote lasts until %s", expiry.Time.Format(time.RFC822)))
 }
 
 func (c *commands) OnInfoPrivacy(_ discord.SlashCommandInteractionData, e *handler.CommandEvent) error {

@@ -18,9 +18,12 @@ import (
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/snowflake/v2"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/topi314/tint"
 
-	"github.com/kittybot-org/kittybotgo/service/bot/db"
+	"github.com/kittybot-org/kittybotgo/internal/gatewaywire"
+	"github.com/kittybot-org/kittybotgo/internal/otel"
+	"github.com/kittybot-org/kittybotgo/service/bot/db/dbsqlc"
 )
 
 func (b *Bot) startDashboard() {
@@ -55,7 +58,7 @@ func (b *Bot) startDashboard() {
 
 	b.httpServer = &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", b.Config.Dashboard.Host, b.Config.Dashboard.Port),
-		Handler: b.withCORS(mux),
+		Handler: otel.Handler(b.withCORS(mux), "dashboard"),
 	}
 	go func() {
 		slog.Info("dashboard listening", slog.String("addr", b.httpServer.Addr))
@@ -98,21 +101,15 @@ func (b *Bot) dashboardInfo(w http.ResponseWriter, _ *http.Request) {
 	})
 }
 
-func (b *Bot) dashboardShards(w http.ResponseWriter, _ *http.Request) {
-	var shards []map[string]any
-	if b.Discord.ShardManager != nil {
-		for gateway := range b.Discord.ShardManager.Shards() {
-			session := ""
-			if id := gateway.SessionID(); id != nil {
-				session = *id
-			}
-			shards = append(shards, map[string]any{
-				"id":         gateway.ShardID(),
-				"status":     gateway.Status().String(),
-				"latency_ms": gateway.Latency().Milliseconds(),
-				"session_id": session,
-			})
-		}
+func (b *Bot) dashboardShards(w http.ResponseWriter, r *http.Request) {
+	shards, err := b.remote.Shards(r.Context())
+	if err != nil {
+		slog.Error("failed to load shard status", tint.Err(err))
+		http.Error(w, "failed to load shards", http.StatusBadGateway)
+		return
+	}
+	if shards == nil {
+		shards = []gatewaywire.ShardStatus{}
 	}
 	writeJSON(w, http.StatusOK, shards)
 }
@@ -177,11 +174,11 @@ func (b *Bot) dashboardLogin(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Could not login", http.StatusForbidden)
 		return
 	}
-	if err := b.Database.UpsertSession(r.Context(), db.Session{
-		UserID:       user.ID,
+	if err := b.Database.UpsertSession(r.Context(), dbsqlc.UpsertSessionParams{
+		UserID:       int64(user.ID),
 		AccessToken:  token.AccessToken,
 		RefreshToken: token.RefreshToken,
-		Expiration:   time.Now().Add(token.ExpiresIn),
+		Expiration:   pgtype.Timestamp{Time: time.Now().Add(token.ExpiresIn), Valid: true},
 	}); err != nil {
 		http.Error(w, "Could not login", http.StatusForbidden)
 		return
@@ -195,7 +192,7 @@ func (b *Bot) dashboardLogout(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid token", http.StatusUnauthorized)
 		return
 	}
-	_ = b.Database.DeleteSession(r.Context(), userID)
+	_ = b.Database.DeleteSession(r.Context(), int64(userID))
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -233,7 +230,10 @@ func (b *Bot) dashboardVote(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-	if err := b.Database.UpsertVote(r.Context(), userID, time.Now().Add(12*time.Hour)); err != nil {
+	if err := b.Database.UpsertVote(r.Context(), dbsqlc.UpsertVoteParams{
+		UserID:     int64(userID),
+		VoteExpiry: pgtype.Timestamp{Time: time.Now().Add(12 * time.Hour), Valid: true},
+	}); err != nil {
 		http.Error(w, "failed", http.StatusInternalServerError)
 		return
 	}
@@ -253,7 +253,7 @@ func (b *Bot) dashboardGuilds(w http.ResponseWriter, r *http.Request) {
 	}
 	var visible []map[string]any
 	for _, guild := range guilds {
-		if !b.canManage(session.UserID, guild.ID, guild.Permissions, guild.Owner) {
+		if !b.canManage(snowflake.ID(session.UserID), guild.ID, guild.Permissions, guild.Owner) {
 			continue
 		}
 		visible = append(visible, map[string]any{"id": guild.ID.String(), "name": guild.Name, "icon": guild.Icon, "owner": guild.Owner})
@@ -351,7 +351,7 @@ func (b *Bot) dashboardTags(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	tags, err := b.Database.ListTags(r.Context(), guildID)
+	tags, err := b.Database.ListTags(r.Context(), int64(guildID))
 	if err != nil {
 		http.Error(w, "failed to load tags", http.StatusInternalServerError)
 		return
@@ -380,12 +380,16 @@ func (b *Bot) dashboardPostTag(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-	tag, err := b.Database.GetTagByID(r.Context(), guildID, tagID)
+	tag, err := b.Database.GetTagByID(r.Context(), dbsqlc.GetTagByIDParams{GuildID: int64(guildID), ID: int64(tagID)})
 	if err != nil {
 		http.Error(w, "tag not found", http.StatusNotFound)
 		return
 	}
-	if err := b.Database.UpdateTag(r.Context(), guildID, tag.Name, body.Content); err != nil {
+	if err := b.Database.UpdateTag(r.Context(), dbsqlc.UpdateTagParams{
+		GuildID: int64(guildID),
+		Name:    tag.Name,
+		Content: body.Content,
+	}); err != nil {
 		http.Error(w, "failed to update tag", http.StatusInternalServerError)
 		return
 	}
@@ -402,12 +406,12 @@ func (b *Bot) dashboardDeleteTag(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "bad tag", http.StatusBadRequest)
 		return
 	}
-	tag, err := b.Database.GetTagByID(r.Context(), guildID, tagID)
+	tag, err := b.Database.GetTagByID(r.Context(), dbsqlc.GetTagByIDParams{GuildID: int64(guildID), ID: int64(tagID)})
 	if err != nil {
 		http.Error(w, "tag not found", http.StatusNotFound)
 		return
 	}
-	if _, err := b.Database.DeleteTag(r.Context(), guildID, tag.Name); err != nil {
+	if _, err := b.Database.DeleteTag(r.Context(), dbsqlc.DeleteTagParams{GuildID: int64(guildID), Name: tag.Name}); err != nil {
 		http.Error(w, "failed to delete tag", http.StatusInternalServerError)
 		return
 	}
@@ -419,7 +423,7 @@ func (b *Bot) dashboardGetSettings(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	settings, err := b.Database.GetGuild(r.Context(), guildID)
+	settings, err := b.guild(r.Context(), guildID)
 	if err != nil {
 		http.Error(w, "failed to load settings", http.StatusInternalServerError)
 		return
@@ -430,8 +434,8 @@ func (b *Bot) dashboardGetSettings(w http.ResponseWriter, r *http.Request) {
 		"join_message":            settings.JoinMessage,
 		"leave_messages_enabled":  settings.LeaveMessagesEnabled,
 		"leave_message":           settings.LeaveMessage,
-		"nsfw_enabled":            settings.NSFWEnabled,
-		"dj_role_id":              idString(settings.DJRoleID),
+		"nsfw_enabled":            settings.NsfwEnabled,
+		"dj_role_id":              idString(settings.DjRoleID),
 		"role_saver_enabled":      settings.RoleSaverEnabled,
 	})
 }
@@ -470,7 +474,7 @@ func (b *Bot) dashboardPostSettings(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			continue
 		}
-		if err := b.Database.SetGuildColumn(r.Context(), guildID, column, parsed); err != nil {
+		if err := b.Database.SetGuildColumn(r.Context(), int64(guildID), column, parsed); err != nil {
 			http.Error(w, "failed to save settings", http.StatusInternalServerError)
 			return
 		}
@@ -489,8 +493,8 @@ func (b *Bot) guildParam(w http.ResponseWriter, r *http.Request) (snowflake.ID, 
 		http.Error(w, "bad guild", http.StatusBadRequest)
 		return 0, false
 	}
-	perms, err := b.Discord.Rest.GetGuildMemberPermissions(guildID, session.UserID)
-	if err != nil || !b.canManage(session.UserID, guildID, perms, false) {
+	perms, err := b.Discord.Rest.GetGuildMemberPermissions(guildID, snowflake.ID(session.UserID))
+	if err != nil || !b.canManage(snowflake.ID(session.UserID), guildID, perms, false) {
 		http.Error(w, "forbidden", http.StatusForbidden)
 		return 0, false
 	}
@@ -504,14 +508,14 @@ func (b *Bot) canManage(userID snowflake.ID, _ snowflake.ID, perms discord.Permi
 	return false
 }
 
-func (b *Bot) authorizedSession(r *http.Request) (db.Session, bool) {
+func (b *Bot) authorizedSession(r *http.Request) (dbsqlc.Session, bool) {
 	userID, ok := b.authorizedUser(r)
 	if !ok {
-		return db.Session{}, false
+		return dbsqlc.Session{}, false
 	}
-	session, err := b.Database.GetSession(r.Context(), userID)
+	session, err := b.Database.GetSession(r.Context(), int64(userID))
 	if err != nil {
-		return db.Session{}, false
+		return dbsqlc.Session{}, false
 	}
 	return session, true
 }
@@ -523,11 +527,11 @@ func (b *Bot) authorizedUser(r *http.Request) (snowflake.ID, bool) {
 	return userID, ok
 }
 
-func tagJSON(tag db.Tag) map[string]any {
+func tagJSON(tag dbsqlc.GuildTag) map[string]any {
 	return map[string]any{
 		"id":         tag.ID,
 		"name":       tag.Name,
-		"user_id":    tag.UserID.String(),
+		"user_id":    snowflake.ID(tag.UserID).String(),
 		"content":    tag.Content,
 		"command_id": strconv.FormatInt(tag.CommandID, 10),
 	}

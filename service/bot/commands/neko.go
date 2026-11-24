@@ -82,8 +82,11 @@ func (c *commands) OnNeko(data discord.SlashCommandInteractionData, e *handler.C
 		rating, name, kind = parts[0], parts[1], parts[2]
 	}
 	if rating == "nsfw" {
-		settings, err := c.Database.GetGuild(e.Ctx, *e.GuildID())
-		if err != nil || !settings.NSFWEnabled {
+		if err := c.Database.EnsureGuild(e.Ctx, int64(*e.GuildID())); err != nil {
+			return e.CreateMessage(res.CreateError("NSFW commands are disabled in this guild"))
+		}
+		settings, err := c.Database.GetGuild(e.Ctx, int64(*e.GuildID()))
+		if err != nil || !settings.NsfwEnabled {
 			return e.CreateMessage(res.CreateError("NSFW commands are disabled in this guild"))
 		}
 	}

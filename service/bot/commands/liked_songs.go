@@ -2,7 +2,7 @@ package commands
 
 import (
 	"context"
-	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"regexp"
@@ -10,7 +10,9 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/handler"
 	"github.com/disgoorg/disgolink/v4/lavalink"
+	"github.com/jackc/pgx/v5"
 
+	"github.com/kittybot-org/kittybotgo/service/bot/db/dbsqlc"
 	"github.com/kittybot-org/kittybotgo/service/bot/res"
 )
 
@@ -77,12 +79,15 @@ func (c *commands) OnLikedSongsAddButton(e *handler.ComponentEvent) error {
 		return e.CreateMessage(res.CreateError("Failed to find a song URL."))
 	}
 
-	likedTrack, err := c.Database.FindLikedTrack(e.User().ID, url)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+	likedTrack, err := c.Database.FindLikedTrack(e.Ctx, dbsqlc.FindLikedTrackParams{
+		UserID: int64(e.User().ID),
+		Uri:    url,
+	})
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return e.CreateMessage(res.CreateErr("Failed to like song", err))
 	}
 
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, pgx.ErrNoRows) {
 		if err = e.DeferCreateMessage(true); err != nil {
 			return err
 		}
@@ -114,7 +119,15 @@ func (c *commands) OnLikedSongsAddButton(e *handler.ComponentEvent) error {
 			return err
 		}
 
-		if err = c.Database.AddLikedTrack(e.User().ID, track); err != nil {
+		encoded, err := json.Marshal(track)
+		if err != nil {
+			_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to like song", err))
+			return err
+		}
+		if err = c.Database.AddLikedTrack(e.Ctx, dbsqlc.AddLikedTrackParams{
+			UserID: int64(e.User().ID),
+			Track:  encoded,
+		}); err != nil {
 			_, err = e.UpdateInteractionResponse(res.UpdateError("Failed to add song to your liked songs. Please try again."))
 			return err
 		}
@@ -122,17 +135,21 @@ func (c *commands) OnLikedSongsAddButton(e *handler.ComponentEvent) error {
 		return err
 	}
 
-	if err = c.Database.RemoveLikedTrack(likedTrack.ID); err != nil {
+	if err = c.Database.RemoveLikedTrack(e.Ctx, likedTrack.ID); err != nil {
+		return e.CreateMessage(res.CreateErr("Failed to remove song from your liked songs", err))
+	}
+	removed, err := decodeTrack(likedTrack.Track)
+	if err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to remove song from your liked songs", err))
 	}
 
-	create := res.Createf("💔 Removed %s from your liked songs.", res.FormatTrack(likedTrack.Track, 0))
+	create := res.Createf("💔 Removed %s from your liked songs.", res.FormatTrack(removed, 0))
 	create.Flags = discord.MessageFlagEphemeral
 	return e.CreateMessage(create)
 }
 
 func (c *commands) OnLikedSongsShow(_ discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
-	likedTracks, err := c.Database.GetLikedTracks(e.User().ID)
+	likedTracks, err := c.Database.GetLikedTracks(e.Ctx, int64(e.User().ID))
 	if err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to get liked songs", err))
 	}
@@ -142,8 +159,12 @@ func (c *commands) OnLikedSongsShow(_ discord.SlashCommandInteractionData, e *ha
 	}
 
 	content := fmt.Sprintf("Liked Songs(`%d`):\n", len(likedTracks))
-	for i, track := range likedTracks {
-		line := fmt.Sprintf("%d. %s\n", i+1, res.FormatTrack(track.Track, 0))
+	for i, row := range likedTracks {
+		track, err := decodeTrack(row.Track)
+		if err != nil {
+			return e.CreateMessage(res.CreateErr("Failed to get liked songs", err))
+		}
+		line := fmt.Sprintf("%d. %s\n", i+1, res.FormatTrack(track, 0))
 		if len([]rune(content))+len([]rune(line)) > 2000 {
 			break
 		}
@@ -155,7 +176,7 @@ func (c *commands) OnLikedSongsShow(_ discord.SlashCommandInteractionData, e *ha
 func (c *commands) OnLikedSongsRemove(data discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
 	trackID := data.Int("song")
 
-	if err := c.Database.RemoveLikedTrack(trackID); err != nil {
+	if err := c.Database.RemoveLikedTrack(e.Ctx, int64(trackID)); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to remove song from your liked songs", err))
 	}
 
@@ -164,23 +185,31 @@ func (c *commands) OnLikedSongsRemove(data discord.SlashCommandInteractionData, 
 
 func (c *commands) OnLikedSongsAutocomplete(e *handler.AutocompleteEvent) error {
 	query := e.Data.String("song")
-	likedTracks, err := c.Database.SearchLikedTracks(e.User().ID, query, 25)
+	likedTracks, err := c.Database.SearchLikedTracks(e.Ctx, dbsqlc.SearchLikedTracksParams{
+		UserID:                   int64(e.User().ID),
+		StrictWordSimilarityDist: query,
+		Limit:                    25,
+	})
 	if err != nil {
 		return e.AutocompleteResult(nil)
 	}
 
 	choices := make([]discord.AutocompleteChoice, len(likedTracks))
-	for i, track := range likedTracks {
+	for i, row := range likedTracks {
+		track, err := decodeTrack(row.Track)
+		if err != nil {
+			return e.AutocompleteResult(nil)
+		}
 		choices[i] = discord.AutocompleteChoiceInt{
-			Name:  res.Trim(track.Track.Info.Title, 100),
-			Value: track.ID,
+			Name:  res.Trim(track.Info.Title, 100),
+			Value: int(row.ID),
 		}
 	}
 	return e.AutocompleteResult(choices)
 }
 
 func (c *commands) OnLikedSongsClear(_ discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
-	if err := c.Database.ClearLikedTracks(e.User().ID); err != nil {
+	if err := c.Database.ClearLikedTracks(e.Ctx, int64(e.User().ID)); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to clear liked songs", err))
 	}
 	return e.CreateMessage(res.Create("Cleared liked songs."))

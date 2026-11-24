@@ -42,12 +42,15 @@ var settingsCommand = discord.SlashCommandCreate{
 }
 
 func (c *commands) OnSettingsList(_ discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
-	settings, err := c.Database.GetGuild(e.Ctx, *e.GuildID())
+	if err := c.Database.EnsureGuild(e.Ctx, int64(*e.GuildID())); err != nil {
+		return e.CreateMessage(res.CreateErr("Failed to load settings", err))
+	}
+	settings, err := c.Database.GetGuild(e.Ctx, int64(*e.GuildID()))
 	if err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to load settings", err))
 	}
 	return e.CreateMessage(res.Create(fmt.Sprintf("Join messages: `%t`\nJoin message: %s\nLeave messages: `%t`\nLeave message: %s\nAnnouncement channel: %s\nDJ role: %s\nNSFW: `%t`\nRole saver: `%t`",
-		settings.JoinMessagesEnabled, settings.JoinMessage, settings.LeaveMessagesEnabled, settings.LeaveMessage, mentionChannel(settings.AnnouncementChannel()), mentionRole(settings.DJRole()), settings.NSFWEnabled, settings.RoleSaverEnabled)))
+		settings.JoinMessagesEnabled, settings.JoinMessage, settings.LeaveMessagesEnabled, settings.LeaveMessage, mentionChannel(storedID(settings.AnnouncementChannelID)), mentionRole(storedID(settings.DjRoleID)), settings.NsfwEnabled, settings.RoleSaverEnabled)))
 }
 
 func (c *commands) OnSettingsJoin(data discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
@@ -61,13 +64,13 @@ func (c *commands) OnSettingsLeave(data discord.SlashCommandInteractionData, e *
 func (c *commands) updateMessageSetting(e *handler.CommandEvent, data discord.SlashCommandInteractionData, enabledColumn string, messageColumn string, label string) error {
 	var parts []string
 	if enabled, ok := data.OptBool("enabled"); ok {
-		if err := c.Database.SetGuildColumn(e.Ctx, *e.GuildID(), enabledColumn, enabled); err != nil {
+		if err := c.Database.SetGuildColumn(e.Ctx, int64(*e.GuildID()), enabledColumn, enabled); err != nil {
 			return e.CreateMessage(res.CreateErr("Failed to update settings", err))
 		}
 		parts = append(parts, fmt.Sprintf("%s messages `%s`", label, enabledText(enabled)))
 	}
 	if message, ok := data.OptString("message"); ok {
-		if err := c.Database.SetGuildColumn(e.Ctx, *e.GuildID(), messageColumn, message); err != nil {
+		if err := c.Database.SetGuildColumn(e.Ctx, int64(*e.GuildID()), messageColumn, message); err != nil {
 			return e.CreateMessage(res.CreateErr("Failed to update settings", err))
 		}
 		parts = append(parts, fmt.Sprintf("%s message set to:\n%s", label, message))
@@ -80,7 +83,7 @@ func (c *commands) updateMessageSetting(e *handler.CommandEvent, data discord.Sl
 
 func (c *commands) OnSettingsAnnouncement(data discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
 	channel := data.Channel("channel")
-	if err := c.Database.SetGuildColumn(e.Ctx, *e.GuildID(), "announcement_channel_id", int64(channel.ID)); err != nil {
+	if err := c.Database.SetGuildColumn(e.Ctx, int64(*e.GuildID()), "announcement_channel_id", int64(channel.ID)); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to update settings", err))
 	}
 	return e.CreateMessage(res.Createf("Announcement channel set to %s", discord.ChannelMention(channel.ID)))
@@ -93,7 +96,7 @@ func (c *commands) OnSettingsDJRole(data discord.SlashCommandInteractionData, e 
 		roleID = int64(role.ID)
 		message = fmt.Sprintf("DJ role set to %s", discord.RoleMention(role.ID))
 	}
-	if err := c.Database.SetGuildColumn(e.Ctx, *e.GuildID(), "dj_role_id", roleID); err != nil {
+	if err := c.Database.SetGuildColumn(e.Ctx, int64(*e.GuildID()), "dj_role_id", roleID); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to update settings", err))
 	}
 	return e.CreateMessage(res.Create(message))
@@ -101,7 +104,7 @@ func (c *commands) OnSettingsDJRole(data discord.SlashCommandInteractionData, e 
 
 func (c *commands) OnSettingsNSFW(data discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
 	enabled := data.Bool("enabled")
-	if err := c.Database.SetGuildColumn(e.Ctx, *e.GuildID(), "nsfw_enabled", enabled); err != nil {
+	if err := c.Database.SetGuildColumn(e.Ctx, int64(*e.GuildID()), "nsfw_enabled", enabled); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to update settings", err))
 	}
 	return e.CreateMessage(res.Createf("NSFW commands `%s`", enabledText(enabled)))
@@ -109,7 +112,7 @@ func (c *commands) OnSettingsNSFW(data discord.SlashCommandInteractionData, e *h
 
 func (c *commands) OnSettingsRoleSaver(data discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
 	enabled := data.Bool("enabled")
-	if err := c.Database.SetGuildColumn(e.Ctx, *e.GuildID(), "role_saver_enabled", enabled); err != nil {
+	if err := c.Database.SetGuildColumn(e.Ctx, int64(*e.GuildID()), "role_saver_enabled", enabled); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to update settings", err))
 	}
 	return e.CreateMessage(res.Createf("Role saver `%s`", enabledText(enabled)))
@@ -134,4 +137,11 @@ func mentionRole(id snowflake.ID) string {
 		return "unset"
 	}
 	return discord.RoleMention(id)
+}
+
+func storedID(id int64) snowflake.ID {
+	if id <= 0 {
+		return 0
+	}
+	return snowflake.ID(id)
 }

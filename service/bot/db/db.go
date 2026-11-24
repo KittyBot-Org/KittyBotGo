@@ -2,15 +2,24 @@ package db
 
 import (
 	"context"
+	"embed"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
-	"github.com/disgoorg/snowflake/v2"
+	"github.com/exaring/otelpgx"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
-	"github.com/jmoiron/sqlx"
+	"github.com/topi314/gomigrate"
+	"github.com/topi314/gomigrate/drivers/postgres"
+
+	"github.com/kittybot-org/kittybotgo/service/bot/db/dbsqlc"
 )
+
+//go:embed migrations/*.sql
+var migrations embed.FS
 
 type Config struct {
 	Host     string `toml:"host"`
@@ -22,7 +31,7 @@ type Config struct {
 }
 
 func (c Config) String() string {
-	return fmt.Sprintf("\n   Host: %s\n   Port: %dn   Username: %s\n   Password: %s\n   Database: %s\n   SSLMode: %s",
+	return fmt.Sprintf("\n   Host: %s\n   Port: %d\n   Username: %s\n   Password: %s\n   Database: %s\n   SSLMode: %s",
 		c.Host,
 		c.Port,
 		c.Username,
@@ -43,57 +52,59 @@ func (c Config) PostgresDataSourceName() string {
 	)
 }
 
-func New(cfg Config, schema string) (*DB, error) {
-	pgCfg, err := pgx.ParseConfig(cfg.PostgresDataSourceName())
+func New(cfg Config) (*DB, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	poolCfg, err := pgxpool.ParseConfig(cfg.PostgresDataSourceName())
 	if err != nil {
 		return nil, err
 	}
-
-	db, err := sqlx.Open("pgx", stdlib.RegisterConnConfig(pgCfg))
+	poolCfg.ConnConfig.Tracer = otelpgx.NewTracer()
+	pool, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	if err = db.PingContext(ctx); err != nil {
+	if err = pool.Ping(ctx); err != nil {
+		pool.Close()
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
-
-	if _, err = db.ExecContext(ctx, schema); err != nil {
-		return nil, fmt.Errorf("failed to execute schema: %w", err)
-	}
-
-	return &DB{
-		dbx: db,
-	}, nil
-}
-
-type DB struct {
-	dbx *sqlx.DB
-}
-
-func (d *DB) Close() error {
-	return d.dbx.Close()
-}
-
-type PlayTrack struct {
-	ID   int    `db:"id"`
-	Type string `db:"type"`
-	Name string `db:"name"`
-}
-
-func (d *DB) SearchPlay(userID snowflake.ID, query string, limit int) ([]PlayTrack, error) {
-	var tracks []PlayTrack
-	if err := d.dbx.Select(&tracks, `SELECT * FROM(
-		SELECT id, 'liked_track' as type, track -> 'info' ->> 'title' as name FROM liked_tracks WHERE user_id = $1
-		UNION ALL
-		SELECT id, 'playlist' as type, name FROM playlists WHERE user_id = $1
-		UNION ALL
-		SELECT id, 'play_history' as type, track -> 'info' ->> 'title' as name FROM play_histories  WHERE user_id = $1
-		) t ORDER BY name <->> $2 ASC LIMIT $3;`, userID, query, limit); err != nil {
+	if err = migrate(ctx, cfg.PostgresDataSourceName()); err != nil {
+		pool.Close()
 		return nil, err
 	}
 
-	return tracks, nil
+	return &DB{
+		pool:    pool,
+		Queries: dbsqlc.New(pool),
+	}, nil
+}
+
+func migrate(ctx context.Context, dsn string) error {
+	cfg, err := pgx.ParseConfig(dsn)
+	if err != nil {
+		return err
+	}
+	// The initial migration is one script with several statements.
+	cfg.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
+	sqlDB := stdlib.OpenDB(*cfg)
+	defer sqlDB.Close()
+
+	if err = gomigrate.Migrate(ctx, sqlDB, postgres.New, migrations,
+		gomigrate.WithDirectory("migrations"),
+		gomigrate.WithLogger(slog.Default()),
+	); err != nil {
+		return fmt.Errorf("failed to migrate database: %w", err)
+	}
+	return nil
+}
+
+type DB struct {
+	pool *pgxpool.Pool
+	*dbsqlc.Queries
+}
+
+func (d *DB) Close() error {
+	d.pool.Close()
+	return nil
 }

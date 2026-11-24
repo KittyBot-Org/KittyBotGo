@@ -10,6 +10,8 @@ import (
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/topi314/tint"
+
+	"github.com/kittybot-org/kittybotgo/service/bot/db/dbsqlc"
 )
 
 var joinMessages = []string{
@@ -101,7 +103,7 @@ func (b *Bot) onMemberJoin(e *events.GuildMemberJoin) {
 		b.used[e.GuildID][e.Member.User.ID] = code
 		b.usedMu.Unlock()
 	}
-	settings, err := b.Database.GetGuild(context.Background(), e.GuildID)
+	settings, err := b.guild(context.Background(), e.GuildID)
 	if err != nil {
 		return
 	}
@@ -115,7 +117,7 @@ func (b *Bot) onMemberJoin(e *events.GuildMemberJoin) {
 			inviteCode = code
 			inviteLink = discord.InviteURL(code)
 		}
-		b.sendAnnouncement(e.GuildID, settings.AnnouncementChannel(), replacePlaceholders(settings.JoinMessage, map[string]string{
+		b.sendAnnouncement(e.GuildID, storedID(settings.AnnouncementChannelID), replacePlaceholders(settings.JoinMessage, map[string]string{
 			"random_join_message": joinMessages[rand.Intn(len(joinMessages))],
 			"user":                e.Member.User.Mention(),
 			"user_tag":            e.Member.User.Tag(),
@@ -130,11 +132,11 @@ func (b *Bot) onMemberLeave(e *events.GuildMemberLeave) {
 	b.usedMu.Lock()
 	delete(b.used[e.GuildID], e.User.ID)
 	b.usedMu.Unlock()
-	settings, err := b.Database.GetGuild(context.Background(), e.GuildID)
+	settings, err := b.guild(context.Background(), e.GuildID)
 	if err != nil || !settings.LeaveMessagesEnabled {
 		return
 	}
-	b.sendAnnouncement(e.GuildID, settings.AnnouncementChannel(), replacePlaceholders(settings.LeaveMessage, map[string]string{
+	b.sendAnnouncement(e.GuildID, storedID(settings.AnnouncementChannelID), replacePlaceholders(settings.LeaveMessage, map[string]string{
 		"random_leave_message": leaveMessages[rand.Intn(len(leaveMessages))],
 		"user":                 e.User.Mention(),
 		"user_tag":             e.User.Tag(),
@@ -149,7 +151,11 @@ func (b *Bot) onMemberUpdate(e *events.GuildMemberUpdate) {
 			roles = append(roles, roleID)
 		}
 	}
-	if err := b.Database.ReplaceMemberRoles(context.Background(), e.GuildID, e.Member.User.ID, roles); err != nil {
+	roleIDs := make([]int64, len(roles))
+	for i, roleID := range roles {
+		roleIDs[i] = int64(roleID)
+	}
+	if err := b.Database.ReplaceMemberRoles(context.Background(), int64(e.GuildID), int64(e.Member.User.ID), roleIDs); err != nil {
 		slog.Debug("failed to store member roles", tint.Err(err))
 	}
 }
@@ -159,15 +165,32 @@ func (b *Bot) restoreRoles(guildID snowflake.ID, userID snowflake.ID) {
 	if err != nil || !perms.Has(discord.PermissionManageRoles) {
 		return
 	}
-	roles, err := b.Database.GetMemberRoles(context.Background(), guildID, userID)
+	rows, err := b.Database.GetMemberRoles(context.Background(), dbsqlc.GetMemberRolesParams{
+		GuildID: int64(guildID),
+		UserID:  int64(userID),
+	})
 	if err != nil {
 		return
 	}
-	for _, roleID := range roles {
-		if err := b.Discord.Rest.AddMemberRole(guildID, userID, roleID); err != nil {
-			slog.Debug("failed to restore role", slog.String("role", roleID.String()), tint.Err(err))
+	for _, roleID := range rows {
+		if err := b.Discord.Rest.AddMemberRole(guildID, userID, snowflake.ID(roleID)); err != nil {
+			slog.Debug("failed to restore role", slog.String("role", snowflake.ID(roleID).String()), tint.Err(err))
 		}
 	}
+}
+
+func (b *Bot) guild(ctx context.Context, guildID snowflake.ID) (dbsqlc.Guild, error) {
+	if err := b.Database.EnsureGuild(ctx, int64(guildID)); err != nil {
+		return dbsqlc.Guild{}, err
+	}
+	return b.Database.GetGuild(ctx, int64(guildID))
+}
+
+func storedID(id int64) snowflake.ID {
+	if id <= 0 {
+		return 0
+	}
+	return snowflake.ID(id)
 }
 
 func (b *Bot) sendAnnouncement(guildID snowflake.ID, channelID snowflake.ID, message string) {

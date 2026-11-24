@@ -8,11 +8,13 @@ import (
 	"github.com/disgoorg/snowflake/v2"
 
 	"github.com/kittybot-org/kittybotgo/internal/log"
+	"github.com/kittybot-org/kittybotgo/internal/otel"
 	"github.com/kittybot-org/kittybotgo/service/bot/db"
 )
 
 type Config struct {
 	Log       log.Config      `toml:"log"`
+	Otel      otel.Config     `toml:"otel"`
 	Bot       BotConfig       `toml:"bot"`
 	Database  db.Config       `toml:"database"`
 	Dashboard DashboardConfig `toml:"dashboard"`
@@ -20,8 +22,9 @@ type Config struct {
 }
 
 func (c Config) String() string {
-	return fmt.Sprintf("\n Log: %v\n Bot: %s\n Database: %s\n Dashboard: %s\n Nodes: %s\n",
+	return fmt.Sprintf("\n Log: %v\n Otel: %s\n Bot: %s\n Database: %s\n Dashboard: %s\n Nodes: %s\n",
 		c.Log,
+		c.Otel,
 		c.Bot,
 		c.Database,
 		c.Dashboard,
@@ -37,10 +40,12 @@ type BotConfig struct {
 	Token        string         `toml:"token"`
 	Secret       string         `toml:"secret"`
 	DevIDs       []snowflake.ID `toml:"dev_ids"`
+	NATSURL      string         `toml:"nats_url"`
+	CacheURL     string         `toml:"cache_url"`
 }
 
 func (c BotConfig) String() string {
-	return fmt.Sprintf("\n  SyncCommands: %t\n  GuildIDs: %v\n  GatewayURL: %s\n  RestURL: %s\n  Token: %s\n  Secret: %s\n  DevIDs: %v\n",
+	return fmt.Sprintf("\n  SyncCommands: %t\n  GuildIDs: %v\n  GatewayURL: %s\n  RestURL: %s\n  Token: %s\n  Secret: %s\n  DevIDs: %v\n  NATSURL: %s\n  CacheURL: %s\n",
 		c.SyncCommands,
 		c.GuildIDs,
 		c.GatewayURL,
@@ -48,6 +53,8 @@ func (c BotConfig) String() string {
 		strings.Repeat("*", len(c.Token)),
 		strings.Repeat("*", len(c.Secret)),
 		c.DevIDs,
+		c.NATSURL,
+		c.CacheURL,
 	)
 }
 
