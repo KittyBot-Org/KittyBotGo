@@ -1,0 +1,12 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "service/bot/db/queries"
+    schema: "service/bot/db/migrations"
+    gen:
+      go:
+        package: "dbsqlc"
+        out: "service/bot/db/dbsqlc"
+        sql_package: "pgx/v5"
+        emit_empty_slices: true
+        omit_unused_structs: true

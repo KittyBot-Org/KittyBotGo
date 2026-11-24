@@ -4,7 +4,7 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/handler"
 
-	"github.com/KittyBot-Org/KittyBotGo/service/bot/res"
+	"github.com/kittybot-org/kittybotgo/service/bot/res"
 )
 
 var pingCommand = discord.SlashCommandCreate{

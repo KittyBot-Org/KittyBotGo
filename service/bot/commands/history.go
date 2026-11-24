@@ -7,7 +7,7 @@ import (
 	"github.com/disgoorg/disgo/handler"
 	"github.com/disgoorg/lavaqueue-plugin"
 
-	"github.com/KittyBot-Org/KittyBotGo/service/bot/res"
+	"github.com/kittybot-org/kittybotgo/service/bot/res"
 )
 
 var historyCommand = discord.SlashCommandCreate{
@@ -26,7 +26,7 @@ var historyCommand = discord.SlashCommandCreate{
 }
 
 func (c *commands) OnHistoryClear(_ discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
-	if err := lavaqueue.ClearHistory(e.Ctx, c.Lavalink.Player(*e.GuildID()).Node(), *e.GuildID()); err != nil {
+	if err := lavaqueue.ClearHistory(e.Ctx, c.Lavalink.Player(*e.GuildID()).Node, *e.GuildID()); err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to clear history", err))
 	}
 
@@ -34,7 +34,7 @@ func (c *commands) OnHistoryClear(_ discord.SlashCommandInteractionData, e *hand
 }
 
 func (c *commands) OnHistoryShow(_ discord.SlashCommandInteractionData, e *handler.CommandEvent) error {
-	tracks, err := lavaqueue.GetHistory(e.Ctx, c.Lavalink.Player(*e.GuildID()).Node(), *e.GuildID())
+	tracks, err := lavaqueue.GetHistory(e.Ctx, c.Lavalink.Player(*e.GuildID()).Node, *e.GuildID())
 	if err != nil {
 		return e.CreateMessage(res.CreateErr("Failed to get history", err))
 	}

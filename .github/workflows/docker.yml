@@ -2,21 +2,27 @@ name: Build and Deploy
 
 on: [ push ]
 
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+  actions: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+        uses: actions/checkout@v7
 
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v6
         with:
-          images: |
-            ghcr.io/${{ github.repository }}
+          images: ghcr.io/${{ github.repository }}-bot
           tags: |
             type=ref,event=branch
             type=ref,event=tag
@@ -24,44 +30,75 @@ jobs:
             type=sha,prefix=
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v4
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Prepare Version Info
-        run: |
-          echo "VERSION=$(git describe --tags)" >> $GITHUB_ENV
-          echo "COMMIT=$(git rev-parse HEAD)" >> $GITHUB_ENV
-
       - name: Build and push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v7
         with:
           context: .
+          file: cmd/bot/Dockerfile
           platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            VERSION=${{ env.VERSION }}
-            COMMIT=${{ env.COMMIT }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Docker meta gateway
+        id: meta-gateway
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/${{ github.repository }}-gateway
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=ref,event=pr
+            type=sha,prefix=
+
+      - name: Build and push gateway
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: cmd/gateway/Dockerfile
+          platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
+          push: true
+          tags: ${{ steps.meta-gateway.outputs.tags }}
+          labels: ${{ steps.meta-gateway.outputs.labels }}
+          cache-from: type=gha,scope=gateway
+          cache-to: type=gha,scope=gateway,mode=max
 
   deploy:
     needs:
       - build
     runs-on: ubuntu-latest
+    env:
+      DEPLOY_URL: ${{ secrets.DEPLOY_URL }}
+      GATEWAY_DEPLOY_URL: ${{ secrets.GATEWAY_DEPLOY_URL }}
     steps:
       - name: Deploy
-        uses: fjogeleit/http-request-action@v1
+        if: env.DEPLOY_URL != ''
+        uses: fjogeleit/http-request-action@v2
         with:
-          url: "https://watchtower.topi.wtf/v1/update?image=ghcr.io/kittybotgo/kittybot"
+          url: ${{ env.DEPLOY_URL }}
           method: "POST"
           timeout: 60000
-          customHeaders: '{"Authorization": "Bearer ${{ secrets.TOKEN }}"}'
+          customHeaders: '{"Authorization": "Bearer ${{ secrets.DEPLOY_TOKEN }}"}'
+
+      - name: Deploy gateway
+        if: env.GATEWAY_DEPLOY_URL != ''
+        uses: fjogeleit/http-request-action@v2
+        with:
+          url: ${{ env.GATEWAY_DEPLOY_URL }}
+          method: "POST"
+          timeout: 60000
+          customHeaders: '{"Authorization": "Bearer ${{ secrets.DEPLOY_TOKEN }}"}'

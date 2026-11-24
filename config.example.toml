@@ -4,6 +4,15 @@ format = 'text'
 add_source = true
 no_color = false
 
+[otel]
+# instance_id = '1'
+# [otel.trace]
+# endpoint = 'localhost:4318'
+# insecure = true
+# [otel.metrics]
+# endpoint = 'localhost:4318'
+# insecure = true
+
 [bot]
 dev_mode = false
 sync_commands = true
@@ -11,14 +20,38 @@ guild_ids = [123456789]
 # gateway_url = 'ws://localhost:7878'
 # rest_url = 'http://lcaolhost:7979/api/v10'
 token = '...'
+secret = '...'
+dev_ids = [123456789]
+nats_url = 'nats://127.0.0.1:4222'
+cache_url = 'http://127.0.0.1:8081'
+
+[gateway]
+# gateway_url = 'ws://localhost:7878'
+# rest_url = 'http://localhost:7979/api/v10'
+token = '...'
+nats_url = 'nats://127.0.0.1:4222'
+host = '0.0.0.0'
+port = 8081
 
 [database]
 host = 'localhost'
 port = 5432
-username = 'kittybotgo'
+username = 'kittybot'
 password = '...'
-database = 'kittybotgo'
+database = 'kittybot'
 ssl_mode = 'disable'
+
+[dashboard]
+host = '0.0.0.0'
+port = 8080
+origin_url = 'https://kittybot.de'
+redirect_url = 'https://kittybot.de/login'
+signing_key = 'change-me-to-a-long-random-string'
+hastebin_url = 'https://hastebin.com'
+support_invite = 'https://discord.gg/sD3ABd5'
+bot_invite_url = 'https://discord.com/oauth2/authorize?client_id=0&scope=bot+applications.commands'
+privacy_url = 'https://kittybot.de/privacy'
+vote_url = 'https://top.gg/bot/0/vote'
 
 [[nodes]]
 name = 'node1'

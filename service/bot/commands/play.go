@@ -11,13 +11,16 @@ import (
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/handler"
-	"github.com/disgoorg/disgolink/v3/disgolink"
-	"github.com/disgoorg/disgolink/v3/lavalink"
+	"github.com/disgoorg/disgolink/v4/disgolink"
+	"github.com/disgoorg/disgolink/v4/lavalink"
+	"github.com/disgoorg/json"
 	"github.com/disgoorg/lavaqueue-plugin"
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/topi314/tint"
 
-	"github.com/KittyBot-Org/KittyBotGo/service/bot/res"
+	"github.com/kittybot-org/kittybotgo/service/bot"
+	"github.com/kittybot-org/kittybotgo/service/bot/db/dbsqlc"
+	"github.com/kittybot-org/kittybotgo/service/bot/res"
 )
 
 var (
@@ -47,9 +50,20 @@ func (c *commands) OnPlayerPlay(data discord.SlashCommandInteractionData, e *han
 		}
 	}
 
-	voiceState, ok := c.Discord.Caches().VoiceState(*e.GuildID(), e.User().ID)
+	voiceState, ok := c.Discord.Caches.VoiceState(*e.GuildID(), e.User().ID)
 	if !ok {
 		return e.CreateMessage(res.CreateError("You are not in a voice channel"))
+	}
+
+	channel, _ := c.Discord.Caches.Channel(*voiceState.ChannelID)
+	selfMember, err := c.Discord.Rest.GetMember(*e.GuildID(), c.Discord.ID())
+	if err != nil {
+		return e.CreateMessage(res.CreateErr("Failed to get current member", err))
+	}
+
+	perms := c.Discord.Caches.MemberPermissionsInChannel(channel, *selfMember)
+	if !perms.Has(discord.PermissionConnect) || !perms.Has(discord.PermissionSpeak) {
+		return e.CreateMessage(res.CreateError("I don't have permission to join or speak in the channel"))
 	}
 
 	player := c.Lavalink.Player(*e.GuildID())
@@ -60,38 +74,42 @@ func (c *commands) OnPlayerPlay(data discord.SlashCommandInteractionData, e *han
 
 	switch loadType {
 	case "liked_track":
-		track, err := c.Database.GetLikedTrack(id)
+		row, err := c.Database.GetLikedTrack(e.Ctx, int64(id))
 		if err != nil {
 			_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to get liked song", err))
 			return err
 		}
-		return c.handleTracks(e, *voiceState.ChannelID, track.Track)
+		track, err := decodeTrack(row.Track)
+		if err != nil {
+			_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to get liked song", err))
+			return err
+		}
+		return c.handleTracks(e, *voiceState.ChannelID, track)
 
 	case "playlist":
-		_, playlistTracks, err := c.Database.GetPlaylist(id)
+		_, playlistTracks, err := c.Database.LoadPlaylist(e.Ctx, int64(id))
 		if err != nil {
 			_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to get playlist", err))
 			return err
 		}
-
-		tracks := make([]lavalink.Track, len(playlistTracks))
-		for i, track := range playlistTracks {
-			tracks[i] = track.Track
-		}
-		return c.handleTracks(e, *voiceState.ChannelID, tracks...)
+		return c.handleTracks(e, *voiceState.ChannelID, playlistTracks...)
 
 	case "play_history":
-		track, err := c.Database.GetPlayHistoryTrack(id)
+		row, err := c.Database.GetPlayHistoryTrack(e.Ctx, int64(id))
 		if err != nil {
 			_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to get play history song", err))
 			return err
 		}
-
-		return c.handleTracks(e, *voiceState.ChannelID, track.Track)
+		track, err := decodeTrack(row.Track)
+		if err != nil {
+			_, err = e.UpdateInteractionResponse(res.UpdateErr("Failed to get play history song", err))
+			return err
+		}
+		return c.handleTracks(e, *voiceState.ChannelID, track)
 	}
 
 	var loadErr error
-	player.Node().LoadTracksHandler(e.Ctx, query, disgolink.NewResultHandler(
+	player.Node.Rest.LoadTracksHandler(e.Ctx, query, disgolink.NewTrackLoadingResultHandler(
 		func(track lavalink.Track) {
 			loadErr = c.handleTracks(e, *voiceState.ChannelID, track)
 		},
@@ -113,7 +131,7 @@ func (c *commands) OnPlayerPlay(data discord.SlashCommandInteractionData, e *han
 }
 
 func (c *commands) handleTracks(e *handler.CommandEvent, channelID snowflake.ID, tracks ...lavalink.Track) error {
-	_, ok := c.Discord.Caches().VoiceState(*e.GuildID(), e.ApplicationID())
+	_, ok := c.Discord.Caches.VoiceState(*e.GuildID(), e.ApplicationID())
 	if !ok {
 		if err := c.Discord.UpdateVoiceState(context.Background(), *e.GuildID(), &channelID, false, false); err != nil {
 			_, err = e.UpdateInteractionResponse(res.UpdateErr("An error occurred", err))
@@ -121,16 +139,20 @@ func (c *commands) handleTracks(e *handler.CommandEvent, channelID snowflake.ID,
 		}
 	}
 
+	userData, _ := json.Marshal(bot.UserData{
+		Requester: e.User().ID,
+	})
+
 	queueTracks := make([]lavaqueue.QueueTrack, len(tracks))
 	for i, track := range tracks {
 		queueTracks[i] = lavaqueue.QueueTrack{
 			Encoded:  track.Encoded,
-			UserData: nil, // TODO: Add user data
+			UserData: userData,
 		}
 	}
 
 	player := c.Lavalink.Player(*e.GuildID())
-	track, err := lavaqueue.AddQueueTracks(e.Ctx, player.Node(), *e.GuildID(), queueTracks)
+	track, err := lavaqueue.AddQueueTracks(e.Ctx, player.Node, *e.GuildID(), queueTracks)
 	if err != nil {
 		_, err = e.UpdateInteractionResponse(res.UpdateErr("An error occurred playing the song", err))
 		return err
@@ -151,7 +173,7 @@ func (c *commands) handleTracks(e *handler.CommandEvent, channelID snowflake.ID,
 	}
 
 	go func() {
-		if err := c.Database.AddPlayHistoryTracks(e.User().ID, tracks); err != nil {
+		if err := c.Database.AddPlayHistoryTracks(context.Background(), int64(e.User().ID), tracks); err != nil {
 			slog.Error("error adding play history songs", tint.Err(err))
 		}
 	}()
@@ -168,7 +190,11 @@ func (c *commands) OnPlayerPlayAutocomplete(e *handler.AutocompleteEvent) error 
 		limit = 25
 	}
 
-	tracks, err := c.Database.SearchPlay(e.User().ID, query, limit)
+	tracks, err := c.Database.SearchPlay(e.Ctx, dbsqlc.SearchPlayParams{
+		UserID:      int64(e.User().ID),
+		Query:       query,
+		ResultLimit: int32(limit),
+	})
 	if err != nil {
 		slog.Error("error searching play", tint.Err(err))
 		return e.AutocompleteResult(nil)
@@ -194,10 +220,21 @@ func (c *commands) OnPlayerPlayAutocomplete(e *handler.AutocompleteEvent) error 
 		}
 
 		choices = append(choices, discord.AutocompleteChoiceString{
-			Name:  res.Trim(prefix+track.Name, 100),
+			Name:  res.Trim(prefix+playName(track.Name), 100),
 			Value: fmt.Sprintf("%s:%d", track.Type, track.ID),
 		})
 	}
 
 	return e.AutocompleteResult(choices)
+}
+
+func playName(value any) string {
+	switch typed := value.(type) {
+	case string:
+		return typed
+	case []byte:
+		return string(typed)
+	default:
+		return fmt.Sprint(typed)
+	}
 }
